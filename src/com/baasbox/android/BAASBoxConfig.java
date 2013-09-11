@@ -48,9 +48,9 @@ public final class BAASBoxConfig {
 	public int HTTP_SOCKET_TIMEOUT = 10000;
 
 	/**
-	 * The domain name of the server, default is <code>localhost</code>.
+	 * The domain name of the server, default is <code>10.0.2.2</code> (simulator's host localhost).
 	 */
-	public String API_DOMAIN = "localhost";
+	public String API_DOMAIN = "10.0.2.2";
 
 	/**
 	 * The relative path of the server, default is <code>/</code>.
