@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,6 +26,7 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
@@ -62,11 +66,26 @@ public class RESTInterface {
 
 		SchemeRegistry schemes = new SchemeRegistry();
 
-		if (config.HTTPS)
-			throw new UnsupportedOperationException("HTTPs not yet supported");
-		else
+		if (config.HTTPS) {
+			try {
+				KeyStore trustStore = KeyStore.getInstance(KeyStore
+						.getDefaultType());
+				trustStore.load(null, null);
+
+				SSLSocketFactory factory = new SecureSocketFactory(trustStore);
+				factory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+				schemes.register(new Scheme("https", factory, config.HTTP_PORT));
+			} catch (KeyStoreException e) {
+				throw new Error(e);
+			} catch (GeneralSecurityException e) {
+				throw new Error(e);
+			} catch (IOException e) {
+				throw new Error(e);
+			}
+		} else {
 			schemes.register(new Scheme("http", PlainSocketFactory
 					.getSocketFactory(), config.HTTP_PORT));
+		}
 
 		HttpParams params = new BasicHttpParams();
 		HttpProtocolParams.setUserAgent(params, "android-sdk_"
@@ -226,7 +245,7 @@ public class RESTInterface {
 			throws BAASBoxInvalidSessionException, BAASBoxClientException,
 			BAASBoxServerException, BAASBoxConnectionException {
 		HttpEntity resultEntity = null;
-		
+
 		try {
 			setHeaders(request, credentials);
 
@@ -266,7 +285,7 @@ public class RESTInterface {
 
 				if (status == 401
 						&& code == BAASBoxInvalidSessionException.INVALID_SESSION_TOKEN_CODE) {
-					if (retry && onLogoutHelper != null) {						
+					if (retry && onLogoutHelper != null) {
 						try {
 							onLogoutHelper.retryLogin();
 							return execute(request, credentials,
@@ -274,7 +293,7 @@ public class RESTInterface {
 						} catch (BAASBoxInvalidSessionException e) {
 							if (onLogoutHelper != null)
 								onLogoutHelper.onLogout();
-							
+
 							throw e;
 						} catch (BAASBoxClientException e) {
 							if (onLogoutHelper != null)
