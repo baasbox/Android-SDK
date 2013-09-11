@@ -86,7 +86,8 @@ public class RESTInterface {
 			StringBuilder api = new StringBuilder();
 			api.append(config.HTTPS ? "https://" : "http://");
 			api.append(config.API_DOMAIN);
-
+			api.append(":");
+			api.append(config.HTTP_PORT);
 			if (config.API_BASEPATH == null
 					|| config.API_BASEPATH.length() == 0) {
 				api.append('/');
