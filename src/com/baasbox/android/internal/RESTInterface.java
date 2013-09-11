@@ -225,13 +225,15 @@ public class RESTInterface {
 			OnLogoutHelper onLogoutHelper, boolean retry)
 			throws BAASBoxInvalidSessionException, BAASBoxClientException,
 			BAASBoxServerException, BAASBoxConnectionException {
+		HttpEntity resultEntity = null;
+		
 		try {
 			setHeaders(request, credentials);
 
 			HttpResponse response = httpClient.execute(request);
 			int status = response.getStatusLine().getStatusCode();
 
-			HttpEntity resultEntity = response.getEntity();
+			resultEntity = response.getEntity();
 			String content = null;
 
 			if (resultEntity != null)
@@ -300,6 +302,12 @@ public class RESTInterface {
 		} catch (JSONException e) {
 			throw new BAASBoxConnectionException(
 					"Unable to parse server response", e);
+		} finally {
+			if (resultEntity != null)
+				try {
+					resultEntity.consumeContent();
+				} catch (IOException e) {
+				}
 		}
 	}
 
