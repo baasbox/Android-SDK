@@ -48,7 +48,7 @@ public final class BAASBoxConfig {
 	public int HTTP_SOCKET_TIMEOUT = 10000;
 
 	/**
-	 * The domain name of the server, default is <code>10.0.2.2</code> (simulator's host localhost).
+	 * The domain name of the server, default is <code>"10.0.2.2</code> -refers to the localhost from emulator.
 	 */
 	public String API_DOMAIN = "10.0.2.2";
 
