@@ -38,3 +38,7 @@ Here's an example of how you could combine AsyncTask and BAASBox.
                 }
         }
      }
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/baasbox/android-sdk/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
