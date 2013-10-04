@@ -143,6 +143,7 @@ public final class BAASBox {
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 	}
 
+	
 	/**
 	 * Check if the network connectivity is available or not.
 	 * 
@@ -166,6 +167,32 @@ public final class BAASBox {
 		return credentials.username != null && credentials.password != null;
 	}
 
+	
+//new for Auth --------------------------------------------
+	public String getSessionToken() {
+		return	credentials.sessionToken ;
+	}
+	public void setSessionToken(String sessionToken) {
+		credentials.sessionToken = sessionToken;
+		Editor editor = this.preferences.edit();
+
+		editor.putString(BB_SESSION_PERSISTENCE_KEY, sessionToken);
+		
+		editor.commit();
+	}
+	
+
+	public BAASBox(BAASBoxConfig config, String sessionToken, String username, String password) {
+		this.config = config;
+		this.rest = new RESTInterface(config);
+
+			credentials.sessionToken = sessionToken;
+		credentials.username = username;
+		credentials.password =password;
+
+
+	}
+	//new for Auth --------------------------------------------
 	/**
 	 * This method constructs a new {@link JSONObject} with {@code username} and
 	 * {@code password} and return the result of the method
@@ -530,6 +557,29 @@ public final class BAASBox {
 					"Unable to parse server response", e));
 		}
 	}
+	
+	/**
+	 * Returns the count of the document that the user can read inside the given
+	 * collection.
+	 * 
+	 * @param collection
+	 *            the collection
+	 * @return The count of the document that the user can read inside the given
+	 *         collection
+	 */
+	public BAASBoxResult<Long> createCollection(String collection) {
+		String uri = rest.getURI("/admin/collection/?", collection);
+		HttpPut request = rest.put(uri);
+
+		try {
+			JSONObject result = (JSONObject) rest.execute(request, credentials,
+					onLogoutHelper, true);
+			return new BAASBoxResult<Long>();
+		} catch (BAASBoxException e) {
+			return new BAASBoxResult<Long>(e);
+		}
+	}
+	 
 
 	/**
 	 * Invokes
