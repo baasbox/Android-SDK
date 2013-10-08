@@ -181,17 +181,6 @@ public final class BAASBox {
 	}
 	
 
-	public BAASBox(BAASBoxConfig config, String sessionToken, String username, String password) {
-		this.config = config;
-		this.rest = new RESTInterface(config);
-
-			credentials.sessionToken = sessionToken;
-		credentials.username = username;
-		credentials.password =password;
-
-
-	}
-	
 	/**
 	 * This method constructs a new {@link JSONObject} with {@code username} and
 	 * {@code password} and return the result of the method
