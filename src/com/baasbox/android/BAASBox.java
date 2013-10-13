@@ -1,7 +1,6 @@
 package com.baasbox.android;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpDelete;
@@ -566,13 +565,6 @@ public final class BAASBox {
 		return getAllDocuments(collection, null, -1, -1, null);
 	}
 
-	public static  <T> BAASBoxResult<List<T>>  getAll( Class<T> clazz) {
-	    
-
-	    return null;
-	}
-	
-	
 	/**
 	 * Invokes
 	 * {@link BAASBox#getAllDocuments(String, String, int, int, String, String...)
