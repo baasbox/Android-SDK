@@ -1,6 +1,7 @@
 package com.baasbox.android;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpDelete;
@@ -15,6 +16,7 @@ import org.json.JSONObject;
 import com.baasbox.android.internal.Credentials;
 import com.baasbox.android.internal.OnLogoutHelper;
 import com.baasbox.android.internal.RESTInterface;
+import com.google.gson.Gson;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -565,6 +567,37 @@ public final class BAASBox {
 		return getAllDocuments(collection, null, -1, -1, null);
 	}
 
+	
+	public <T extends BAAObject> BAASBoxResult<List<T>> getAll(Class<T> clazz) {
+
+		String collection = clazz.getName();//TODO change to get from filed
+		BAASBoxResult<JSONArray> r = getAllDocuments(collection);
+		if (r.hasError()) {
+			return new BAASBoxResult<List<T>>(r.getError());
+		} else {
+
+			List<T> rez = new ArrayList<T>();
+
+			JSONArray jsonArray = r.getValue();
+			for (int i = 0; i < jsonArray.length(); i++) {
+
+				String json = null;
+				try {
+					json = jsonArray.getJSONObject(i).toString();
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				@SuppressWarnings("unchecked")
+				T rz = (T) new Gson().fromJson(json, clazz);
+				rez.add(rz);
+			}
+			return new BAASBoxResult<List<T>>(rez);
+
+		}
+	}
+	
+	
 	/**
 	 * Invokes
 	 * {@link BAASBox#getAllDocuments(String, String, int, int, String, String...)
@@ -683,6 +716,8 @@ public final class BAASBox {
 			return new BAASBoxResult<JSONArray>(e);
 		}
 	}
+	
+	
 
 	/* Private methods - user access status callback */
 
