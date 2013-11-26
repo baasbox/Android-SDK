@@ -74,5 +74,13 @@ public final class BAASBoxResult<T> {
 	public Throwable getError() {
 		return e;
 	}
-
+	/**
+	 * Returns the error contained in the result.
+	 * 
+	 * @return the error contained in the result, <code>null</code> if not
+	 *         present.
+	 */
+	T getValue() {
+		return result;
+	}
 }

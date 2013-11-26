@@ -1,6 +1,7 @@
 package com.baasbox.android;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpDelete;
@@ -15,6 +16,7 @@ import org.json.JSONObject;
 import com.baasbox.android.internal.Credentials;
 import com.baasbox.android.internal.OnLogoutHelper;
 import com.baasbox.android.internal.RESTInterface;
+import com.google.gson.Gson;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -114,7 +116,24 @@ public final class BAASBox {
 	public BAASBox(Context context) {
 		this(new BAASBoxConfig(), context);
 	}
-
+	/**
+	 * Create and configure a new instance of the SDK with sessionToken 
+	 * to support background services (e.g. android sync framework)
+	 * @param context
+	 *            the context the instance is related.
+	 * @param sessionToken   
+	 *     sessionToken  (for example obtained from Account  stored in BAASBoxAuthenticator)  
+	 */
+	public BAASBox(Context context, String sessionToken) {
+		this(new BAASBoxConfig(), context);
+		credentials.sessionToken = sessionToken;
+		Editor editor = this.preferences.edit();
+		editor.putString(BB_SESSION_PERSISTENCE_KEY, sessionToken);	
+		//could be different user from the last logged in one
+		editor.putString(USERNAME_PERSISTENCE_KEY,null);
+		editor.putString(PASSWORD_PERSISTENCE_KEY,null);
+		editor.commit();
+	}
 	/**
 	 * Create and configure a new instance of the SDK.
 	 * 
@@ -143,6 +162,7 @@ public final class BAASBox {
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 	}
 
+	
 	/**
 	 * Check if the network connectivity is available or not.
 	 * 
@@ -166,13 +186,14 @@ public final class BAASBox {
 		return credentials.username != null && credentials.password != null;
 	}
 
+	
 	/**
 	 * This method constructs a new {@link JSONObject} with {@code username} and
 	 * {@code password} and return the result of the method
 	 * {@link BAASBox#signup(JSONObject) signup(user)}.
 	 * 
 	 */
-	public BAASBoxResult<Void> signup(String username, String password) {
+	public BAASBoxResult<String> signup(String username, String password) {
 		if (username == null)
 			throw new NullPointerException("username could not be null");
 		if (password == null)
@@ -194,7 +215,7 @@ public final class BAASBox {
 	 * {@link BAASBox#signup(JSONObject) signup(user)}.
 	 * 
 	 */
-	public BAASBoxResult<Void> signup(String username, String password,
+	public BAASBoxResult<String> signup(String username, String password,
 			JSONObject user) {
 		if (username == null)
 			throw new NullPointerException("username could not be null");
@@ -223,7 +244,7 @@ public final class BAASBox {
 	 *            the JSON representing the user
 	 * @return An empty result on success.
 	 */
-	public BAASBoxResult<Void> signup(JSONObject user) {
+	public BAASBoxResult<String> signup(JSONObject user) {
 		if (user == null)
 			throw new NullPointerException("user could not be null");
 
@@ -242,7 +263,7 @@ public final class BAASBox {
 			rest.execute(request, credentials, onLogoutHelper, false);
 			return login(username, password);
 		} catch (BAASBoxException e) {
-			return new BAASBoxResult<Void>(e);
+			return new BAASBoxResult<String>(e);
 		}
 	}
 
@@ -256,7 +277,7 @@ public final class BAASBox {
 	 *            the password in plain text.
 	 * @return An empty result on success.
 	 */
-	public BAASBoxResult<Void> login(String username, String password) {
+	public BAASBoxResult<String> login(String username, String password) {
 		if (username == null)
 			throw new NullPointerException("username could not be null");
 		if (password == null)
@@ -278,11 +299,11 @@ public final class BAASBox {
 			String token = json.getString(BB_SESSION_RESULT_KEY);
 			this.onUserLogin(token, username, password);
 
-			return new BAASBoxResult<Void>();
+			return new BAASBoxResult<String>(token);
 		} catch (BAASBoxException e) {
-			return new BAASBoxResult<Void>(e);
+			return new BAASBoxResult<String>(e);
 		} catch (JSONException e) {
-			return new BAASBoxResult<Void>(new BAASBoxConnectionException(
+			return new BAASBoxResult<String>(new BAASBoxConnectionException(
 					"Unable to parse server response", e));
 		}
 	}
@@ -530,6 +551,7 @@ public final class BAASBox {
 					"Unable to parse server response", e));
 		}
 	}
+	
 
 	/**
 	 * Invokes
@@ -545,6 +567,37 @@ public final class BAASBox {
 		return getAllDocuments(collection, null, -1, -1, null);
 	}
 
+	
+	public <T extends BAAObject> BAASBoxResult<List<T>> getAll(Class<T> clazz) {
+
+		String collection = clazz.getName();//TODO change to get from filed
+		BAASBoxResult<JSONArray> r = getAllDocuments(collection);
+		if (r.hasError()) {
+			return new BAASBoxResult<List<T>>(r.getError());
+		} else {
+
+			List<T> rez = new ArrayList<T>();
+
+			JSONArray jsonArray = r.getValue();
+			for (int i = 0; i < jsonArray.length(); i++) {
+
+				String json = null;
+				try {
+					json = jsonArray.getJSONObject(i).toString();
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				@SuppressWarnings("unchecked")
+				T rz = (T) new Gson().fromJson(json, clazz);
+				rez.add(rz);
+			}
+			return new BAASBoxResult<List<T>>(rez);
+
+		}
+	}
+	
+	
 	/**
 	 * Invokes
 	 * {@link BAASBox#getAllDocuments(String, String, int, int, String, String...)
@@ -663,6 +716,8 @@ public final class BAASBox {
 			return new BAASBoxResult<JSONArray>(e);
 		}
 	}
+	
+	
 
 	/* Private methods - user access status callback */
 
