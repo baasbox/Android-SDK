@@ -1,18 +1,21 @@
 package com.baasbox.android.internal;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.methods.HttpUriRequest;
 
-import java.util.ArrayList;
+import com.baasbox.android.BAASBox;
+import com.baasbox.android.BAASBoxResult;
+
+import org.apache.http.client.methods.HttpUriRequest;
 
 /**
  * Created by Andrea Tortorella on 13/12/13.
  */
-public class BAASRequest {
-    final HttpUriRequest request;
-    final Credentials credentials;
-    final OnLogoutHelper logoutHelper;
-    final boolean retry;
+public class BAASRequest<T> {
+    public final HttpUriRequest request;
+    public final Credentials credentials;
+    public final OnLogoutHelper logoutHelper;
+    public final boolean retry;
+    public BAASBox.BAASHandler<T> handler;
+    BAASBoxResult<T> result;
 
     BAASRequest(HttpUriRequest request,Credentials credentials,OnLogoutHelper logoutHelper,boolean retry){
         this.request=request;
@@ -20,6 +23,11 @@ public class BAASRequest {
         this.logoutHelper=logoutHelper;
         this.retry=retry;
     }
+
+
+
+
+
 
 
 }

@@ -13,6 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.baasbox.android.internal.AsyncRequestExecutor;
 import com.baasbox.android.internal.BAASRequest;
 import com.baasbox.android.internal.Credentials;
 import com.baasbox.android.internal.RESTInterface;
@@ -89,6 +90,19 @@ public final class BAASBox {
 	private static final String USERNAME_PERSISTENCE_KEY = "BAASBox_username";
 	private static final String PASSWORD_PERSISTENCE_KEY = "BAASBox_password";
 
+    /**
+     *  Interface definition for a callback to be invoked when baasbox responds to a request
+     *  @param <T> the expected return type
+     */
+    public interface BAASHandler<T> {
+        /**
+         * Called with the result of a request to BAASBox
+         * @param result
+         */
+        public void handle(BAASBoxResult<T> result);
+    }
+
+    private AsyncRequestExecutor requestExecutor;
 	private RESTInterface rest;
 	private BAASBoxConfig config;
     private RequestFactory requestFactory;
@@ -169,6 +183,7 @@ public final class BAASBox {
 		connectivityManager = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
         requestFactory = new RequestFactory(config,credentials,onLogoutHelper);
+        requestExecutor = new AsyncRequestExecutor(rest);
     }
 
 	
@@ -218,7 +233,27 @@ public final class BAASBox {
 		}
 	}
 
-	/**
+    public void signup(String username,String password,BAASHandler<String> handler){
+        signup(username,password,null,handler);
+    }
+
+    public void signup(String username,String password,JSONObject user,BAASHandler<String> handler){
+        if (username == null)
+            throw new NullPointerException("username could not be null");
+        if (password == null)
+            throw new NullPointerException("password could not be null");
+        user = user==null?new JSONObject():user;
+        try {
+            user.put("username",username);
+            user.put("password", password);
+            signup(user,handler);
+        }catch (JSONException e){
+            throw new Error(e);
+        }
+    }
+
+
+    /**
 	 * This method overrides the {@code username} and {@code password} of the
 	 * {@code user} passed as param and return the result of the method
 	 * {@link BAASBox#signup(JSONObject) signup(user)}.
@@ -266,7 +301,7 @@ public final class BAASBox {
 			throw new NullPointerException("password could not be null");
 
 		String uri = requestFactory.getURI("user");
-		BAASRequest request = requestFactory.post(uri, user,false);
+		BAASRequest request = requestFactory.post(uri, user, true);
 
 		try {
             rest.execute(request);
@@ -275,6 +310,36 @@ public final class BAASBox {
 			return new BAASBoxResult<String>(e);
 		}
 	}
+
+    public void  signup(JSONObject user,final BAASHandler<String> handler){
+        if (user == null)
+            throw new NullPointerException("user could not be null");
+        if (handler==null){
+            throw new NullPointerException("handler cannot be null");
+        }
+
+        final String username = user.optString("username");
+        final String password = user.optString("password");
+
+        if (username == null)
+            throw new NullPointerException("username could not be null");
+        if (password == null)
+            throw new NullPointerException("password could not be null");
+
+        String uri = requestFactory.getURI("user");
+        BAASRequest request = requestFactory.post(uri, user, true);
+        request.handler= new BAASHandler() {
+            @Override
+            public void handle(BAASBoxResult result) {
+                if (result.hasError()){
+                    handler.handle(BAASBoxResult.<String>failure(result.getError()));
+                } else {
+                    login(username,password,handler);
+                }
+            }
+        };
+        requestExecutor.enqueue(request);
+    }
 
 	/**
 	 * Execute a login request with the given username and password. On success
@@ -316,7 +381,42 @@ public final class BAASBox {
 		}
 	}
 
-	/**
+    public void login(final String username,final String password,final BAASHandler<String> handler) {
+        if (username == null)
+            throw new NullPointerException("username could not be null");
+        if (password == null)
+            throw new NullPointerException("password could not be null");
+
+        ArrayList<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>(
+                3);
+        params.add(new BasicNameValuePair("username", username));
+        params.add(new BasicNameValuePair("password", password));
+        params.add(new BasicNameValuePair("appcode", config.APP_CODE));
+        String uri = requestFactory.getURI("login");
+            BAASRequest request = requestFactory.post(uri, params,false);
+            request.handler=new BAASHandler() {
+                @Override
+                public void handle(BAASBoxResult result) {
+                    if (result.hasError()){
+                        handler.handle(BAASBoxResult.<String>failure(result.getError()));
+                    } else {
+                        try{
+                            JSONObject json = (JSONObject)result.getValue();
+                            String token = json.getString(BB_SESSION_RESULT_KEY);
+                            BAASBox.this.onUserLogin(token,username,password);
+                            handler.handle(BAASBoxResult.success(token));
+                        } catch (JSONException e){
+                            handler.handle(
+                                    BAASBoxResult.<String>failure(new BAASBoxConnectionException("Unable to parse server response",e)));
+                        }
+                    }
+                }
+            };
+            requestExecutor.enqueue(request);
+    }
+
+
+    /**
 	 * Execute a logout request. On success the credentials of the user will be
 	 * deleted.
 	 * 

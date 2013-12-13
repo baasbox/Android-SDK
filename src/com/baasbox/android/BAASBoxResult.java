@@ -29,6 +29,31 @@ public final class BAASBoxResult<T> {
 		this.e = null;
 	}
 
+    private BAASBoxResult(T result,Throwable e){
+        this.result=result;
+        this.e=e;
+    }
+
+    /**
+     * Returns a successfull baasbox result
+     * @param value
+     * @param <T>
+     * @return
+     */
+    public static<T> BAASBoxResult<T> success(T value){
+        return new BAASBoxResult(value,null);
+    }
+
+    /**
+     * Returns a failed baasbox result
+     * @param e
+     * @param <T>
+     * @return
+     */
+    public static<T> BAASBoxResult<T> failure(Throwable e){
+        return new BAASBoxResult<T>(null,e);
+    }
+
 	/**
 	 * Returns the result contained in the instance. If the SDK thrown an
 	 * exception during the execution, the exception will be throw here. This is
