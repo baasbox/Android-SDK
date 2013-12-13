@@ -5,8 +5,8 @@
 
     <uses-sdk
         android:minSdkVersion="1"
-        android:targetSdkVersion="18" />
+        android:targetSdkVersion="19" />
 
-    <application android:icon="@null" />
+    <application/>
 
 </manifest>
