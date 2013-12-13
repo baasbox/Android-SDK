@@ -241,14 +241,18 @@ public class RESTInterface {
 		}
 	}
 
-	public Object execute(HttpUriRequest request, Credentials credentials,
+    public Object execute(BAASRequest request) throws BAASBoxClientException, BAASBoxConnectionException, BAASBoxServerException, BAASBoxInvalidSessionException {
+        return execute(request.request,request.credentials,request.logoutHelper,request.retry);
+    }
+
+    public Object execute(HttpUriRequest request, Credentials credentials,
 			OnLogoutHelper onLogoutHelper, boolean retry)
 			throws BAASBoxInvalidSessionException, BAASBoxClientException,
 			BAASBoxServerException, BAASBoxConnectionException {
 		HttpEntity resultEntity = null;
 
 		try {
-			setHeaders(request, credentials);
+//			setHeaders(request, credentials);
 
 			HttpResponse response = httpClient.execute(request);
 			int status = response.getStatusLine().getStatusCode();

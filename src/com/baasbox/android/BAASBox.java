@@ -14,8 +14,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.baasbox.android.internal.Credentials;
-import com.baasbox.android.internal.OnLogoutHelper;
 import com.baasbox.android.internal.RESTInterface;
+import com.baasbox.android.internal.OnLogoutHelper;
+import com.baasbox.android.internal.RequestFactory;
 import com.google.gson.Gson;
 
 import android.content.Context;
@@ -88,11 +89,15 @@ public final class BAASBox {
 
 	private RESTInterface rest;
 	private BAASBoxConfig config;
+    private RequestFactory requestFactory;
 
 	private SharedPreferences preferences;
-	private ConnectivityManager connectivityManager;
-	private final Credentials credentials = new Credentials();
-	private final OnLogoutHelper onLogoutHelper = new OnLogoutHelper() {
+
+    private ConnectivityManager connectivityManager;
+
+    private final Credentials credentials = new Credentials();
+
+    private final OnLogoutHelper onLogoutHelper = new OnLogoutHelper() {
 		@Override
 		public void onLogout() {
 			BAASBox.this.onUserLogout();
@@ -134,6 +139,7 @@ public final class BAASBox {
 		editor.putString(PASSWORD_PERSISTENCE_KEY,null);
 		editor.commit();
 	}
+
 	/**
 	 * Create and configure a new instance of the SDK.
 	 * 
@@ -160,7 +166,8 @@ public final class BAASBox {
 
 		connectivityManager = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
-	}
+        requestFactory = new RequestFactory(config,credentials,onLogoutHelper);
+    }
 
 	
 	/**
