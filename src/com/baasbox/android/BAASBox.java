@@ -13,6 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.baasbox.android.internal.BAASRequest;
 import com.baasbox.android.internal.Credentials;
 import com.baasbox.android.internal.RESTInterface;
 import com.baasbox.android.internal.OnLogoutHelper;
@@ -24,6 +25,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.widget.BaseAdapter;
 
 /**
  * BAASBox is the main class that can be used to access all the functionalities
@@ -263,12 +265,12 @@ public final class BAASBox {
 		if (password == null)
 			throw new NullPointerException("password could not be null");
 
-		String uri = rest.getURI("user");
-		HttpPost request = rest.post(uri, user);
+		String uri = requestFactory.getURI("user");
+		BAASRequest request = requestFactory.post(uri, user,false);
 
 		try {
-			rest.execute(request, credentials, onLogoutHelper, false);
-			return login(username, password);
+            rest.execute(request);
+            return login(username, password);
 		} catch (BAASBoxException e) {
 			return new BAASBoxResult<String>(e);
 		}
@@ -297,11 +299,10 @@ public final class BAASBox {
 		params.add(new BasicNameValuePair("appcode", config.APP_CODE));
 
 		try {
-			String uri = rest.getURI("login");
-			HttpPost request = rest.post(uri, params);
+			String uri = requestFactory.getURI("login");
+			BAASRequest request = requestFactory.post(uri, params,false);
 
-			JSONObject json = (JSONObject) rest.execute(request, credentials,
-					onLogoutHelper, false);
+			JSONObject json = (JSONObject) rest.execute(request);
 
 			String token = json.getString(BB_SESSION_RESULT_KEY);
 			this.onUserLogin(token, username, password);
@@ -322,11 +323,11 @@ public final class BAASBox {
 	 * @return An empty result on success.
 	 */
 	public BAASBoxResult<Void> logout() {
-		String uri = rest.getURI("logout");
-		HttpPost request = rest.post(uri);
+		String uri = requestFactory.getURI("logout");
+		BAASRequest request = requestFactory.post(uri,false);
 
 		try {
-			rest.execute(request, credentials, onLogoutHelper, false);
+			rest.execute(request);
 			this.onUserLogout();
 			return new BAASBoxResult<Void>();
 		} catch (BAASBoxException e) {
@@ -345,11 +346,11 @@ public final class BAASBox {
 		if (username == null)
 			throw new NullPointerException("username could not be null");
 
-		String uri = rest.getURI("user/?/password/reset", username);
-		HttpGet request = rest.get(uri);
+		String uri = requestFactory.getURI("user/?/password/reset", username);
+		BAASRequest request = requestFactory.get(uri,true);
 
 		try {
-			rest.execute(request, credentials, onLogoutHelper, true);
+			rest.execute(request);
 			return new BAASBoxResult<Void>();
 		} catch (BAASBoxException e) {
 			return new BAASBoxResult<Void>(e);
@@ -373,15 +374,15 @@ public final class BAASBox {
 		if (newPassword == null)
 			throw new NullPointerException("new password could not be null");
 
-		String uri = rest.getURI("user/password");
+		String uri = requestFactory.getURI("user/password");
 
 		try {
 			JSONObject param = new JSONObject();
 			param.put("old", oldPassword);
 			param.put("new", newPassword);
 
-			HttpPut request = rest.put(uri, param);
-			rest.execute(request, credentials, onLogoutHelper, true);
+			BAASRequest request = requestFactory.put(uri, param,true);
+			rest.execute(request);
 			this.onUserLogin(credentials.sessionToken, credentials.username,
 					newPassword);
 
@@ -400,12 +401,11 @@ public final class BAASBox {
 	 * @return The user data from the server.
 	 */
 	public BAASBoxResult<JSONObject> getUser() {
-		String uri = rest.getURI("user");
-		HttpGet request = rest.get(uri);
+		String uri = requestFactory.getURI("user");
+		BAASRequest request = requestFactory.get(uri,true);
 
 		try {
-			JSONObject json = (JSONObject) rest.execute(request, credentials,
-					onLogoutHelper, true);
+			JSONObject json = (JSONObject) rest.execute(request);
 			return new BAASBoxResult<JSONObject>(json);
 		} catch (BAASBoxException e) {
 			return new BAASBoxResult<JSONObject>(e);
@@ -424,11 +424,11 @@ public final class BAASBox {
 		if (user == null)
 			throw new NullPointerException("user could not be null");
 
-		String uri = rest.getURI("user");
-		HttpPut request = rest.put(uri, user);
+		String uri = requestFactory.getURI("user");
+		BAASRequest request = requestFactory.put(uri, user,true);
 
 		try {
-			rest.execute(request, credentials, onLogoutHelper, true);
+			rest.execute(request);
 			return new BAASBoxResult<Void>();
 		} catch (BAASBoxException e) {
 			return new BAASBoxResult<Void>(e);
@@ -450,12 +450,11 @@ public final class BAASBox {
 		if (document == null)
 			throw new NullPointerException("document could not be null");
 
-		String uri = rest.getURI("document/?", collection);
-		HttpPost request = rest.post(uri, document);
+		String uri = requestFactory.getURI("document/?", collection);
+		BAASRequest request = requestFactory.post(uri, document,true);
 
 		try {
-			JSONObject result = (JSONObject) rest.execute(request, credentials,
-					onLogoutHelper, true);
+			JSONObject result = (JSONObject) rest.execute(request);
 			return new BAASBoxResult<JSONObject>(result);
 		} catch (BAASBoxException e) {
 			return new BAASBoxResult<JSONObject>(e);
@@ -479,12 +478,11 @@ public final class BAASBox {
 		if (document == null)
 			throw new NullPointerException("document could not be null");
 
-		String uri = rest.getURI("document/?/?", collection, id);
-		HttpPut request = rest.put(uri, document);
+		String uri = requestFactory.getURI("document/?/?", collection, id);
+		BAASRequest request = requestFactory.put(uri, document,true);
 
 		try {
-			JSONObject result = (JSONObject) rest.execute(request, credentials,
-					onLogoutHelper, true);
+			JSONObject result = (JSONObject) rest.execute(request);
 			return new BAASBoxResult<JSONObject>(result);
 		} catch (BAASBoxException e) {
 			return new BAASBoxResult<JSONObject>(e);
@@ -501,12 +499,11 @@ public final class BAASBox {
 	 * @return The document specified by the collection and the id.
 	 */
 	public BAASBoxResult<JSONObject> getDocument(String collection, String id) {
-		String uri = rest.getURI("document/?/?", collection, id);
-		HttpGet request = rest.get(uri);
+		String uri = requestFactory.getURI("document/?/?", collection, id);
+		BAASRequest request = requestFactory.get(uri,true);
 
 		try {
-			JSONObject document = (JSONObject) rest.execute(request,
-					credentials, onLogoutHelper, true);
+			JSONObject document = (JSONObject) rest.execute(request);
 			return new BAASBoxResult<JSONObject>(document);
 		} catch (BAASBoxException e) {
 			return new BAASBoxResult<JSONObject>(e);
@@ -523,11 +520,11 @@ public final class BAASBox {
 	 * @return An empty result on success.
 	 */
 	public BAASBoxResult<Void> deleteDocument(String collection, String id) {
-		String uri = rest.getURI("document/?/?", collection, id);
-		HttpDelete request = rest.delete(uri);
+		String uri = requestFactory.getURI("document/?/?", collection, id);
+		BAASRequest request = requestFactory.delete(uri,true);
 
 		try {
-			rest.execute(request, credentials, onLogoutHelper, true);
+			rest.execute(request);
 			return new BAASBoxResult<Void>();
 		} catch (BAASBoxException e) {
 			return new BAASBoxResult<Void>(e);
@@ -544,12 +541,11 @@ public final class BAASBox {
 	 *         collection
 	 */
 	public BAASBoxResult<Long> getCount(String collection) {
-		String uri = rest.getURI("document/?/count", collection);
-		HttpGet request = rest.get(uri);
+		String uri = requestFactory.getURI("document/?/count", collection);
+		BAASRequest request = requestFactory.get(uri,true);
 
 		try {
-			JSONObject result = (JSONObject) rest.execute(request, credentials,
-					onLogoutHelper, true);
+			JSONObject result = (JSONObject) rest.execute(request);
 			return new BAASBoxResult<Long>(result.getLong("count"));
 		} catch (BAASBoxException e) {
 			return new BAASBoxResult<Long>(e);
@@ -696,7 +692,7 @@ public final class BAASBox {
 			throw new IllegalArgumentException(
 					"orderBy is mandatory if the pagination is used");
 
-		String uri = rest.getURI("document/?", collection);
+		String uri = requestFactory.getURI("document/?", collection);
 
 		ArrayList<NameValuePair> urlParams = new ArrayList<NameValuePair>();
 		if (page >= 0)
@@ -713,11 +709,10 @@ public final class BAASBox {
 			for (String p : params)
 				urlParams.add(new BasicNameValuePair("params", p));
 
-		HttpGet request = rest.get(uri, urlParams);
+		BAASRequest request = requestFactory.get(uri, urlParams,true);
 
 		try {
-			JSONArray documents = (JSONArray) rest.execute(request,
-					credentials, onLogoutHelper, true);
+			JSONArray documents = (JSONArray) rest.execute(request);
 			return new BAASBoxResult<JSONArray>(documents);
 		} catch (BAASBoxException e) {
 			return new BAASBoxResult<JSONArray>(e);

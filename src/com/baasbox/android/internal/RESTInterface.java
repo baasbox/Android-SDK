@@ -100,7 +100,7 @@ public class RESTInterface {
 		httpClient = new DefaultHttpClient(cman, params);
 	}
 
-	public String getURI(String endpoint, Object... params) {
+	private String getURI(String endpoint, Object... params) {
 		if (this.apiRoot == null) {
 			StringBuilder api = new StringBuilder();
 			api.append(config.HTTPS ? "https://" : "http://");
@@ -245,7 +245,7 @@ public class RESTInterface {
         return execute(request.request,request.credentials,request.logoutHelper,request.retry);
     }
 
-    public Object execute(HttpUriRequest request, Credentials credentials,
+    private Object execute(HttpUriRequest request, Credentials credentials,
 			OnLogoutHelper onLogoutHelper, boolean retry)
 			throws BAASBoxInvalidSessionException, BAASBoxClientException,
 			BAASBoxServerException, BAASBoxConnectionException {
