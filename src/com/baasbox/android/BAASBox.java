@@ -22,7 +22,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.util.Log;
 
 /**
  * BAASBox is the main class that can be used to access all the functionalities
@@ -132,8 +131,13 @@ public final class BAASBox {
 	 *            the context the instance is related.
 	 */
 	public BAASBox(Context context) {
-		this(new BAASBoxConfig(), context);
+		this(new BAASBoxConfig(), context,null);
 	}
+
+    public BAASBox(Context context,String sessionToken){
+        this(context,sessionToken,null);
+    }
+
 	/**
 	 * Create and configure a new instance of the SDK with sessionToken 
 	 * to support background services (e.g. android sync framework)
@@ -142,8 +146,8 @@ public final class BAASBox {
 	 * @param sessionToken   
 	 *     sessionToken  (for example obtained from Account  stored in BAASBoxAuthenticator)  
 	 */
-	public BAASBox(Context context, String sessionToken) {
-		this(new BAASBoxConfig(), context);
+	public BAASBox(Context context, String sessionToken,RESTInterface restClient) {
+		this(new BAASBoxConfig(), context,restClient);
 		credentials.sessionToken = sessionToken;
 		Editor editor = this.preferences.edit();
 		editor.putString(BB_SESSION_PERSISTENCE_KEY, sessionToken);	
@@ -161,11 +165,10 @@ public final class BAASBox {
 	 * @param config
 	 *            the object containing all the configuration options.
 	 */
-	public BAASBox(BAASBoxConfig config, Context context) {
+	public BAASBox(BAASBoxConfig config, Context context,RESTInterface restInterface) {
 		this.config = config;
-		this.rest = RESTInterface.defaultRestClient(config);
-
-		context = context.getApplicationContext();
+		this.rest = restInterface==null?RESTInterface.defaultRestClient(config):restInterface;
+        context = context.getApplicationContext();
 
 		String prefName = BAASBOX_PERSISTENCE_PREFIX + context.getPackageName();
 		preferences = context.getSharedPreferences(prefName,
