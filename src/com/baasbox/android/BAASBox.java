@@ -22,6 +22,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
 /**
  * BAASBox is the main class that can be used to access all the functionalities
@@ -96,6 +97,7 @@ public final class BAASBox {
          */
         public void handle(BAASBoxResult<T> result);
     }
+
 
     private AsyncRequestExecutor requestExecutor;
 	private RESTInterface rest;
@@ -188,8 +190,21 @@ public final class BAASBox {
         requestExecutor.start();
     }
 
+    /**
+     * Stops the exeutor of asynchronous requests
+     */
     public void stopAsyncExecutor(){
         requestExecutor.quit();
+    }
+
+    /**
+     * Cancels all pending requests marked with tag
+     * @param tag
+     *              the tag cannot be null
+     */
+    public void cancel(String tag){
+        if (tag==null) throw new NullPointerException("tag cannot be null");
+        requestExecutor.cancel(tag);
     }
 
 	/**
@@ -214,6 +229,7 @@ public final class BAASBox {
 	public boolean isUserLoggedIn() {
 		return credentials.username != null && credentials.password != null;
 	}
+
 
 	
 	/**
@@ -430,6 +446,10 @@ public final class BAASBox {
 		}
 	}
 
+    public void login(final String username,final String password,final BAASHandler<String> handler){
+        login(username,password,null,handler);
+    }
+
     /**
      * Execute a login request asynchronously with the given username and password. On success
      * every previous credentials will be overwritten.
@@ -441,7 +461,7 @@ public final class BAASBox {
      * @param handler
      *            the callback to be invoked upon completion
      */
-    public void login(final String username,final String password,final BAASHandler<String> handler) {
+    public void login(final String username,final String password,String tag,final BAASHandler<String> handler) {
         if (username == null)
             throw new NullPointerException("username could not be null");
         if (password == null)
@@ -454,6 +474,7 @@ public final class BAASBox {
         params.add(new BasicNameValuePair("appcode", config.APP_CODE));
         String uri = requestFactory.getURI("login");
             BAASRequest request = requestFactory.post(uri, params,false);
+            request.tag = tag;
             request.handler=new BAASHandler() {
                 @Override
                 public void handle(BAASBoxResult result) {
@@ -495,6 +516,10 @@ public final class BAASBox {
 		}
 	}
 
+    public void logout(BAASHandler<Void> handler){
+        logout(null,handler);
+    }
+
     /**
      * Asynchronously execute a logout request. On success the credentials of the user will be
      * deleted.
@@ -502,12 +527,13 @@ public final class BAASBox {
      * @param handler
      *              the callback to be invoked upon completion
      */
-    public void logout(BAASHandler<Void> handler){
+    public void logout(String tag,BAASHandler<Void> handler){
         if (handler == null) {
             throw new NullPointerException("handler cannot be null");
         }
         String uri = requestFactory.getURI("logout");
         BAASRequest request = requestFactory.post(uri,false);
+        request.tag = tag;
         request.handler=handler;
         requestExecutor.enqueue(request);
     }
@@ -534,6 +560,9 @@ public final class BAASBox {
 		}
 	}
 
+    public void requestPasswordReset(String username,BAASHandler<Void> handler){
+        requestPasswordReset(username,handler);
+    }
 
     /**
      * Asynchronously execute a password reset request for the given username.
@@ -543,7 +572,7 @@ public final class BAASBox {
      * @param handler
      *            the callback to be invoked upon completion
      */
-    public void requestPasswordReset(String username,BAASHandler<Void> handler) {
+    public void requestPasswordReset(String username,String tag,BAASHandler<Void> handler) {
         if (username == null)
             throw new NullPointerException("username could not be null");
         if (handler == null)
@@ -593,6 +622,11 @@ public final class BAASBox {
 		}
 	}
 
+    public void changePassword(String oldPassword,
+                               final String newPassword,final BAASHandler<Void> handler){
+        changePassword(oldPassword,newPassword,null,handler);
+    }
+
     /**
      * Asynchronously changes the password of the current connected user. After this method
      * invocation the SDK will override the internal stored credentials.
@@ -605,7 +639,7 @@ public final class BAASBox {
      *            the callback to be invoked upon completion
      */
     public void changePassword(String oldPassword,
-                                              final String newPassword,final BAASHandler<Void> handler) {
+                                              final String newPassword,String tag,final BAASHandler<Void> handler) {
         if (oldPassword == null)
             throw new NullPointerException("old password could not be null");
         if (newPassword == null)
@@ -619,6 +653,7 @@ public final class BAASBox {
             param.put("new", newPassword);
 
             BAASRequest request = requestFactory.put(uri, param,true);
+            request.tag=tag;
             request.handler = new BAASHandler() {
                 @Override
                 public void handle(BAASBoxResult result) {
@@ -651,6 +686,10 @@ public final class BAASBox {
 		}
 	}
 
+    public void getUser(BAASHandler<JSONObject> handler){
+        getUser(null,handler);
+    }
+
     /**
      * Asyncronously getthe  JSONObject from the server representing the current logged
      * user. Upon completion handler is called with the result of the request.
@@ -658,14 +697,16 @@ public final class BAASBox {
      * @param handler
      *          the callback to be invoked upon completion
      */
-    public void getUser(BAASHandler<JSONObject> handler) {
+    public void getUser(String tag,BAASHandler<JSONObject> handler) {
         if (handler==null)
             throw new NullPointerException("handler cannot be null");
         String uri = requestFactory.getURI("user");
         BAASRequest request = requestFactory.get(uri,true);
+        request.tag = tag;
         request.handler = handler;
         requestExecutor.enqueue(request);
     }
+
 
     /**
 	 * Updates the user info on the server. Be careful, all the data will be
@@ -691,6 +732,10 @@ public final class BAASBox {
 	}
 
 
+    public void updateUser(JSONObject user,BAASHandler<Void> handler){
+        updateUser(user,null,handler);
+    }
+
     /**
      * Asynchronously updates the user info on the server. Be careful, all the data will be
      * overwritten, not merged with the remote copy.
@@ -700,7 +745,7 @@ public final class BAASBox {
      * @param handler
      *            the callback to be invoked upon completion
      */
-    public void updateUser(JSONObject user,BAASHandler<Void> handler) {
+    public void updateUser(JSONObject user,String tag,BAASHandler<Void> handler) {
         if (user == null)
             throw new NullPointerException("user could not be null");
         if (handler==null){
@@ -708,6 +753,7 @@ public final class BAASBox {
         }
         String uri = requestFactory.getURI("user");
         BAASRequest request = requestFactory.put(uri, user,true);
+        request.tag=tag;
         request.handler=handler;
         requestExecutor.enqueue(request);
     }
@@ -740,6 +786,9 @@ public final class BAASBox {
 	}
 
 
+    public void createDocument(String collection,JSONObject document,BAASHandler<JSONObject> handler){
+        createDocument(collection,document,null,handler);
+    }
 
     /**
      * Asynchronously creates a new document in the specified collection.
@@ -751,8 +800,7 @@ public final class BAASBox {
      * @param handler
      *            the callback to be invoked upon completion
      */
-    public void createDocument(String collection,
-                                                    JSONObject document,BAASHandler<JSONObject> handler) {
+    public void createDocument(String collection,JSONObject document,String tag,BAASHandler<JSONObject> handler) {
         if (document == null)
             throw new NullPointerException("document could not be null");
         if (handler == null)
@@ -760,6 +808,7 @@ public final class BAASBox {
 
         String uri = requestFactory.getURI("document/?", collection);
         BAASRequest request = requestFactory.post(uri, document,true);
+        request.tag=tag;
         request.handler=handler;
         requestExecutor.enqueue(request);
     }
@@ -776,8 +825,7 @@ public final class BAASBox {
 	 *            the updated data of the document.
 	 * @return The updated document itself.
 	 */
-	public BAASBoxResult<JSONObject> updateDocument(String collection,
-			String id, JSONObject document) {
+	public BAASBoxResult<JSONObject> updateDocument(String collection,String id, JSONObject document) {
 		if (document == null)
 			throw new NullPointerException("document could not be null");
 
@@ -792,6 +840,10 @@ public final class BAASBox {
 		}
 	}
 
+    public void updateDocument(String collection,String id,JSONObject document,BAASHandler<JSONObject> handler){
+        updateDocument(collection,id,document,null,handler);
+    }
+
     /**
      * Asynchronously updates the document info on the server. Be careful, all the data will be
      * overwritten, not merged with the remote copy.
@@ -805,14 +857,14 @@ public final class BAASBox {
      * @param handler
      *            the callback to be invoked upon completion with the updated document itself
      */
-    public void updateDocument(String collection,
-                                                    String id, JSONObject document,BAASHandler<JSONObject> handler) {
+    public void updateDocument(String collection,String id, JSONObject document, String tag , BAASHandler<JSONObject> handler) {
         if (document == null)
             throw new NullPointerException("document could not be null");
         if (handler == null)
             throw new NullPointerException("handler cannot be null");
         String uri = requestFactory.getURI("document/?/?", collection, id);
         BAASRequest request = requestFactory.put(uri, document,true);
+        request.tag=tag;
         request.handler=handler;
         requestExecutor.enqueue(request);
     }
@@ -849,12 +901,13 @@ public final class BAASBox {
      * @param handler
      *            the callback to be invoked upon completion with the retrived document
      */
-    public void getDocument(String collection, String id,BAASHandler<JSONObject> handler) {
+    public void getDocument(String collection, String id,String tag,BAASHandler<JSONObject> handler) {
         if (handler==null){
             throw new NullPointerException("handler cannot be null");
         }
         String uri = requestFactory.getURI("document/?/?", collection, id);
         BAASRequest request = requestFactory.get(uri,true);
+        request.tag=tag;
         request.handler=handler;
         requestExecutor.enqueue(request);
     }
@@ -880,6 +933,9 @@ public final class BAASBox {
 		}
 	}
 
+    public void deleteDocument(String collection,String id,BAASHandler<Void> handler){
+        deleteDocument(collection,id,null,handler);
+    }
 
     /**
      * Removes the document from the collection and destroy all its data.
@@ -890,13 +946,14 @@ public final class BAASBox {
      *            the id of the document.
      * @return An empty result on success.
      */
-    public void deleteDocument(String collection, String id,BAASHandler<Void> handler) {
+    public void deleteDocument(String collection, String id,String tag,BAASHandler<Void> handler) {
         if (handler ==null){
             throw new NullPointerException("handler cannot be null");
         }
         String uri = requestFactory.getURI("document/?/?", collection, id);
         BAASRequest request = requestFactory.delete(uri,true);
         request.handler=handler;
+        request.tag=tag;
         requestExecutor.enqueue(request);
     }
 
@@ -925,6 +982,9 @@ public final class BAASBox {
 		}
 	}
 
+    public void getCount(String collection,BAASHandler<Long> handler){
+        getCount(collection,null,handler);
+    }
 
     /**
      * Returns the count of the document that the user can read inside the given
@@ -935,9 +995,10 @@ public final class BAASBox {
      * @return The count of the document that the user can read inside the given
      *         collection
      */
-    public void getCount(String collection,final BAASHandler<Long> handler) {
+    public void getCount(String collection,final String tag,final BAASHandler<Long> handler) {
         String uri = requestFactory.getURI("document/?/count", collection);
         BAASRequest request = requestFactory.get(uri,true);
+        request.tag=tag;
         request.handler = new BAASHandler<JSONObject>() {
             @Override
             public void handle(BAASBoxResult<JSONObject> result) {
@@ -971,10 +1032,10 @@ public final class BAASBox {
 		return getAllDocuments(collection, null, -1, -1, null);
 	}
 
+
     public void getAllDocuments(String collection,BAASHandler<JSONArray> handler) {
         getAllDocuments(collection,handler, null, -1, -1, null);
     }
-
 
 
     public <T extends BAAObject> BAASBoxResult<List<T>> getAll(Class<T> clazz) {
