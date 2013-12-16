@@ -68,10 +68,10 @@ public class RequestFactory {
         return this.apiRoot + endpoint;
     }
 
+    // GETS
     public BAASRequest get(String uri,boolean retry){
         return get(uri,null,retry);
     }
-
 
     public BAASRequest get(String uri, ArrayList<NameValuePair> params,boolean retry) {
         try {
@@ -88,10 +88,11 @@ public class RequestFactory {
         }
     }
 
-
+    // DELETES
     public BAASRequest delete(String uri,boolean retry) {
         return delete(uri, null,retry);
     }
+
 
     public BAASRequest delete(String uri, ArrayList<NameValuePair> params,boolean retry) {
         try {
@@ -107,10 +108,11 @@ public class RequestFactory {
         }
     }
 
-
+    //PUTS
     public BAASRequest put(String uri,boolean retry) {
         return put(uri, null,retry);
     }
+
 
     public BAASRequest put(String uri, JSONObject content,boolean retry) {
         try {
@@ -143,8 +145,9 @@ public class RequestFactory {
         }
     }
 
-    public BAASRequest post(String uri,boolean retry) {
-        return post(uri, (JSONObject) null,retry);
+    //POSTS
+    public BAASRequest post(String uri,boolean retry){
+        return post(uri,(JSONObject)null,retry);
     }
 
     public BAASRequest post(String uri, JSONObject content,boolean retry) {
@@ -160,7 +163,6 @@ public class RequestFactory {
             throw new Error(e);
         }
     }
-
     public BAASRequest post(String uri, ArrayList<BasicNameValuePair> params,boolean retry) {
         try {
             HttpEntity entity = null;
@@ -173,6 +175,7 @@ public class RequestFactory {
             throw new Error(e);
         }
     }
+
 
     public BAASRequest post(String uri, HttpEntity entity, String contentType,boolean retry) {
         try {
@@ -189,8 +192,6 @@ public class RequestFactory {
             throw new Error(e);
         }
     }
-
-
 
     private void setHeaders(HttpUriRequest request, Credentials credentials) {
         request.setHeader(APPCODE_HEADER_NAME, config.APP_CODE);

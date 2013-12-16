@@ -248,9 +248,18 @@ public final class BAASBox {
      *
      */
     public void signup(String username,String password,BAASHandler<String> handler){
-        signup(username,password,null,handler);
+        signup(username,password,null,null,handler);
     }
 
+    /**
+     * This method constructs a new {@link JSONObject} with {@code username} and
+     * {@code password} and return the result of the method
+     * {@link BAASBox#signup(JSONObject,BAASHandler) signup(user,handler)}.
+     *
+     */
+    public void signup(String username,String password,String tag,BAASHandler<String> handler){
+        signup(username,password,null,tag,handler);
+    }
 
     /**
 	 * This method overrides the {@code username} and {@code password} of the
@@ -277,13 +286,17 @@ public final class BAASBox {
 	}
 
 
+    public void signup(String username,String password,JSONObject user,BAASHandler<String> handler){
+        signup(username,password,user,null,handler);
+    }
+
     /**
      * This method overrides the {@code username} and {@code password} of the
      * {@code user} passed as param and return the result of the method
      * {@link BAASBox#signup(JSONObject,BAASHandler) signup(user,handler)}.
      *
      */
-    public void signup(String username,String password,JSONObject user,BAASHandler<String> handler){
+    public void signup(String username,String password,JSONObject user,String tag,BAASHandler<String> handler){
         if (username == null)
             throw new NullPointerException("username could not be null");
         if (password == null)
@@ -292,7 +305,7 @@ public final class BAASBox {
         try {
             user.put("username",username);
             user.put("password", password);
-            signup(user,handler);
+            signup(user,tag,handler);
         }catch (JSONException e){
             throw new Error(e);
         }
@@ -332,6 +345,10 @@ public final class BAASBox {
 		}
 	}
 
+    public void signup(JSONObject user,BAASHandler<String> handler){
+        signup(user,null,handler);
+    }
+
     /**
      * This method asynchronously signup a new user. The {@link JSONObject} representing the
      * user must have at least two string parameters: {@code username} and
@@ -344,7 +361,7 @@ public final class BAASBox {
      * @param handler
      *            the callback to be invoked upon completion
      */
-    public void  signup(JSONObject user,final BAASHandler<String> handler){
+    public void  signup(JSONObject user,String tag,final BAASHandler<String> handler){
         if (user == null)
             throw new NullPointerException("user could not be null");
         if (handler==null){
@@ -361,6 +378,7 @@ public final class BAASBox {
 
         String uri = requestFactory.getURI("user");
         BAASRequest request = requestFactory.post(uri, user, true);
+        request.tag = tag;
         request.handler= new BAASHandler() {
             @Override
             public void handle(BAASBoxResult result) {

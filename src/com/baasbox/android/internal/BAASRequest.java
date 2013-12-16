@@ -15,7 +15,9 @@ public class BAASRequest<T> {
     public final OnLogoutHelper logoutHelper;
     public final boolean retry;
     public BAASBox.BAASHandler<T> handler;
-    BAASBoxResult<T> result;
+    public String tag;
+    volatile int requestNumber;
+    volatile BAASBoxResult<T> result;
 
     BAASRequest(HttpUriRequest request,Credentials credentials,OnLogoutHelper logoutHelper,boolean retry){
         this.request=request;
@@ -23,11 +25,5 @@ public class BAASRequest<T> {
         this.logoutHelper=logoutHelper;
         this.retry=retry;
     }
-
-
-
-
-
-
 
 }
