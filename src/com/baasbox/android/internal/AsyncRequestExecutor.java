@@ -13,7 +13,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by eto on 13/12/13.
+ * Created by Andrea Tortorella on 13/12/13.
  */
 public class AsyncRequestExecutor {
     private final static int RESPONSE_MESSAGE = 1;

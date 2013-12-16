@@ -22,8 +22,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.util.Log;
-import android.widget.BaseAdapter;
 
 /**
  * BAASBox is the main class that can be used to access all the functionalities
@@ -163,7 +161,7 @@ public final class BAASBox {
 	 */
 	public BAASBox(BAASBoxConfig config, Context context) {
 		this.config = config;
-		this.rest = new RESTInterface(config);
+		this.rest = RESTInterface.defaultRestClient(config);
 
 		context = context.getApplicationContext();
 

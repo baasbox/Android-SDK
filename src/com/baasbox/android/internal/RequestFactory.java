@@ -21,7 +21,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 /**
- * Created by eto on 13/12/13.
+ * Created by Andrea Tortorella on 13/12/13.
  */
 public class RequestFactory {
 

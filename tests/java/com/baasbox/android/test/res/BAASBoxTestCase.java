@@ -1,6 +1,5 @@
 package com.baasbox.android.test.res;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -10,7 +9,7 @@ import com.baasbox.android.BAASBox;
 import com.baasbox.android.BAASBoxConfig;
 import com.baasbox.android.internal.BAASRequest;
 import com.baasbox.android.internal.Credentials;
-import com.baasbox.android.internal.RESTInterface;
+import com.baasbox.android.internal.HttpClientRESTInterface;
 import com.baasbox.android.internal.RequestFactory;
 import com.baasbox.android.test.StubActivity;
 
@@ -44,7 +43,7 @@ public abstract class BAASBoxTestCase extends ActivityInstrumentationTestCase2<S
         Credentials credentials = new Credentials();
         credentials.username ="admin";
         credentials.password = "admin";
-        RESTInterface restInterface = new RESTInterface(config);
+        HttpClientRESTInterface restInterface = new HttpClientRESTInterface(config);
 
         RequestFactory requestFactory = new RequestFactory(config,credentials,null);
         String uri =requestFactory.getURI("admin/db/0");
