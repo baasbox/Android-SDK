@@ -1,10 +1,13 @@
-package com.baasbox.android.internal;
+package com.baasbox.android.internal.http;
 
+import com.baasbox.android.BAASBox;
 import com.baasbox.android.BAASBoxClientException;
 import com.baasbox.android.BAASBoxConfig;
 import com.baasbox.android.BAASBoxConnectionException;
+import com.baasbox.android.BAASBoxException;
 import com.baasbox.android.BAASBoxInvalidSessionException;
 import com.baasbox.android.BAASBoxServerException;
+import com.baasbox.android.internal.BAASRequest;
 
 /**
  * An abstract class for performing requests.
@@ -22,16 +25,14 @@ public abstract class RESTInterface {
         this.config=config;
     }
 
-    /**
-     * Performs the request
-     * @param request
-     * @return an object representing the response from the network.
-     * @throws BAASBoxClientException
-     * @throws BAASBoxConnectionException
-     * @throws BAASBoxServerException
-     * @throws BAASBoxInvalidSessionException
-     */
-    public abstract Object execute(BAASRequest request) throws BAASBoxClientException, BAASBoxConnectionException, BAASBoxServerException, BAASBoxInvalidSessionException;
+
+    public Object execute(BAASRequest request) throws BAASBoxClientException, BAASBoxConnectionException, BAASBoxServerException, BAASBoxInvalidSessionException {
+        Response response = executeNetworkRequest(request.request);
+        return parse(response);
+    }
+
+    protected abstract Response executeNetworkRequest(Request request) throws BAASBoxConnectionException,BAASBoxClientException,BAASBoxServerException;
+
 
     /**
      * Returns the default implementation of RESTInterface.
@@ -43,5 +44,9 @@ public abstract class RESTInterface {
                as default on modern android versions
         */
         return new HttpClientRESTInterface(config);
+    }
+
+    String parse(Response request) {
+        return null;
     }
 }

@@ -1,4 +1,4 @@
-package com.baasbox.android.internal;
+package com.baasbox.android.internal.http;
 
 import java.io.IOException;
 import java.net.Socket;

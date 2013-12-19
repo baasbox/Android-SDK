@@ -1,4 +1,4 @@
-package com.baasbox.android.internal;
+package com.baasbox.android.internal.http;
 
 import com.baasbox.android.BAASBox;
 import com.baasbox.android.BAASBoxClientException;
@@ -6,16 +6,28 @@ import com.baasbox.android.BAASBoxConfig;
 import com.baasbox.android.BAASBoxConnectionException;
 import com.baasbox.android.BAASBoxInvalidSessionException;
 import com.baasbox.android.BAASBoxServerException;
+import com.baasbox.android.internal.BAASRequest;
+import com.baasbox.android.internal.Credentials;
+import com.baasbox.android.internal.OnLogoutHelper;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
@@ -27,11 +39,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * 
@@ -83,8 +99,30 @@ class HttpClientRESTInterface extends RESTInterface{
 
 
     @Override
-    public Object execute(BAASRequest request) throws BAASBoxClientException, BAASBoxConnectionException, BAASBoxServerException, BAASBoxInvalidSessionException {
-        return execute(request.request,request.credentials,request.logoutHelper,request.retry);
+    public Response executeNetworkRequest(Request request) throws BAASBoxConnectionException {
+        HttpUriRequest httpRequest = convertRequest(request);
+        HttpEntity result = null;
+        try {
+            HttpResponse response = httpClient.execute(httpRequest);
+            int status = response.getStatusLine().getStatusCode();
+            result= response.getEntity();
+            Map<String,String> headersMap = new HashMap<String, String>();
+            Header[] headers = response.getAllHeaders();
+            for(Header h:headers){
+                headersMap.put(h.getName(),h.getValue());
+            }
+            return new Response(status,headersMap,result.getContent());
+        } catch (IOException e) {
+            throw new BAASBoxConnectionException(e);
+        }finally {
+            if (result!= null){
+                try {
+                    result.consumeContent();
+                } catch (IOException e) {
+
+                }
+            }
+        }
     }
 
     private Object execute(HttpUriRequest request, Credentials credentials,
@@ -94,13 +132,12 @@ class HttpClientRESTInterface extends RESTInterface{
     		HttpEntity resultEntity = null;
 
 		try {
-//			setHeaders(request, credentials);
-
 			HttpResponse response = httpClient.execute(request);
 			int status = response.getStatusLine().getStatusCode();
 
 			resultEntity = response.getEntity();
-			String content = null;
+
+            String content = null;
 
 			if (resultEntity != null)
 				content = EntityUtils.toString(resultEntity,
@@ -112,8 +149,8 @@ class HttpClientRESTInterface extends RESTInterface{
 				return json == null ? null : json.opt("data");
 			} else {
 				String message = json.optString("message", null);
-				String resource = json.optString("resource", null);
-				String resultMethod = json.optString("method", null);
+				String resource = json.optString("resource", parse(null));
+				String resultMethod = json.optString("method", parse(null));
 				JSONObject jsonHeader = json.optJSONObject("request_header");
 				int apiVersion = json.optInt("API_version", -1);
 				int code = json.optInt("bb_code", -1);
@@ -177,5 +214,64 @@ class HttpClientRESTInterface extends RESTInterface{
 		}
 	}
 
+    private static HttpUriRequest convertRequest(Request request){
+        final HttpUriRequest httpReq;
+        switch (request.getMethod()){
+            case Request.GET:
+                httpReq =new HttpGet(request.getUrl().toString());
+                break;
+            case Request.DELETE:
+                httpReq = new HttpDelete(request.getUrl().toString());
+                break;
+            case Request.PUT:
+                httpReq = new HttpPut(request.getUrl().toString());
+                break;
+            case Request.PATCH:
+                httpReq = new HttpPatch(request.getUrl().toString());
+                break;
+            case Request.POST:
+                httpReq = new HttpPost(request.getUrl().toString());
+                break;
+            default:
+                throw new Error("invalid method");
+        }
+        InputStream body = request.getBody();
+        if (body!= null && httpReq instanceof HttpEntityEnclosingRequest){
+            BasicHttpEntity entity = new BasicHttpEntity();
+            entity.setContent(request.getBody());
+            ((HttpEntityEnclosingRequest) httpReq).setEntity(entity);
+        }
+        setHeaders(httpReq,request.getHeaders());
+        return httpReq;
+    }
+
+    private static void setHeaders(HttpUriRequest request,Map<String,String> headers){
+        for(Map.Entry<String,String> header:headers.entrySet()){
+            request.setHeader(header.getKey(),header.getValue());
+        }
+    }
+
+
+
+    private static class HttpPatch extends HttpEntityEnclosingRequestBase{
+
+        HttpPatch(String uri){
+            super();
+            try {
+                setURI(new URI(uri));
+            } catch (URISyntaxException e){
+                throw new Error(e);
+            }
+        }
+        @Override
+        public URI getURI() {
+            return super.getURI();
+        }
+
+        @Override
+        public String getMethod() {
+            return "PATCH";
+        }
+    }
 
 }

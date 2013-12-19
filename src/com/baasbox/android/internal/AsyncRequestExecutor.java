@@ -7,6 +7,8 @@ import com.baasbox.android.BAASBoxConnectionException;
 import com.baasbox.android.BAASBoxInvalidSessionException;
 import com.baasbox.android.BAASBoxResult;
 import com.baasbox.android.BAASBoxServerException;
+import com.baasbox.android.internal.http.RESTInterface;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -74,7 +76,7 @@ public class AsyncRequestExecutor {
 
 
     /**
-     * A worker thread to execute requests
+     * A worker thread to executeNetworkRequest requests
      */
     private static class Worker extends Thread {
         private final BlockingQueue<BAASRequest> requests;

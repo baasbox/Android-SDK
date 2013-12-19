@@ -1,6 +1,7 @@
 package com.baasbox.android.internal;
 
 import com.baasbox.android.BAASBoxConfig;
+import com.baasbox.android.internal.http.Request;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
@@ -15,9 +16,14 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 /**
@@ -79,11 +85,11 @@ public class RequestFactory {
                     : URLEncodedUtils.format(params, config.HTTP_CHARSET);
             String completeUri = uri
                     + (paramString == null ? "" : '?' + paramString);
-
-            HttpGet get  = new HttpGet(new URI(completeUri));
-            setHeaders(get,credentials);
-            return new BAASRequest(get,credentials,logoutHelper,retry);
-        } catch (URISyntaxException e) {
+            URL url = new URL(completeUri); // to validate
+            Request req = new Request(Request.GET,url);
+            setHeaders(req,credentials);
+            return new BAASRequest(req,credentials,logoutHelper,retry);
+        } catch (MalformedURLException e) {
             throw new Error(e);
         }
     }
@@ -100,10 +106,10 @@ public class RequestFactory {
                     : URLEncodedUtils.format(params, config.HTTP_CHARSET);
             String completeUri = uri
                     + (paramString == null ? "" : '?' + paramString);
-            HttpDelete delete = new HttpDelete(new URI(completeUri));
+            Request delete = new Request(Request.DELETE,new URL(completeUri));
             setHeaders(delete,credentials);
             return new BAASRequest(delete,credentials,logoutHelper,retry);
-        } catch (URISyntaxException e) {
+        } catch (MalformedURLException e) {
             throw new Error(e);
         }
     }
@@ -116,11 +122,11 @@ public class RequestFactory {
 
     public BAASRequest put(String uri, JSONObject content,boolean retry) {
         try {
-            HttpEntity entity = null;
+            InputStream entity = null;
 
-            if (content != null)
-                entity = new ByteArrayEntity(content.toString().getBytes(
-                        config.HTTP_CHARSET));
+            if (content != null){
+                entity = new ByteArrayInputStream(content.toString().getBytes(config.HTTP_CHARSET));
+            }
 
             return put(uri, entity, "application/json",retry);
         } catch (UnsupportedEncodingException e) {
@@ -128,19 +134,18 @@ public class RequestFactory {
         }
     }
 
-    public BAASRequest put(String uri, HttpEntity entity, String contentType,boolean retry) {
+    public BAASRequest put(String uri, InputStream entity, String contentType,boolean retry) {
         try {
-            HttpPut put = new HttpPut(new URI(uri));
-
+            Request put = new Request(Request.PUT,new URL(uri));
             if (entity != null){
 
-                put.setHeader("Content-Type", contentType + ";charset="
-                    + config.HTTP_CHARSET);
-                put.setEntity(entity);
+                put.addHeader("Content-Type", contentType + ";charset="
+                        + config.HTTP_CHARSET);
+                put.setBody(entity);
             }
             setHeaders(put,credentials);
             return new BAASRequest(put,credentials,logoutHelper,retry);
-        } catch (URISyntaxException e) {
+        } catch (MalformedURLException e) {
             throw new Error(e);
         }
     }
@@ -152,11 +157,10 @@ public class RequestFactory {
 
     public BAASRequest post(String uri, JSONObject content,boolean retry) {
         try {
-            HttpEntity entity = null;
+            InputStream entity = null;
 
             if (content != null)
-                entity = new ByteArrayEntity(content.toString().getBytes(
-                        config.HTTP_CHARSET));
+                entity =new ByteArrayInputStream(content.toString().getBytes(config.HTTP_CHARSET));
 
             return post(uri, entity, "application/json",retry);
         } catch (UnsupportedEncodingException e) {
@@ -165,10 +169,11 @@ public class RequestFactory {
     }
     public BAASRequest post(String uri, ArrayList<BasicNameValuePair> params,boolean retry) {
         try {
-            HttpEntity entity = null;
-
-            if (params != null && params.size() > 0)
-                entity = new UrlEncodedFormEntity(params, config.HTTP_CHARSET);
+            InputStream entity = null;
+            if (params != null && params.size() > 0){
+                String encoded =URLEncodedUtils.format(params,config.HTTP_CHARSET);
+                entity = new ByteArrayInputStream(encoded.getBytes(config.HTTP_CHARSET));
+            }
 
             return post(uri, entity, "application/x-www-form-urlencoded",retry);
         } catch (UnsupportedEncodingException e) {
@@ -177,24 +182,24 @@ public class RequestFactory {
     }
 
 
-    public BAASRequest post(String uri, HttpEntity entity, String contentType,boolean retry) {
+    public BAASRequest post(String uri, InputStream entity, String contentType,boolean retry) {
         try {
-            HttpPost post = new HttpPost(new URI(uri));
+            Request post = new Request(Request.POST,new URL(uri));
 
             if (entity != null){
-                post.setHeader("Content-Type", contentType + ";charset="
-                    + config.HTTP_CHARSET);
-                post.setEntity(entity);
+                post.addHeader("Content-Type", contentType + ";charset="
+                        + config.HTTP_CHARSET);
+                post.setBody(entity);
             }
             setHeaders(post,credentials);
             return new BAASRequest(post,credentials,logoutHelper,retry);
-        } catch (URISyntaxException e) {
+        } catch (MalformedURLException e) {
             throw new Error(e);
         }
     }
 
-    private void setHeaders(HttpUriRequest request, Credentials credentials) {
-        request.setHeader(APPCODE_HEADER_NAME, config.APP_CODE);
+    private void setHeaders(Request request, Credentials credentials) {
+        request.addHeader(APPCODE_HEADER_NAME, config.APP_CODE);
 
         switch (config.AUTHENTICATION_TYPE) {
             case BASIC_AUTHENTICATION:
@@ -205,12 +210,12 @@ public class RequestFactory {
                             Base64.DEFAULT);
                     encoded = encoded.trim();
 
-                    request.setHeader(BASIC_AUTH_HEADER_NAME, "Basic " + encoded);
+                    request.addHeader(BASIC_AUTH_HEADER_NAME, "Basic " + encoded);
                 }
                 break;
             case SESSION_TOKEN:
                 if (credentials.sessionToken != null)
-                    request.setHeader(BB_SESSION_HEADER_NAME,
+                    request.addHeader(BB_SESSION_HEADER_NAME,
                             credentials.sessionToken);
                 break;
         }

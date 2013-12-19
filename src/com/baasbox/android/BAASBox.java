@@ -12,7 +12,7 @@ import org.json.JSONObject;
 import com.baasbox.android.internal.AsyncRequestExecutor;
 import com.baasbox.android.internal.BAASRequest;
 import com.baasbox.android.internal.Credentials;
-import com.baasbox.android.internal.RESTInterface;
+import com.baasbox.android.internal.http.RESTInterface;
 import com.baasbox.android.internal.OnLogoutHelper;
 import com.baasbox.android.internal.RequestFactory;
 import com.google.gson.Gson;
@@ -578,7 +578,7 @@ public final class BAASBox {
     }
 
     /**
-     * Asynchronously execute a logout request. On success the credentials of the user will be
+     * Asynchronously executeNetworkRequest a logout request. On success the credentials of the user will be
      * deleted.
      *
      * @param handler
@@ -632,7 +632,7 @@ public final class BAASBox {
     }
 
     /**
-     * Asynchronously execute a password reset request for the given username.
+     * Asynchronously executeNetworkRequest a password reset request for the given username.
      *
      * @param username
      *            the username of the user.
