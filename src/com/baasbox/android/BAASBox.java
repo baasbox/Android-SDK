@@ -53,7 +53,7 @@ import android.net.NetworkInfo;
  * 		String collection = params[0];
  * 		String id = params[1];
  * 
- * 		return box.getDocument(collection, id);
+ * 		return box.getDocumentSync(collection, id);
  * 	}
  * 
  * 	&#064;Override
@@ -234,28 +234,39 @@ public final class BAASBox {
 	}
 
 
-	
-	/**
-	 * This method constructs a new {@link JSONObject} with {@code username} and
-	 * {@code password} and return the result of the method
-	 * {@link BAASBox#signup(JSONObject) signup(user)}.
-	 * 
-	 */
+    /**
+     * See {@link #signupSync(String, String)}
+     * @param username
+     * @param password
+     * @return
+     */
+	@Deprecated
 	public BAASBoxResult<String> signup(String username, String password) {
-		if (username == null)
-			throw new NullPointerException("username could not be null");
-		if (password == null)
-			throw new NullPointerException("password could not be null");
-
-		try {
-			JSONObject user = new JSONObject();
-			user.put("username", username);
-			user.put("password", password);
-			return signup(user);
-		} catch (JSONException e) {
-			throw new Error(e);
-		}
+        return signupSync(username, password);
 	}
+
+
+    /**
+     * This method constructs a new {@link JSONObject} with {@code username} and
+     * {@code password} and return the result of the method
+     * {@link BAASBox#signup(JSONObject) signup(user)}.
+     *
+     */
+    public BAASBoxResult<String> signupSync(String username, String password) {
+        if (username == null)
+            throw new NullPointerException("username could not be null");
+        if (password == null)
+            throw new NullPointerException("password could not be null");
+
+        try {
+            JSONObject user = new JSONObject();
+            user.put("username", username);
+            user.put("password", password);
+            return signupSync(user);
+        } catch (JSONException e) {
+            throw new Error(e);
+        }
+    }
 
 
     /**
@@ -279,28 +290,41 @@ public final class BAASBox {
     }
 
     /**
-	 * This method overrides the {@code username} and {@code password} of the
-	 * {@code user} passed as param and return the result of the method
-	 * {@link BAASBox#signup(JSONObject) signup(user)}.
-	 * 
-	 */
+     * See {@link #signupSync(String, String)}
+     * @param username
+     * @param password
+     * @param user
+     * @return
+     */
+    @Deprecated
 	public BAASBoxResult<String> signup(String username, String password,
 			JSONObject user) {
-		if (username == null)
-			throw new NullPointerException("username could not be null");
-		if (password == null)
-			throw new NullPointerException("password could not be null");
-		if (user == null)
-			throw new NullPointerException("user could not be null");
-
-		try {
-			user.put("username", username);
-			user.put("password", password);
-			return signup(user);
-		} catch (JSONException e) {
-			throw new Error(e);
-		}
+        return signupSync(username, password, user);
 	}
+
+
+    /**
+     * This method overrides the {@code username} and {@code password} of the
+     * {@code user} passed as param and return the result of the method
+     * {@link BAASBox#signup(JSONObject) signup(user)}.
+     *
+     */
+    public BAASBoxResult<String> signupSync(String username, String password, JSONObject user) {
+        if (username == null)
+            throw new NullPointerException("username could not be null");
+        if (password == null)
+            throw new NullPointerException("password could not be null");
+        if (user == null)
+            throw new NullPointerException("user could not be null");
+
+        try {
+            user.put("username", username);
+            user.put("password", password);
+            return signupSync(user);
+        } catch (JSONException e) {
+            throw new Error(e);
+        }
+    }
 
 
     public void signup(String username,String password,JSONObject user,BAASHandler<String> handler){
@@ -329,38 +353,49 @@ public final class BAASBox {
     }
 
     /**
-	 * This method signup a new user. The {@link JSONObject} representing the
-	 * user must have at least two string parameters: {@code username} and
-	 * {@code password} (all in plain text).<br>
-	 * After the method invocation a new user is signed in the App and it's
-	 * connected to the SDK.
-	 * 
-	 * @param user
-	 *            the JSON representing the user
-	 * @return An empty result on success.
-	 */
+     * See {@code BAASBox.signupSync(JSONObject)}
+     * @param user
+     * @return
+     */
+    @Deprecated
 	public BAASBoxResult<String> signup(JSONObject user) {
-		if (user == null)
-			throw new NullPointerException("user could not be null");
+        return signupSync(user);
+	}
 
-		String username = user.optString("username");
-		String password = user.optString("password");
+    /**
+     * This method signup a new user. The {@link JSONObject} representing the
+     * user must have at least two string parameters: {@code username} and
+     * {@code password} (all in plain text).<br>
+     * After the method invocation a new user is signed in the App and it's
+     * connected to the SDK.
+     *
+     * @param user
+     *            the JSON representing the user
+     * @return An empty result on success.
+     */
+    public BAASBoxResult<String> signupSync(JSONObject user) {
+        if (user == null)
+            throw new NullPointerException("user could not be null");
 
-		if (username == null)
-			throw new NullPointerException("username could not be null");
-		if (password == null)
-			throw new NullPointerException("password could not be null");
+        String username = user.optString("username");
+        String password = user.optString("password");
 
-		String uri = requestFactory.getURI("user");
-		BAASRequest request = requestFactory.post(uri, user, true);
+        if (username == null)
+            throw new NullPointerException("username could not be null");
+        if (password == null)
+            throw new NullPointerException("password could not be null");
 
-		try {
+        String uri = requestFactory.getURI("user");
+        BAASRequest request = requestFactory.post(uri, user, true);
+
+        try {
             rest.execute(request);
             return login(username, password);
-		} catch (BAASBoxException e) {
-			return new BAASBoxResult<String>(e);
-		}
-	}
+        } catch (BAASBoxException e) {
+            return new BAASBoxResult<String>(e);
+        }
+    }
+
 
     public void signup(JSONObject user,BAASHandler<String> handler){
         signup(user,null,handler);
@@ -409,6 +444,16 @@ public final class BAASBox {
         requestExecutor.enqueue(request);
     }
 
+    /**
+     * See {@link #loginSync(String, String)}
+     * @param username
+     * @param password
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<String> login(String username,String password){
+        return loginSync(username,password);
+    }
 	/**
 	 * Execute a login request with the given username and password. On success
 	 * every previous credentials will be overwritten.
@@ -419,7 +464,7 @@ public final class BAASBox {
 	 *            the password in plain text.
 	 * @return An empty result on success.
 	 */
-	public BAASBoxResult<String> login(String username, String password) {
+	public BAASBoxResult<String> loginSync(String username, String password) {
 		if (username == null)
 			throw new NullPointerException("username could not be null");
 		if (password == null)
@@ -499,25 +544,34 @@ public final class BAASBox {
             requestExecutor.enqueue(request);
     }
 
+    /**
+     * See {@link #logoutSync()}
+     * @return
+     */
+    @Deprecated
+	public BAASBoxResult<Void> logout() {
+        return logoutSync();
+	}
+
 
     /**
-	 * Execute a logout request. On success the credentials of the user will be
-	 * deleted.
-	 * 
-	 * @return An empty result on success.
-	 */
-	public BAASBoxResult<Void> logout() {
-		String uri = requestFactory.getURI("logout");
-		BAASRequest request = requestFactory.post(uri,false);
+     * Execute a logout request. On success the credentials of the user will be
+     * deleted.
+     *
+     * @return An empty result on success.
+     */
+    public BAASBoxResult<Void> logoutSync() {
+        String uri = requestFactory.getURI("logout");
+        BAASRequest request = requestFactory.post(uri,false);
 
-		try {
-			rest.execute(request);
-			this.onUserLogout();
-			return new BAASBoxResult<Void>();
-		} catch (BAASBoxException e) {
-			return new BAASBoxResult<Void>(e);
-		}
-	}
+        try {
+            rest.execute(request);
+            this.onUserLogout();
+            return new BAASBoxResult<Void>();
+        } catch (BAASBoxException e) {
+            return new BAASBoxResult<Void>(e);
+        }
+    }
 
     public void logout(BAASHandler<Void> handler){
         logout(null,handler);
@@ -541,6 +595,16 @@ public final class BAASBox {
         requestExecutor.enqueue(request);
     }
 
+    /**
+     * See {@link #requestPasswordResetSync(String)}
+     * @param username
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<Void> requestPasswordReset(String username) {
+        return requestPasswordResetSync(username);
+    }
+
 	/**
 	 * Execute a password reset request for the given username.
 	 * 
@@ -548,7 +612,7 @@ public final class BAASBox {
 	 *            the username of the user.
 	 * @return An empty result on success.
 	 */
-	public BAASBoxResult<Void> requestPasswordReset(String username) {
+	public BAASBoxResult<Void> requestPasswordResetSync(String username) {
 		if (username == null)
 			throw new NullPointerException("username could not be null");
 
@@ -589,6 +653,18 @@ public final class BAASBox {
 
 
     /**
+     * See {@link #changePasswordSync(String, String)}
+     * @param oldPassword
+     * @param newPassword
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<Void> changePassword(String oldPassword,
+                                                  String newPassword) {
+        return changePasswordSync(oldPassword, newPassword);
+    }
+
+    /**
 	 * Changes the password of the current connected user. After this method
 	 * invocation the SDK will override the internal stored credentials.
 	 * 
@@ -598,8 +674,8 @@ public final class BAASBox {
 	 *            the new password in plain text
 	 * @return An empty result on success.
 	 */
-	public BAASBoxResult<Void> changePassword(String oldPassword,
-			String newPassword) {
+	public BAASBoxResult<Void> changePasswordSync(String oldPassword,
+                                                  String newPassword) {
 		if (oldPassword == null)
 			throw new NullPointerException("old password could not be null");
 		if (newPassword == null)
@@ -635,6 +711,7 @@ public final class BAASBox {
      * invocation the SDK will override the internal stored credentials.
      *
      * @param oldPassword
+     * ldPassword
      *            the old password in plain text
      * @param newPassword
      *            the new password in plain text
@@ -671,13 +748,22 @@ public final class BAASBox {
         }
     }
 
-	/**
+    /**
+     * See {@link #getUserSync()}
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<JSONObject> getUser(){
+        return getUserSync();
+    }
+
+    /**
 	 * Return the JSONObject from the server representing the current logged
 	 * user.
 	 * 
 	 * @return The user data from the server.
 	 */
-	public BAASBoxResult<JSONObject> getUser() {
+	public BAASBoxResult<JSONObject> getUserSync() {
 		String uri = requestFactory.getURI("user");
 		BAASRequest request = requestFactory.get(uri,true);
 
@@ -710,6 +796,15 @@ public final class BAASBox {
         requestExecutor.enqueue(request);
     }
 
+    /**
+     * See {@link #updateUserSync(org.json.JSONObject)}
+     * @param user
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<Void> updateUser(JSONObject user) {
+        return updateUserSync(user);
+    }
 
     /**
 	 * Updates the user info on the server. Be careful, all the data will be
@@ -719,7 +814,7 @@ public final class BAASBox {
 	 *            the new user data.
 	 * @return An empty result on success.
 	 */
-	public BAASBoxResult<Void> updateUser(JSONObject user) {
+	public BAASBoxResult<Void> updateUserSync(JSONObject user) {
 		if (user == null)
 			throw new NullPointerException("user could not be null");
 
@@ -763,8 +858,20 @@ public final class BAASBox {
 
 
     /**
+     * See {@link #createDocumentSync(String, org.json.JSONObject)}
+     * @param collection
+     * @param document
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<JSONObject> createDocument(String collection,
+                                                        JSONObject document) {
+        return createDocumentSync(collection, document);
+    }
+
+    /**
 	 * Creates a new document in the specified collection.
-	 * 
+	 *
 	 * @param collection
 	 *            the collection in which the document will be created.
 	 * @param document
@@ -772,8 +879,8 @@ public final class BAASBox {
 	 * @return The document as it has been created in the server, with a brand
 	 *         new id.
 	 */
-	public BAASBoxResult<JSONObject> createDocument(String collection,
-			JSONObject document) {
+	public BAASBoxResult<JSONObject> createDocumentSync(String collection,
+                                                        JSONObject document) {
 		if (document == null)
 			throw new NullPointerException("document could not be null");
 
@@ -816,6 +923,18 @@ public final class BAASBox {
         requestExecutor.enqueue(request);
     }
 
+
+    /**
+     * See {@link #updateDocumentSync(String, String, org.json.JSONObject)}
+     * @param collection
+     * @param id
+     * @param document
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<JSONObject> updateDocument(String collection, String id, JSONObject document) {
+        return updateDocumentSync(collection,id,document);
+    }
 	/**
 	 * Updates the document info on the server. Be careful, all the data will be
 	 * overwritten, not merged with the remote copy.
@@ -828,7 +947,7 @@ public final class BAASBox {
 	 *            the updated data of the document.
 	 * @return The updated document itself.
 	 */
-	public BAASBoxResult<JSONObject> updateDocument(String collection,String id, JSONObject document) {
+	public BAASBoxResult<JSONObject> updateDocumentSync(String collection, String id, JSONObject document) {
 		if (document == null)
 			throw new NullPointerException("document could not be null");
 
@@ -872,6 +991,18 @@ public final class BAASBox {
         requestExecutor.enqueue(request);
     }
 
+
+    /**
+     * See {@link #getDocumentSync(String, String)}
+     * @param collection
+     * @param id
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<JSONObject> getDocument(String collection, String id) {
+        return getDocumentSync(collection, id);
+    }
+
     /**
 	 * Returns the document from the remote server.
 	 * 
@@ -881,7 +1012,7 @@ public final class BAASBox {
 	 *            the id of the document.
 	 * @return The document specified by the collection and the id.
 	 */
-	public BAASBoxResult<JSONObject> getDocument(String collection, String id) {
+	public BAASBoxResult<JSONObject> getDocumentSync(String collection, String id) {
 		String uri = requestFactory.getURI("document/?/?", collection, id);
 		BAASRequest request = requestFactory.get(uri,true);
 
@@ -915,6 +1046,18 @@ public final class BAASBox {
         requestExecutor.enqueue(request);
     }
 
+
+    /**
+     * See {@link #deleteDocumentSync(String, String)}
+     * @param collection
+     * @param id
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<Void> deleteDocument(String collection, String id) {
+        return deleteDocumentSync(collection,id);
+    }
+
     /**
 	 * Removes the document from the collection and destroy all its data.
 	 * 
@@ -924,7 +1067,7 @@ public final class BAASBox {
 	 *            the id of the document.
 	 * @return An empty result on success.
 	 */
-	public BAASBoxResult<Void> deleteDocument(String collection, String id) {
+	public BAASBoxResult<Void> deleteDocumentSync(String collection, String id) {
 		String uri = requestFactory.getURI("document/?/?", collection, id);
 		BAASRequest request = requestFactory.delete(uri,true);
 
@@ -960,6 +1103,15 @@ public final class BAASBox {
         requestExecutor.enqueue(request);
     }
 
+    /**
+     * See {@link #getCountSync(String)}
+     * @param collection
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<Long> getCount(String collection) {
+        return getCountSync(collection);
+    }
 
     /**
 	 * Returns the count of the document that the user can read inside the given
@@ -970,7 +1122,7 @@ public final class BAASBox {
 	 * @return The count of the document that the user can read inside the given
 	 *         collection
 	 */
-	public BAASBoxResult<Long> getCount(String collection) {
+	public BAASBoxResult<Long> getCountSync(String collection) {
 		String uri = requestFactory.getURI("document/?/count", collection);
 		BAASRequest request = requestFactory.get(uri,true);
 
@@ -1020,19 +1172,29 @@ public final class BAASBox {
     }
 
 
+    /**
+     * See {@link #getAllDocumentsSync(String)}
+     * @param collection
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<JSONArray> getAllDocuments(String collection) {
+        return getAllDocumentsSync(collection, null, -1, -1, null);
+    }
+
 
     /**
 	 * Invokes
-	 * {@link BAASBox#getAllDocuments(String, String, int, int, String, String...)
-	 * getAllDocuments()} with no where clause or pagination option. The result
+	 * {@link BAASBox#getAllDocumentsSync(String, String, int, int, String, String...)
+	 * getAllDocumentsSync()} with no where clause or pagination option. The result
 	 * will contains all the documents of the given collection.
 	 * 
 	 * @param collection
 	 *            the collection.
 	 * @return A {@link JSONArray} of all the documents in the given collection.
 	 */
-	public BAASBoxResult<JSONArray> getAllDocuments(String collection) {
-		return getAllDocuments(collection, null, -1, -1, null);
+	public BAASBoxResult<JSONArray> getAllDocumentsSync(String collection) {
+		return getAllDocumentsSync(collection, null, -1, -1, null);
 	}
 
 
@@ -1041,10 +1203,12 @@ public final class BAASBox {
     }
 
 
-    public <T extends BAAObject> BAASBoxResult<List<T>> getAll(Class<T> clazz) {
+
+
+    public <T extends BAAObject> BAASBoxResult<List<T>> getAllSync(Class<T> clazz) {
 
 		String collection = clazz.getName();//TODO change to get from filed
-		BAASBoxResult<JSONArray> r = getAllDocuments(collection);
+		BAASBoxResult<JSONArray> r = getAllDocumentsSync(collection);
 		if (r.hasError()) {
 			return new BAASBoxResult<List<T>>(r.getError());
 		} else {
@@ -1070,7 +1234,7 @@ public final class BAASBox {
 		}
 	}
 
-    public <T extends BAAObject> void getAll(final Class<T> clazz,final BAASHandler<List<T>> handler) {
+    public <T extends BAAObject> void getAll(final Class<T> clazz, final BAASHandler<List<T>> handler) {
         String collection = clazz.getName();//TODO change to get from filed
         getAllDocuments(collection,new BAASHandler<JSONArray>() {
             Gson gson = new Gson();
@@ -1101,9 +1265,22 @@ public final class BAASBox {
     }
 
     /**
+     * See {@link #getAllDocumentsSync(String,String,String...)}
+     * @param collection
+     * @param whereClause
+     * @param params
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<JSONArray> getAllDocuments(String collection,
+                                                        String whereClause, String... params) {
+        return getAllDocumentsSync(collection, null, -1, -1, whereClause, params);
+    }
+
+    /**
 	 * Invokes
-	 * {@link BAASBox#getAllDocuments(String, String, int, int, String, String...)
-	 * getAllDocuments()} with no pagination option. The result will contains
+	 * {@link BAASBox#getAllDocumentsSync(String, String, int, int, String, String...)
+	 * getAllDocumentsSync()} with no pagination option. The result will contains
 	 * all the documents of the given collection filtered by the where clause.<br>
 	 * The user can set parameters in the where clause by using the
 	 * <code>?</code> char and the specify the actual value in the
@@ -1122,9 +1299,9 @@ public final class BAASBox {
 	 * @return A {@link JSONArray} containing all the documents in the given
 	 *         collection filtered by the where clause.
 	 */
-	public BAASBoxResult<JSONArray> getAllDocuments(String collection,
-			String whereClause, String... params) {
-		return getAllDocuments(collection, null, -1, -1, whereClause, params);
+	public BAASBoxResult<JSONArray> getAllDocumentsSync(String collection,
+                                                        String whereClause, String... params) {
+		return getAllDocumentsSync(collection, null, -1, -1, whereClause, params);
 	}
 
 
@@ -1133,10 +1310,24 @@ public final class BAASBox {
         getAllDocuments(collection,handler, null, -1, -1, whereClause, params);
     }
 
+    /**
+     * See {@link #getAllDocumentsSync(String, String, int, int)}
+     * @param collection
+     * @param orderBy
+     * @param page
+     * @param recordPerPage
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<JSONArray> getAllDocuments(String collection,
+                                                        String orderBy, int page, int recordPerPage) {
+        return getAllDocumentsSync(collection, orderBy, page, recordPerPage, null);
+    }
+
 	/**
 	 * Invokes
-	 * {@link BAASBox#getAllDocuments(String, String, int, int, String, String...)
-	 * getAllDocuments()} with no where clause. The result will contains all the
+	 * {@link BAASBox#getAllDocumentsSync(String, String, int, int, String, String...)
+	 * getAllDocumentsSync()} with no where clause. The result will contains all the
 	 * documents of the given collection starting from the index
 	 * <code>page * recordPerPage</code> and limited at
 	 * <code>recordPerPage</code> records count.<br>
@@ -1154,9 +1345,9 @@ public final class BAASBox {
 	 * @return A {@link JSONArray} containing all the documents in the selected
 	 *         page.
 	 */
-	public BAASBoxResult<JSONArray> getAllDocuments(String collection,
-			String orderBy, int page, int recordPerPage) {
-		return getAllDocuments(collection, orderBy, page, recordPerPage, null);
+	public BAASBoxResult<JSONArray> getAllDocumentsSync(String collection,
+                                                        String orderBy, int page, int recordPerPage) {
+		return getAllDocumentsSync(collection, orderBy, page, recordPerPage, null);
 	}
 
 
@@ -1164,6 +1355,24 @@ public final class BAASBox {
                                                     String orderBy, int page, int recordPerPage) {
         getAllDocuments(collection,handler, orderBy, page, recordPerPage, null);
     }
+
+    /**
+     * See {@link #getAllDocumentsSync(String, String, int, int,String,String...)}
+     * @param collection
+     * @param orderBy
+     * @param page
+     * @param recordPerPage
+     * @param whereClause
+     * @param params
+     * @return
+     */
+    @Deprecated
+    public BAASBoxResult<JSONArray> getAllDocuments(String collection,
+                                                        String orderBy, int page, int recordPerPage, String whereClause,
+                                                        String... params) {
+        return getAllDocumentsSync(collection,orderBy,page,recordPerPage,whereClause,params);
+    }
+
 	/**
 	 * Returns all the documents in a collection filtering by a where clause and
 	 * ordering by a order by clause. The result is then divided into pages and
@@ -1195,9 +1404,9 @@ public final class BAASBox {
 	 * @return A {@link JSONArray} containing all the documents filtered and
 	 *         ordered according the method parameters.
 	 */
-	public BAASBoxResult<JSONArray> getAllDocuments(String collection,
-			String orderBy, int page, int recordPerPage, String whereClause,
-			String... params) {
+	public BAASBoxResult<JSONArray> getAllDocumentsSync(String collection,
+                                                        String orderBy, int page, int recordPerPage, String whereClause,
+                                                        String... params) {
 		if (page >= 0 && orderBy == null)
 			throw new IllegalArgumentException(
 					"orderBy is mandatory if the pagination is used");

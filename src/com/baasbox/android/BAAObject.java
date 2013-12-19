@@ -28,7 +28,7 @@ public class BAAObject<T> {
 	}
 	 
 	 public BAASBoxResult<Void> delete(BAASBox bbox) {	
-			return bbox.deleteDocument(collection, id);
+			return bbox.deleteDocumentSync(collection, id);
 		}
 	 
 	 public BAASBoxResult<T> save(BAASBox bbox) {
@@ -40,7 +40,7 @@ public class BAAObject<T> {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			BAASBoxResult<JSONObject> d = bbox.createDocument(collection, document);
+			BAASBoxResult<JSONObject> d = bbox.createDocumentSync(collection, document);
 			if(d.hasError()){
 				return new BAASBoxResult<T>(d.getError());
 			}
@@ -54,7 +54,7 @@ public class BAAObject<T> {
 		}
 
 	 public BAASBoxResult<List<T>> getAll(BAASBox bbox) {
-		 	BAASBoxResult<JSONArray> r = bbox.getAllDocuments(collection);
+		 	BAASBoxResult<JSONArray> r = bbox.getAllDocumentsSync(collection);
 		 	if(r.hasError()){
 		 		return new BAASBoxResult<List<T>>(r.getError()) ;
 		 	}else{
