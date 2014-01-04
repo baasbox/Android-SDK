@@ -27,17 +27,23 @@ final class SameThreadDispatcher implements RequestDispatcher {
     @Override
     public <T> BaasResult<T> post(BaasRequest<T,?>request) {
         if(executeRequest(request)){
-            if (request.handler!=null){
-                BaasRequest req = request;
-                req.handler.handle(req.result,req.tag);
-            }
+            handleResponse(request);
+//            if (request.handler!=null){
+//                BaasRequest<T,?> req = request;
+//                req.handler.handle(req.result,req.tag);
+//            }
         }
         return request.result;
     }
 
 
+    private <T, E> void handleResponse(BaasRequest<T, E> request) {
+        if (request.handler != null) {
+            request.handler.handle(request.result, request.tag);
+        }
+    }
 
-    public <T> boolean executeRequest(BaasRequest<T,?> request) {
+    private <T> boolean executeRequest(BaasRequest<T, ?> request) {
         boolean handle = true;
         try {
             HttpResponse response =client.execute(request.httpRequest);
