@@ -2,6 +2,7 @@ package com.baasbox.android;
 
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxInvalidSessionException;
+import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.RequestDispatcher;
 import com.baasbox.android.spi.RestClient;
 
@@ -13,20 +14,15 @@ import org.apache.http.HttpResponse;
 final class SameThreadDispatcher implements RequestDispatcher {
     private final BAASBox.Config config;
     private final RestClient client;
-    SameThreadDispatcher(RestClient client,BAASBox.Config config){
+    private final CredentialStore credentialStore;
+
+    SameThreadDispatcher(RestClient client, BAASBox.Config config, CredentialStore credentialStore) {
         this.config =config;
         this.client = client;
+        this.credentialStore = credentialStore;
     }
 
-    @Override
-    public void start() {
 
-    }
-
-    @Override
-    public void stop() {
-
-    }
 
     @Override
     public <T> BaasResult<T> post(BaasRequest<T,?>request) {
@@ -45,7 +41,7 @@ final class SameThreadDispatcher implements RequestDispatcher {
         boolean handle = true;
         try {
             HttpResponse response =client.execute(request.httpRequest);
-            request.result= BaasResult.success(request.parser.parseResponse(request, response, config));
+            request.result = BaasResult.success(request.parser.parseResponse(request, response, config, credentialStore));
 
         } catch (BAASBoxInvalidSessionException e){
             if(request.takeRetry()){

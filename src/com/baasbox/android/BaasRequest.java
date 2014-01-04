@@ -3,8 +3,8 @@ package com.baasbox.android;
 import com.baasbox.android.exceptions.BAASBoxClientException;
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxIOException;
-import com.baasbox.android.exceptions.BAASBoxServerException;
 import com.baasbox.android.exceptions.BAASBoxInvalidSessionException;
+import com.baasbox.android.exceptions.BAASBoxServerException;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
@@ -22,53 +22,53 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by eto on 23/12/13.
  */
-public class BaasRequest<T, R> implements Comparable<BaasRequest<T, R>> {
+public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>> {
     final static int STATUS_CANCEL_REQUEST = 0x01;
     final static int STATUS_RETRY_REQUEST = 0x02;
     public static final int MAX_PRIORITY = Integer.MAX_VALUE;
 
     public final HttpRequest httpRequest;
-    public volatile BAASBox.BAASHandler<T, R> handler;
-    public final ResponseParser<T> parser;
-    public final R tag;
+    public volatile BAASBox.BAASHandler<Resp, Tag> handler;
+    public final ResponseParser<Resp> parser;
+    public final Tag tag;
     public volatile int priority;
     volatile int requestNumber;
-    volatile BaasResult<T> result;
+    volatile BaasResult<Resp> result;
     private final AtomicInteger status = new AtomicInteger();
-    public BaasPromise<T> promise;
+    public BaasPromise<Resp> promise;
 
 
     public static interface ResponseParser<T> {
-        T parseResponse(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config,CredentialStore credentialStore) throws BAASBoxException;
+        T parseResponse(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException;
     }
 
     public static abstract class BaseResponseParser<T> implements ResponseParser<T> {
         @Override
-        public T parseResponse(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config,CredentialStore credentialStore) throws BAASBoxException {
+        public T parseResponse(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
 
             int status = response.getStatusLine().getStatusCode();
             int statusClass = status / 100;
 
             switch (statusClass) {
                 case 1:
-                    return handleContinue(request, response, config,credentialStore);
+                    return handleContinue(request, response, config, credentialStore);
                 case 2:
-                    return handleOk(request, response, config,credentialStore);
+                    return handleOk(request, response, config, credentialStore);
                 case 3:
-                    return redirect(request, response, config,credentialStore);
+                    return redirect(request, response, config, credentialStore);
                 case 4:
                 case 5:
-                    return handleFail(request, response, config,credentialStore);
+                    return handleFail(request, response, config, credentialStore);
                 default:
                     throw new Error("Unreachable code");
             }
         }
 
-        protected T handleContinue(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config,CredentialStore credentialStore) throws BAASBoxException {
+        protected T handleContinue(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             return null;
         }
 
-        protected abstract T handleOk(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config,CredentialStore credentialStore) throws BAASBoxException;
+        protected abstract T handleOk(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException;
 
         protected JsonObject getJsonEntity(HttpResponse response, String charset) throws BAASBoxIOException {
             HttpEntity entity = response.getEntity();
@@ -86,12 +86,12 @@ public class BaasRequest<T, R> implements Comparable<BaasRequest<T, R>> {
         }
 
 
-        protected T redirect(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config,CredentialStore credentialStore) {
+        protected T redirect(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) {
             return null;
         }
 
         protected T handleFail(BaasRequest<T, ?> request,
-                               HttpResponse response, BAASBox.Config config,CredentialStore credentialStore) throws BAASBoxException {
+                               HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             try {
 
                 int statusCode = response.getStatusLine().getStatusCode();
@@ -145,9 +145,9 @@ public class BaasRequest<T, R> implements Comparable<BaasRequest<T, R>> {
 
     BaasRequest(HttpRequest request,
                 int priority,
-                R tag,
-                ResponseParser<T> parser,
-                BAASBox.BAASHandler<T, R> handler, boolean retry) {
+                Tag tag,
+                ResponseParser<Resp> parser,
+                BAASBox.BAASHandler<Resp, Tag> handler, boolean retry) {
         this.httpRequest = request;
         this.handler = handler;
         this.parser = parser;
@@ -190,7 +190,7 @@ public class BaasRequest<T, R> implements Comparable<BaasRequest<T, R>> {
     }
 
     @Override
-    public int compareTo(BaasRequest<T, R> another) {
+    public int compareTo(BaasRequest<Resp, Tag> another) {
         return (priority == another.priority) ?
                 requestNumber - another.requestNumber :
                 priority - another.priority;

@@ -7,7 +7,6 @@ import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.AsyncRequestDispatcher;
 import com.baasbox.android.spi.CredentialStore;
-import com.baasbox.android.spi.Credentials;
 import com.baasbox.android.spi.RequestDispatcher;
 import com.baasbox.android.spi.RestClient;
 
@@ -18,23 +17,25 @@ import org.apache.http.HttpResponse;
  */
 public class BAASBox {
 
-    <R,T> BaasPromise<R> submitRequest(BaasRequest<R,T> breq) {
+    <R, T> BaasPromise<R> submitRequest(BaasRequest<R, T> breq) {
         return asyncDispatcher.post(breq);
 
     }
 
     /**
-     *  Interface definition for a callback to be invoked when baasbox responds to a request
-     *  @param <R> the expected return type
-     *  @param <T> the expected tag type
+     * Interface definition for a callback to be invoked when baasbox responds to a request
+     *
+     * @param <R> the expected return type
+     * @param <T> the expected tag type
      */
-    public interface BAASHandler<R,T> {
+    public interface BAASHandler<R, T> {
         /**
          * Called with the result of a request to BAASBox
+         *
          * @param result
-         * @param tag of the original request or null
+         * @param tag    of the original request or null
          */
-        public void handle(BaasResult<R> result,T tag);
+        public void handle(BaasResult<R> result, T tag);
     }
 
     public final static class Config {
@@ -103,62 +104,62 @@ public class BAASBox {
 
     final CredentialStore credentialStore;
     final RequestFactory requestFactory;
-    final Config  config;
+    final Config config;
 
-    private BAASBox(Context context,Config config){
-        if (context == null){
+    private BAASBox(Context context, Config config) {
+        if (context == null) {
             throw new NullPointerException("context cannot be null");
         }
         this.context = context.getApplicationContext();
-        this.config = config==null?new Config():config;
-        this.credentialStore = new PreferenceCredentialStore(context,"");
+        this.config = config == null ? new Config() : config;
+        this.credentialStore = new PreferenceCredentialStore(context, "");
         final RestClient client = new HttpUrlConnectionClient(this.config);
-        this.syncDispatcher = new SameThreadDispatcher(client,this.config);
-        this.asyncDispatcher= new DefaultDispatcher(4,client,this.config,this.credentialStore);
-        this.requestFactory = new RequestFactory(this.config,credentialStore);
+        this.syncDispatcher = new SameThreadDispatcher(client, this.config);
+        this.asyncDispatcher = new DefaultDispatcher(4, client, this.config, this.credentialStore);
+        this.requestFactory = new RequestFactory(this.config, credentialStore);
 
     }
 
-    public static BAASBox createClient(Context context){
-        return createClient(context,null);
+    public static BAASBox createClient(Context context) {
+        return createClient(context, null);
     }
 
-    public static BAASBox createClient(Context context,Config config){
-        BAASBox box =new BAASBox(context,config);
+    public static BAASBox createClient(Context context, Config config) {
+        BAASBox box = new BAASBox(context, config);
         box.asyncDispatcher.start();
-        box.syncDispatcher.start();
+//        box.syncDispatcher.start();
         return box;
     }
 
-    public static BAASBox createClient(Context context,Config config,String sessionToken){
-        BAASBox box = createClient(context,config);
+    public static BAASBox createClient(Context context, Config config, String sessionToken) {
+        BAASBox box = createClient(context, config);
         box.credentialStore.updateToken(sessionToken);
         return box;
     }
 
     final BaasRequest.ResponseParser<Void> logoutParser = new BaasRequest.BaseResponseParser<Void>() {
         @Override
-        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, Config config,CredentialStore credentialStore) throws BAASBoxException {
-            try{
+        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
+            try {
                 credentialStore.set(null);
                 return null;
-            }catch (Exception e){
-                throw new BAASBoxException("Error logging out",e);
+            } catch (Exception e) {
+                throw new BAASBoxException("Error logging out", e);
             }
         }
     };
 
     final BaasRequest.ResponseParser<Void> signupResponseParser = new BaasRequest.BaseResponseParser<Void>() {
         @Override
-        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, Config config,CredentialStore credentialStore) throws BAASBoxException {
+        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
             try {
-                JsonObject content = getJsonEntity(response,config.HTTP_CHARSET);
+                JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
                 JsonObject data = content.getObject("data");
                 String token = data.getString("X-BB-SESSION");
                 credentialStore.updateToken(token);
                 return null;
-            } catch (JsonException e){
-                throw new BAASBoxException("Could not parse server response",e);
+            } catch (JsonException e) {
+                throw new BAASBoxException("Could not parse server response", e);
             }
 
         }

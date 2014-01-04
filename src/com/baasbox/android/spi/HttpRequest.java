@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 /**
+ * Reifies an http request.
  * Created by eto on 23/12/13.
  */
 public class HttpRequest {
