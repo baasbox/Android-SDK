@@ -1,9 +1,9 @@
-package com.baasbox.android;
+package com.baasbox.android.exceptions;
 
 import java.util.Map;
 
 /**
- * This class extends {@link BAASBoxException}. This is the root of all the
+ * This class extends {@link com.baasbox.android.exceptions.BAASBoxException}. This is the root of all the
  * exception thrown by the remote server; if it crashes or the request made is
  * invalid, a subclass of BAASBoxApiException is thrown by the SDK.
  * 
@@ -33,14 +33,14 @@ public class BAASBoxApiException extends BAASBoxException {
 	/**
 	 * The version of the API called.
 	 */
-	public final int apiVersion;
+	public final String apiVersion;
 	/**
 	 * The id of the BAASBox specific error
 	 */
 	public final int code;
 
 	public BAASBoxApiException(int code, int httpStatus, String resource, String method,
-			Map<String, String> requestHeader, int apiVersion,
+			Map<String, String> requestHeader, String apiVersion,
 			String detailMessage) {
 		super(detailMessage);
 		this.code = code;

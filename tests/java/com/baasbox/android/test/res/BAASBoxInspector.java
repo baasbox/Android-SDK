@@ -3,8 +3,8 @@ package com.baasbox.android.test.res;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.baasbox.android.BAASBox;
-import com.baasbox.android.internal.Credentials;
+import com.baasbox.android.old.BAASBox;
+import com.baasbox.android.spi.Credentials;
 
 import java.lang.reflect.Field;
 

@@ -1,4 +1,4 @@
-package com.baasbox.android;
+package com.baasbox.android.exceptions;
 
 import java.util.HashMap;
 
@@ -23,7 +23,7 @@ public class BAASBoxInvalidSessionException extends BAASBoxApiException {
 	private static final long serialVersionUID = -6923343849646015698L;
 
 	public BAASBoxInvalidSessionException(String resource, String method,
-			HashMap<String, String> requestHeader, int apiVersion,
+			HashMap<String, String> requestHeader, String apiVersion,
 			String detailMessage) {
 		super(INVALID_SESSION_TOKEN_CODE, 401, resource, method, requestHeader,
 				apiVersion, detailMessage);

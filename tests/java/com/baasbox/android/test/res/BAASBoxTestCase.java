@@ -5,12 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.test.ActivityInstrumentationTestCase2;
 
-import com.baasbox.android.BAASBox;
-import com.baasbox.android.BAASBoxConfig;
+import com.baasbox.android.old.BAASBox;
 import com.baasbox.android.internal.BAASRequest;
-import com.baasbox.android.internal.Credentials;
+import com.baasbox.android.spi.Credentials;
 import com.baasbox.android.internal.HttpClientRESTInterface;
-import com.baasbox.android.internal.RequestFactory;
+import com.baasbox.android.RequestFactory;
 import com.baasbox.android.test.StubActivity;
 
 /**

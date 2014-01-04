@@ -1,4 +1,4 @@
-package com.baasbox.android.internal;
+package com.baasbox.android.spi;
 
 /*
  * Copyright (C) 2010 The Android Open Source Project

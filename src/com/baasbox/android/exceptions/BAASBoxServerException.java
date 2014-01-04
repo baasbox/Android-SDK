@@ -1,4 +1,4 @@
-package com.baasbox.android;
+package com.baasbox.android.exceptions;
 
 import java.util.HashMap;
 
@@ -17,7 +17,7 @@ public class BAASBoxServerException extends BAASBoxApiException {
 	private static final long serialVersionUID = 3343497779336452255L;
 
 	public BAASBoxServerException(int code, int httpStatus, String resource, String method,
-			HashMap<String, String> requestHeader, int apiVersion,
+			HashMap<String, String> requestHeader, String apiVersion,
 			String detailMessage) {
 		super(code, httpStatus, resource, method, requestHeader, apiVersion,
 				detailMessage);
