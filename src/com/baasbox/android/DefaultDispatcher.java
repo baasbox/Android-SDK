@@ -8,7 +8,6 @@ import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxInvalidSessionException;
 import com.baasbox.android.spi.AsyncRequestDispatcher;
 import com.baasbox.android.spi.CredentialStore;
-import com.baasbox.android.spi.RequestDispatcher;
 import com.baasbox.android.spi.RestClient;
 
 import org.apache.http.HttpResponse;
@@ -23,6 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 final class DefaultDispatcher implements AsyncRequestDispatcher {
     private final static AtomicInteger REQUEST_COUNTER=new AtomicInteger(Integer.MIN_VALUE);
     private final RestClient client;
+    private final BAASBox box;
+
     private final ConcurrentHashMap<Object,Integer> cancelMap;
     private final BAASBox.Config config;
     private final ResponseHandler dispatcher;
@@ -31,16 +32,27 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
 
     private PriorityBlockingQueue<BaasRequest<?,?>> requests;
 
-    DefaultDispatcher(int threads,RestClient client,BAASBox.Config config,CredentialStore credentialStore){
+    DefaultDispatcher(BAASBox box, int threads, RestClient client) {
+        this.box = box;
         this.client = client;
-        this.config = config;
+        this.config = box.config;
+        this.credentialStore = box.credentialStore;
         this.requests = new PriorityBlockingQueue<BaasRequest<?,?>>();
         this.dispatcher= new ResponseHandler();
         this.cancelMap = new ConcurrentHashMap<Object, Integer>();
         this.workers = new Worker[threads];
-        this.credentialStore = credentialStore;
+
     }
 
+//    DefaultDispatcher(int threads,RestClient client,BAASBox.Config config,CredentialStore credentialStore){
+//        this.client = client;
+//        this.config = config;
+//        this.requests = new PriorityBlockingQueue<BaasRequest<?,?>>();
+//        this.dispatcher= new ResponseHandler();
+//        this.cancelMap = new ConcurrentHashMap<Object, Integer>();
+//        this.workers = new Worker[threads];
+//        this.credentialStore = credentialStore;
+//    }
 
     @Override
     public void start() {
@@ -98,7 +110,7 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         private final ConcurrentHashMap<Object,Integer> cancelMap;
         private final BAASBox.Config config;
         private final CredentialStore credentialStore;
-        private final RequestDispatcher dispatcher;
+        private final DefaultDispatcher dispatcher;
         private volatile boolean quit;
 
         Worker(DefaultDispatcher dispatcher){
@@ -170,7 +182,7 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
             request.cancel();
         }
 
-        private <T> boolean executeRequest(BaasRequest<T,?> req,RestClient client){
+        private <T> boolean executeRequest(final BaasRequest<T, ?> req, RestClient client) {
             T t = null;
             boolean handle = true;
             try {
@@ -179,6 +191,13 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
                 req.result = BaasResult.success(t);
             } catch (BAASBoxInvalidSessionException ex){
                 if(req.takeRetry()){
+                    LoginRequest<Void> refresh = new LoginRequest<Void>(dispatcher.box, MAX_PRIORITY, null, new BAASBox.BAASHandler<Void, Void>() {
+                        @Override
+                        public void handle(BaasResult<Void> result, Void tag) {
+                            dispatcher.post(req);
+                        }
+                    });
+                    dispatcher.post(refresh);
 
                     //todo makeup login
                     //todo resubmit with login

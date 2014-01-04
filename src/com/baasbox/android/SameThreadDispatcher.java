@@ -12,14 +12,16 @@ import org.apache.http.HttpResponse;
  * Created by eto on 23/12/13.
  */
 final class SameThreadDispatcher implements RequestDispatcher {
+    private final BAASBox box;
     private final BAASBox.Config config;
     private final RestClient client;
     private final CredentialStore credentialStore;
 
-    SameThreadDispatcher(RestClient client, BAASBox.Config config, CredentialStore credentialStore) {
-        this.config =config;
+    SameThreadDispatcher(BAASBox box, RestClient client) {
+        this.box = box;
+        this.config = box.config;
         this.client = client;
-        this.credentialStore = credentialStore;
+        this.credentialStore = box.credentialStore;
     }
 
 
