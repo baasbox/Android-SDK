@@ -114,7 +114,7 @@ public class BAASBox {
         this.config = config == null ? new Config() : config;
         this.credentialStore = new PreferenceCredentialStore(context, "");
         final RestClient client = new HttpUrlConnectionClient(this.config);
-        this.syncDispatcher = new SameThreadDispatcher(client, this.config);
+        this.syncDispatcher = new SameThreadDispatcher(client, this.config, this.credentialStore);
         this.asyncDispatcher = new DefaultDispatcher(4, client, this.config, this.credentialStore);
         this.requestFactory = new RequestFactory(this.config, credentialStore);
 

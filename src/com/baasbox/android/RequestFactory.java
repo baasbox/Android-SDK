@@ -1,13 +1,11 @@
 package com.baasbox.android;
 
+import com.baasbox.android.impl.Base64;
+import com.baasbox.android.impl.Logging;
 import com.baasbox.android.json.JsonObject;
-import com.baasbox.android.spi.Base64;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.Credentials;
 import com.baasbox.android.spi.HttpRequest;
-
-import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -96,7 +94,7 @@ class RequestFactory {
             byte[] bytes = null;
             try {
                 String params = encodeParams(form_params,config.HTTP_CHARSET);
-                Globals.debug("PARAMS: "+params);
+                Logging.debug("PARAMS: " + params);
                 bytes = params.getBytes(config.HTTP_CHARSET);
             }catch (UnsupportedEncodingException e){
                 throw new Error(e);
