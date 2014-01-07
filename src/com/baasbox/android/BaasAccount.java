@@ -10,7 +10,7 @@ import com.baasbox.android.spi.HttpRequest;
 import org.apache.http.HttpResponse;
 
 /**
- * Created by eto on 02/01/14.
+ * Created by Andrea Tortorella on 02/01/14.
  */
 public class BaasAccount extends BaasPerson{
 
@@ -58,6 +58,23 @@ public class BaasAccount extends BaasPerson{
         return login(client,null,priority,handler);
     }
 
+
+    public <T> BaasDisposer login(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
+        return client.submitRequest(new LoginRequest<T>(client, username, password, priority, tag, handler));
+    }
+
+    public static BaasDisposer get(BAASBox client, BAASBox.BAASHandler<BaasAccount, ?> handler) {
+        return get(client, null, 0, handler);
+    }
+
+    public static BaasDisposer get(BAASBox client, int priority, BAASBox.BAASHandler<BaasAccount, ?> handler) {
+        return get(client, null, priority, handler);
+    }
+
+    public static <T> BaasDisposer get(BAASBox client, T tag, BAASBox.BAASHandler<BaasAccount, T> handler) {
+        return get(client, tag, 0, handler);
+    }
+
     public static<T> BaasDisposer get(BAASBox client,T tag,int priority,BAASBox.BAASHandler<BaasAccount,T> handler){
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("me");
@@ -66,6 +83,19 @@ public class BaasAccount extends BaasPerson{
         return client.submitRequest(breq);
     }
 
+    public BaasDisposer save(BAASBox client, BAASBox.BAASHandler<BaasAccount, ?> handler) {
+        return save(client, null, 0, handler);
+    }
+
+    public BaasDisposer save(BAASBox client, int priority, BAASBox.BAASHandler<BaasAccount, ?> handler) {
+        return save(client, null, priority, handler);
+    }
+
+    public <T> BaasDisposer save(BAASBox client, T tag, BAASBox.BAASHandler<BaasAccount, T> handler) {
+        return save(client, tag, 0, handler);
+    }
+
+    //todo handle merge profile
     public <T> BaasDisposer save(BAASBox client, T tag, int priority, BAASBox.BAASHandler<BaasAccount, T> handler) {
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("me");
@@ -74,8 +104,14 @@ public class BaasAccount extends BaasPerson{
         return client.submitRequest(breq);
     }
 
-    public <T> BaasDisposer login(BAASBox client,T tag,int priority,BAASBox.BAASHandler<Void,T> handler){
-        return client.submitRequest(new LoginRequest<T>(client,username,password,priority,tag,handler));
+
+    public static BaasDisposer logout(BAASBox client, BAASBox.BAASHandler<Void, ?> handler) {
+        return logout(client, null, 0, handler);
+    }
+
+
+    public static BaasDisposer logout(BAASBox client, int priority, BAASBox.BAASHandler<Void, ?> handler) {
+        return logout(client, null, priority, handler);
     }
 
     public static <T> BaasDisposer logout(BAASBox client,T tag,BAASBox.BAASHandler<Void,T> handler){
