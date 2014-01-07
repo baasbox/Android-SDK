@@ -3,12 +3,11 @@ package com.baasbox.android;
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
+import com.baasbox.android.spi.CredentialStore;
+import com.baasbox.android.spi.Credentials;
 import com.baasbox.android.spi.HttpRequest;
 
 import org.apache.http.HttpResponse;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Created by eto on 02/01/14.
@@ -20,6 +19,11 @@ public class BaasAccount extends BaasPerson{
     public BaasAccount(String username,String password) {
         super(username);
         this.password=password;
+    }
+
+    private BaasAccount(String username, String password, JsonObject data) {
+        super(username, data);
+        this.password = password;
     }
 
     public BaasDisposer signup(BAASBox client,BAASBox.BAASHandler<Void,?> handler){
@@ -38,7 +42,7 @@ public class BaasAccount extends BaasPerson{
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("user");
         HttpRequest request = factory.post(endpoint,toJson());
-        BaasRequest<Void,T> breq = new BaasRequest<Void, T>(request,priority,tag,client.signupResponseParser,handler,false);
+        BaasRequest<Void, T> breq = new BaasRequest<Void, T>(request, priority, tag, signupResponseParser, handler, false);
         return client.submitRequest(breq);
     }
 
@@ -58,9 +62,7 @@ public class BaasAccount extends BaasPerson{
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("user");
         HttpRequest get = factory.get(endpoint);
-        //todo create response parser for profile requests
-
-        BaasRequest<BaasAccount,T> breq = new BaasRequest<BaasAccount, T>(get,priority,tag,null,handler,true);
+        BaasRequest<BaasAccount, T> breq = new BaasRequest<BaasAccount, T>(get, priority, tag, profileParser, handler, true);
         return client.submitRequest(breq);
     }
 
@@ -77,7 +79,7 @@ public class BaasAccount extends BaasPerson{
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("logout");
         HttpRequest post = factory.post(endpoint,null,null);
-        BaasRequest<Void,T> breq = new BaasRequest<Void, T>(post,priority,tag,client.logoutParser,handler,false);
+        BaasRequest<Void, T> breq = new BaasRequest<Void, T>(post, priority, tag, logoutParser, handler, false);
         return client.submitRequest(breq);
     }
 
@@ -86,5 +88,46 @@ public class BaasAccount extends BaasPerson{
         return super.toJson().putString("password",password);
     }
 
+    private static final BaasRequest.ResponseParser<BaasAccount> profileParser = new BaasRequest.BaseResponseParser<BaasAccount>() {
+        @Override
+        protected BaasAccount handleOk(BaasRequest<BaasAccount, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            try {
+                JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
+                JsonObject object = content.getObject("data");
+                Credentials credentials = credentialStore.get(true);
+                BaasAccount account = new BaasAccount(credentials.username, credentials.password, object);
+                return account;
+            } catch (JsonException e) {
+                throw new BAASBoxException("Unable to parse server response", e);
+            }
+        }
+    };
+
+    private final BaasRequest.ResponseParser<Void> signupResponseParser = new BaasRequest.BaseResponseParser<Void>() {
+        @Override
+        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            try {
+                JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
+                JsonObject data = content.getObject("data");
+                String token = data.getString("X-BB-SESSION");
+                credentialStore.updateToken(token);
+                return null;
+            } catch (JsonException e) {
+                throw new BAASBoxException("Could not parse server response", e);
+            }
+        }
+    };
+
+    private static final BaasRequest.ResponseParser<Void> logoutParser = new BaasRequest.BaseResponseParser<Void>() {
+        @Override
+        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            try {
+                credentialStore.set(null);
+                return null;
+            } catch (Exception e) {
+                throw new BAASBoxException("Error logging out", e);
+            }
+        }
+    };
 }
 

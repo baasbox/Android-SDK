@@ -2,15 +2,10 @@ package com.baasbox.android;
 
 import android.content.Context;
 
-import com.baasbox.android.exceptions.BAASBoxException;
-import com.baasbox.android.json.JsonException;
-import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.AsyncRequestDispatcher;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.RequestDispatcher;
 import com.baasbox.android.spi.RestClient;
-
-import org.apache.http.HttpResponse;
 
 /**
  * Created by eto on 23/12/13.
@@ -121,6 +116,7 @@ public class BAASBox {
 
     public static BAASBox createClient(Context context) {
         return createClient(context, null);
+
     }
 
     public static BAASBox createClient(Context context, Config config) {
@@ -136,32 +132,31 @@ public class BAASBox {
         return box;
     }
 
-    final BaasRequest.ResponseParser<Void> logoutParser = new BaasRequest.BaseResponseParser<Void>() {
-        @Override
-        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
-            try {
-                credentialStore.set(null);
-                return null;
-            } catch (Exception e) {
-                throw new BAASBoxException("Error logging out", e);
-            }
-        }
-    };
+//    final BaasRequest.ResponseParser<Void> logoutParser = new BaasRequest.BaseResponseParser<Void>() {
+//        @Override
+//        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
+//            try {
+//                credentialStore.set(null);
+//                return null;
+//            } catch (Exception e) {
+//                throw new BAASBoxException("Error logging out", e);
+//            }
+//        }
+//    };
 
-    final BaasRequest.ResponseParser<Void> signupResponseParser = new BaasRequest.BaseResponseParser<Void>() {
-        @Override
-        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
-            try {
-                JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
-                JsonObject data = content.getObject("data");
-                String token = data.getString("X-BB-SESSION");
-                credentialStore.updateToken(token);
-                return null;
-            } catch (JsonException e) {
-                throw new BAASBoxException("Could not parse server response", e);
-            }
-
-        }
-    };
+//    final BaasRequest.ResponseParser<Void> signupResponseParser = new BaasRequest.BaseResponseParser<Void>() {
+//        @Override
+//        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
+//            try {
+//                JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
+//                JsonObject data = content.getObject("data");
+//                String token = data.getString("X-BB-SESSION");
+//                credentialStore.updateToken(token);
+//                return null;
+//            } catch (JsonException e) {
+//                throw new BAASBoxException("Could not parse server response", e);
+//            }
+//        }
+//    };
 }
 
