@@ -6,6 +6,7 @@ import android.os.Message;
 
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxInvalidSessionException;
+import com.baasbox.android.impl.Logging;
 import com.baasbox.android.spi.AsyncRequestDispatcher;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.RestClient;
@@ -186,11 +187,14 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
             T t = null;
             boolean handle = true;
             try {
+                Logging.debug("REQUEST: " + req.httpRequest);
                 HttpResponse response = client.execute(req.httpRequest);
                 t = req.parser.parseResponse(req, response, config, credentialStore);
                 req.result = BaasResult.success(t);
             } catch (BAASBoxInvalidSessionException ex){
+                Logging.debug("invalid session");
                 if(req.takeRetry()){
+                    Logging.debug("retry");
                     LoginRequest<Void> refresh = new LoginRequest<Void>(dispatcher.box, MAX_PRIORITY, null, new BAASBox.BAASHandler<Void, Void>() {
                         @Override
                         public void handle(BaasResult<Void> result, Void tag) {
@@ -198,14 +202,12 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
                         }
                     });
                     dispatcher.post(refresh);
-
-                    //todo makeup login
-                    //todo resubmit with login
                     handle = false;
                 } else {
                     req.result = BaasResult.failure(ex);
                 }
             }catch (BAASBoxException e) {
+                Logging.debug("error with " + e.getMessage());
                 req.result= BaasResult.failure(e);
             }
             if (handle){

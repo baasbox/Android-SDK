@@ -138,7 +138,7 @@ class RequestFactory {
     }
 
     public HttpRequest put(String uri, Map<String, String> headers, InputStream body) {
-        headers = fillHeaders(headers, config, credentials.get(false));
+        headers = fillHeaders(headers, config, credentials.get(true));
         return new HttpRequest(HttpRequest.PUT, uri, headers, body);
     }
 
@@ -173,13 +173,15 @@ class RequestFactory {
     private static Map<String,String> fillHeaders(Map<String,String> headers,BAASBox.Config config,Credentials credentials){
         headers = headers==null?new HashMap<String, String>():headers;
         headers.put(APPCODE_HEADER_NAME,config.APP_CODE);
+
         if(credentials !=null){
+            Logging.debug("updating credentials " + credentials.password + " " + credentials.username + " " + credentials.sessionToken);
             switch (config.AUTHENTICATION_TYPE){
                 case BASIC_AUTHENTICATION:
-                    if(credentials.username!=null&& credentials.password!=null){
-                        String plain = credentials.username+':'+credentials.password;
+                    if (credentials.username != null && credentials.password != null) {
+                        String plain = credentials.username + ':' + credentials.password;
                         String encoded = Base64.encodeToString(plain.getBytes(), Base64.DEFAULT).trim();
-                        headers.put(BASIC_AUTH_HEADER_NAME,"Basic "+encoded);
+                        headers.put(BASIC_AUTH_HEADER_NAME, "Basic " + encoded);
                     }
                     break;
                 case SESSION_TOKEN:
@@ -188,6 +190,8 @@ class RequestFactory {
                     }
                     break;
             }
+        } else {
+            Logging.debug("no credentials");
         }
         return headers;
     }

@@ -69,8 +69,8 @@ public class BaasAccount extends BaasPerson{
     public <T> BaasDisposer save(BAASBox client, T tag, int priority, BAASBox.BAASHandler<BaasAccount, T> handler) {
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("me");
-        HttpRequest request = factory.post(endpoint, toJson(false));
-        BaasRequest<BaasAccount, T> breq = new BaasRequest<BaasAccount, T>(request, priority, tag, null, handler, true);
+        HttpRequest request = factory.put(endpoint, toJson(false));
+        BaasRequest<BaasAccount, T> breq = new BaasRequest<BaasAccount, T>(request, priority, tag, profileParser, handler, true);
         return client.submitRequest(breq);
     }
 

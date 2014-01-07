@@ -26,4 +26,13 @@ public class HttpRequest {
         this.body=body;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{url ->" + url + " method: " + method + ", headers ->{");
+        for (Map.Entry<String, String> header : headers.entrySet()) {
+            sb.append(header.getKey() + ":" + header.getValue());
+        }
+        sb.append("}}");
+        return sb.toString();
+    }
 }

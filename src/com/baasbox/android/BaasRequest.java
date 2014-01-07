@@ -5,6 +5,7 @@ import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxIOException;
 import com.baasbox.android.exceptions.BAASBoxInvalidSessionException;
 import com.baasbox.android.exceptions.BAASBoxServerException;
+import com.baasbox.android.impl.Logging;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
@@ -110,8 +111,12 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
                 String method = json.getString("method", null);
                 JsonObject header = json.getObject("request_header");
                 String apiVersion = json.getString("API_version", "");
-                int bbCode = json.getInt("bb_code", -1);
-
+                String bbCodeStr = json.getString("bb_code", "-1");
+                int bbCode = -1;
+                if (!"".equals(bbCodeStr)) {
+                    bbCode = Integer.parseInt(bbCodeStr);
+                }
+                Logging.debug(json.toString());
                 HashMap<String, String> headers = new HashMap<String, String>();
                 if (header != null) {
                     Iterator<String> it = header.getFieldNames().iterator();
@@ -125,6 +130,7 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
                     case 5:
                         throw new BAASBoxServerException(bbCode, statusCode, resource, method, headers, apiVersion, message);
                     case 4:
+
                         if (statusCode == 401 && bbCode == BAASBoxInvalidSessionException.INVALID_SESSION_TOKEN_CODE) {
                             throw new BAASBoxInvalidSessionException(resource, method, headers, apiVersion, message);
                         } else {
