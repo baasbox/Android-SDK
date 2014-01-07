@@ -146,8 +146,27 @@ class RequestFactory {
         return get(endpoint,null,null);
     }
 
+
+    public HttpRequest delete(String endpoint) {
+        return delete(endpoint, null, null);
+    }
+
+    public HttpRequest delete(String endpoint, Map<String, String> headers) {
+        return delete(endpoint, null, headers);
+    }
+
+
     public HttpRequest get(String endpoint,Map<String,String> headers){
         return get(endpoint,null, headers);
+    }
+
+    public HttpRequest delete(String endpoint, Map<String, String> queryParams, Map<String, String> headers) {
+        headers = fillHeaders(headers, config, credentials.get(false));
+        if (queryParams != null) {
+            String queryUrl = encodeParams(queryParams, config.HTTP_CHARSET);
+            endpoint = endpoint + "?" + queryUrl;
+        }
+        return new HttpRequest(HttpRequest.DELETE, endpoint, headers, null);
     }
 
     public HttpRequest get(String endpoint,Map<String,String> queryParams,Map<String,String>headers) {

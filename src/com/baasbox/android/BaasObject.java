@@ -1,18 +1,41 @@
 package com.baasbox.android;
 
 
+import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.impl.Logging;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.json.JsonStructure;
+import com.baasbox.android.spi.CredentialStore;
+import com.baasbox.android.spi.HttpRequest;
+
+import org.apache.http.HttpResponse;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by eto on 02/01/14.
  */
-public abstract class BaasObject{
+public class BaasObject {
     public final String collection;
     protected final JsonObject object;
 
-    protected BaasObject(String collection){
+    public BaasObject(JsonObject data) {
+        super();
+        this.collection = data.getString("@class");
+        data.remove("@class");
+        object = data;
+    }
+
+    public BaasObject(String collection, JsonObject data) {
+        super();
+        this.collection = collection;
+        this.object = data;
+    }
+
+    public BaasObject(String collection) {
         super();
         this.collection = collection;
         this.object = new JsonObject();
@@ -160,6 +183,87 @@ public abstract class BaasObject{
         return object.remove(name);
     }
 
+    public static <T> BaasDisposer count(BAASBox client, String collection, T tag, int priority, BAASBox.BAASHandler<Long, T> handler) {
+        if (collection == null) throw new NullPointerException("collection cannot be null");
+        final RequestFactory factory = client.requestFactory;
+        String endpoint = factory.getEndpoint("document/?/count", collection);
+        HttpRequest get = factory.get(endpoint);
+        BaasRequest<Long, T> request = new BaasRequest<Long, T>(get, priority, tag, countParser, handler, true);
+        return client.submitRequest(request);
+    }
+
+
+    public <T> BaasDisposer delete(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
+        String id = getId();
+        if (id == null)
+            throw new IllegalStateException("document is not bound to an instance on the server");
+        return delete(client, this.collection, getId(), tag, priority, handler);
+    }
+
+    public static <T> BaasDisposer delete(BAASBox client, String collection, String id, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
+        if (collection == null) throw new NullPointerException("collection cannot be null");
+        if (id == null) throw new NullPointerException("id cannot be null");
+        final RequestFactory factory = client.requestFactory;
+        String endpoint = factory.getEndpoint("document/?/?", collection, id);
+        HttpRequest delete = factory.delete(endpoint);
+        BaasRequest<Void, T> breq = new BaasRequest<Void, T>(delete, priority, tag, deleteParser, handler, true);
+        return client.submitRequest(breq);
+    }
+
+    public static <T> BaasDisposer getAll(BAASBox client, String collection, T tag, int priority, BAASBox.BAASHandler<List<BaasObject>, T> handler) {
+        if (collection == null) throw new NullPointerException("collection cannot be null");
+        final RequestFactory factory = client.requestFactory;
+        String endpoint = factory.getEndpoint("document/?", collection);
+        HttpRequest get = factory.get(endpoint);
+        BaasRequest<List<BaasObject>, T> breq = new BaasRequest<List<BaasObject>, T>(get, priority, tag, listParser, handler, true);
+        return client.submitRequest(breq);
+    }
+
+    private final static BaasRequest.BaseResponseParser<List<BaasObject>> listParser =
+            new BaasRequest.BaseResponseParser<List<BaasObject>>() {
+                @Override
+                protected List<BaasObject> handleOk(BaasRequest<List<BaasObject>, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+                    JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
+                    JsonArray data = o.getArray("data");
+                    if (data == null) {
+                        return Collections.emptyList();
+                    } else {
+                        ArrayList<BaasObject> res = new ArrayList<BaasObject>();
+                        for (Object obj : data) {
+                            res.add(new BaasObject((JsonObject) obj));
+                        }
+                        return res;
+                    }
+                }
+            };
+
+    private final static BaasRequest.BaseResponseParser<Long> countParser = new BaasRequest.BaseResponseParser<Long>() {
+        @Override
+        protected Long handleOk(BaasRequest<Long, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
+            Long count = content.getObject("data").getLong("count");
+            return count;
+        }
+    };
+
+
+    private final static BaasRequest.BaseResponseParser<Void> deleteParser = new BaasRequest.BaseResponseParser<Void>() {
+        @Override
+        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            return null;
+        }
+    };
+
+    public static <T> BaasDisposer get(BAASBox client, String collection, String id, T tag, int priority, BAASBox.BAASHandler<BaasObject, T> handler) {
+        if (collection == null) throw new NullPointerException("collection cannot be null");
+        if (id == null) throw new NullPointerException("id cannot be null");
+        final RequestFactory factory = client.requestFactory;
+        String endpoint = factory.getEndpoint("document/?/?", collection, id);
+        HttpRequest request = factory.get(endpoint);
+        BaasRequest<BaasObject, T> req = new BaasRequest<BaasObject, T>(request, priority, tag, new ObjectParser(null), handler, true);
+        return client.submitRequest(req);
+    }
+
     /**
      * Saves this object to the backend using the provided client instance
      * @param client the client
@@ -169,7 +273,56 @@ public abstract class BaasObject{
      * @param <T>
      * @return a disposer that can be used to control the request
      */
-    public abstract <T> BaasDisposer save(BAASBox client,T tag,int priority,BAASBox.BAASHandler<BaasObject,T> handler);
+    public <T> BaasDisposer save(BAASBox client, T tag, int priority, BAASBox.BAASHandler<BaasObject, T> handler) {
+        RequestFactory factory = client.requestFactory;
+        String id = getId();
+        if (id == null) {
+            String endpoint = factory.getEndpoint("document/?", collection);
+            HttpRequest post = factory.post(endpoint, toJson().copy());
+            BaasRequest<BaasObject, T> req = new BaasRequest<BaasObject, T>(post, priority, tag, new ObjectParser(this), handler, true);
+            return client.submitRequest(req);
+        } else {
+            String endpoint = factory.getEndpoint("document/?/?", collection, id);
+            HttpRequest put = factory.put(endpoint, toJson().copy());
+            BaasRequest<BaasObject, T> req = new BaasRequest<BaasObject, T>(put, priority, tag, new ObjectParser(this), handler, true);
+            return client.submitRequest(req);
+        }
+    }
+
+    public String getId() {
+        return object.getString("id");
+    }
+
+    private static class ObjectParser extends BaasRequest.BaseResponseParser<BaasObject> {
+        private BaasObject obj;
+
+        ObjectParser(BaasObject data) {
+            this.obj = data;
+        }
+
+        @Override
+        protected BaasObject handleOk(BaasRequest<BaasObject, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
+            JsonObject data = content.getObject("data");
+            Logging.debug("RECEIVED " + data.toString());
+            if (this.obj != null) {
+                data.remove("@class");
+                this.obj.object.merge(data);
+                return this.obj;
+            } else {
+                return new BaasObject(data);
+            }
+        }
+    }
+
+    private final static BaasRequest.ResponseParser<BaasObject> parser = new BaasRequest.BaseResponseParser<BaasObject>() {
+        @Override
+        protected BaasObject handleOk(BaasRequest<BaasObject, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            JsonObject data = getJsonEntity(response, config.HTTP_CHARSET);
+            Logging.debug("RECEIVED " + data.toString());
+            return new BaasObject("simple");
+        }
+    };
 
     public <T> BaasDisposer save(BAASBox client,T tag,BAASBox.BAASHandler<BaasObject,T> handler){
         return save(client,tag,0,handler);
@@ -182,7 +335,5 @@ public abstract class BaasObject{
     public BaasDisposer save(BAASBox client,BAASBox.BAASHandler<BaasObject,?> handler){
         return save(client,null,0,handler);
     }
-
-
 
 }
