@@ -121,6 +121,27 @@ class RequestFactory {
         return post(uri,headers, body);
     }
 
+    public HttpRequest put(String uri, JsonObject object) {
+        InputStream body = null;
+        Map<String, String> headers = null;
+        if (object != null) {
+            byte[] bytes = null;
+            try {
+                bytes = object.toString().getBytes(config.HTTP_CHARSET);
+            } catch (UnsupportedEncodingException e) {
+                throw new Error(e);
+            }
+            headers = setContentType(headers, config, JSON_CONTENT, bytes.length);
+            body = new ByteArrayInputStream(bytes);
+        }
+        return put(uri, headers, body);
+    }
+
+    public HttpRequest put(String uri, Map<String, String> headers, InputStream body) {
+        headers = fillHeaders(headers, config, credentials.get(false));
+        return new HttpRequest(HttpRequest.PUT, uri, headers, body);
+    }
+
     public HttpRequest get(String endpoint){
         return get(endpoint,null,null);
     }

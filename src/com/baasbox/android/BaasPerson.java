@@ -16,7 +16,7 @@ public class BaasPerson implements JsonConvertible {
 
     public enum Scope {
         PRIVATE("visibleByTheUser"),
-        FRIEND("visibleByFriend"),
+        FRIEND("visibleByFriends"),
         REGISTERED("visibleByRegisteredUsers"),
         PUBLIC("visibleByAnonymousUsers");
 
@@ -58,14 +58,21 @@ public class BaasPerson implements JsonConvertible {
         }
     }
 
-    @Override
-    public JsonObject toJson() {
-        return new JsonObject()
-                .putString("username", username)
-                .putObject(Scope.PRIVATE.visibilityName, privateData)
+    protected JsonObject toJson(boolean credentials) {
+        JsonObject object = new JsonObject();
+        if (credentials) {
+            object.putString("username", username);
+        }
+        object.putObject(Scope.PRIVATE.visibilityName, privateData)
                 .putObject(Scope.FRIEND.visibilityName, friendVisibleData)
                 .putObject(Scope.REGISTERED.visibilityName, registeredVisibleData)
                 .putObject(Scope.PUBLIC.visibilityName, publicVisibleData);
+        return object;
+    }
+
+    @Override
+    public JsonObject toJson() {
+        return toJson(true);
     }
 
 }

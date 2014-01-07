@@ -60,12 +60,19 @@ public class BaasAccount extends BaasPerson{
 
     public static<T> BaasDisposer get(BAASBox client,T tag,int priority,BAASBox.BAASHandler<BaasAccount,T> handler){
         RequestFactory factory = client.requestFactory;
-        String endpoint = factory.getEndpoint("user");
+        String endpoint = factory.getEndpoint("me");
         HttpRequest get = factory.get(endpoint);
         BaasRequest<BaasAccount, T> breq = new BaasRequest<BaasAccount, T>(get, priority, tag, profileParser, handler, true);
         return client.submitRequest(breq);
     }
 
+    public <T> BaasDisposer save(BAASBox client, T tag, int priority, BAASBox.BAASHandler<BaasAccount, T> handler) {
+        RequestFactory factory = client.requestFactory;
+        String endpoint = factory.getEndpoint("me");
+        HttpRequest request = factory.post(endpoint, toJson(false));
+        BaasRequest<BaasAccount, T> breq = new BaasRequest<BaasAccount, T>(request, priority, tag, null, handler, true);
+        return client.submitRequest(breq);
+    }
 
     public <T> BaasDisposer login(BAASBox client,T tag,int priority,BAASBox.BAASHandler<Void,T> handler){
         return client.submitRequest(new LoginRequest<T>(client,username,password,priority,tag,handler));
@@ -84,9 +91,26 @@ public class BaasAccount extends BaasPerson{
     }
 
     @Override
-    public JsonObject toJson() {
-        return super.toJson().putString("password",password);
+    protected JsonObject toJson(boolean credentials) {
+        JsonObject object = super.toJson(credentials);
+        if (credentials) object.putString("password", password);
+        return object;
     }
+
+    private static final BaasRequest.ResponseParser<BaasAccount> accountProfile = new BaasRequest.BaseResponseParser<BaasAccount>() {
+        @Override
+        protected BaasAccount handleOk(BaasRequest<BaasAccount, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            try {
+                JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
+                JsonObject object = content.getObject("data");
+                Credentials credentials = credentialStore.get(true);
+                BaasAccount account = new BaasAccount(credentials.username, credentials.password, object);
+                return account;
+            } catch (JsonException e) {
+                throw new BAASBoxException("Unable to parse server response", e);
+            }
+        }
+    };
 
     private static final BaasRequest.ResponseParser<BaasAccount> profileParser = new BaasRequest.BaseResponseParser<BaasAccount>() {
         @Override

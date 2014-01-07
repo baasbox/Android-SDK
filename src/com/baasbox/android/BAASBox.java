@@ -122,7 +122,6 @@ public class BAASBox {
     public static BAASBox createClient(Context context, Config config) {
         BAASBox box = new BAASBox(context, config);
         box.asyncDispatcher.start();
-//        box.syncDispatcher.start();
         return box;
     }
 
