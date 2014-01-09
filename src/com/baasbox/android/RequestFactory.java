@@ -9,9 +9,13 @@ import com.baasbox.android.spi.HttpRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -83,7 +87,6 @@ class RequestFactory {
             throw new Error(e);
         }
     }
-
 
 
 
@@ -213,6 +216,82 @@ class RequestFactory {
             Logging.debug("no credentials");
         }
         return headers;
+    }
+
+
+    public HttpRequest uploadFile(String endpoint, boolean binary, InputStream inputStream, String name, String contentType, JsonObject metaData) {
+        final String boundary = Long.toHexString(System.currentTimeMillis());
+        ArrayList<InputStream> ins = new ArrayList<InputStream>();
+        contentType = contentType == null ? "application/octet-stream" : contentType;
+        ins.add(fileBoundary(boundary, contentType, binary, name));
+        ins.add(inputStream);
+        if (metaData != null) {
+            ins.add(metaDataStream(boundary, config));
+            ins.add(jsonInputStream(metaData, config.HTTP_CHARSET));
+        }
+        ins.add(trail(boundary, config));
+        SequenceInputStream body = new SequenceInputStream(Collections.enumeration(ins));
+        return post(endpoint, multipartHeader(boundary), body);
+    }
+
+
+    private InputStream metaDataStream(String boundary, BAASBox.Config config) {
+        String header = String.format(Locale.US, "\r\n--%s\r\n" +
+                "Content-Disposition: form-data; name=\"attachedData\"\r\n" +
+                "Content-Type: " + JSON_CONTENT + "%s\r\n\r\n", boundary, config.HTTP_CHARSET);
+        try {
+            return new ByteArrayInputStream(header.getBytes(config.HTTP_CHARSET));
+        } catch (UnsupportedEncodingException e) {
+            throw new Error(e);
+        }
+    }
+
+    private InputStream streamBoundary(String boundary, String contentType, boolean binary, BAASBox.Config config) {
+        String header = String.format(Locale.US, "--%s\r\n" +
+                "Content-Disposition: form-data; name=\"file\"\r\n" +
+                "Content-Type: %s\r\n%s\r\n", boundary, contentType, binary ? "Content-Transfer-Encoding: binary\r\n" : "");
+        Logging.debug("Streamin\n" + header);
+        try {
+            return new ByteArrayInputStream(header.getBytes(config.HTTP_CHARSET));
+        } catch (UnsupportedEncodingException e) {
+            throw new Error(e);
+        }
+    }
+
+    private InputStream fileBoundary(String boundary, String contentType, boolean binary, String name) {
+        String header = String.format(Locale.US, "--%s\r\n" +
+                "Content-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\n" +
+                "Content-Type: %s\r\n%s\r\n", boundary, name, contentType, binary ? "Content-Transfer-Encoding: binary\r\n" : "");
+        try {
+            return new ByteArrayInputStream(header.getBytes(config.HTTP_CHARSET));
+        } catch (UnsupportedEncodingException e) {
+            throw new Error(e);
+        }
+    }
+
+
+    private Map<String, String> multipartHeader(String boundary) {
+        HashMap<String, String> map = new HashMap<String, String>();
+        map.put("Content-Type", "multipart/form-data; boundary=" + boundary);
+        return map;
+    }
+
+    private InputStream jsonInputStream(JsonObject object, String charset) {
+        try {
+            return new ByteArrayInputStream(object.toString().getBytes(charset));
+        } catch (UnsupportedEncodingException e) {
+            throw new Error(e);
+        }
+    }
+
+    private InputStream trail(String boundary, BAASBox.Config config) {
+        try {
+            byte[] trail = String.format(Locale.US, "\r\n--%s--\r\n", boundary).getBytes(config.HTTP_CHARSET);
+            ByteArrayInputStream in = new ByteArrayInputStream(trail);
+            return in;
+        } catch (UnsupportedEncodingException e) {
+            throw new Error(e);
+        }
     }
 
 }

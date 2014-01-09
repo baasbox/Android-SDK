@@ -9,7 +9,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class BaasPromise<T> extends BaasResult<T> implements BaasDisposer {
 
-    private CountDownLatch latch = new CountDownLatch(0);
+    private CountDownLatch latch = new CountDownLatch(1);
 
     private BaasRequest<T,?> request;
     private BaasResult<T> result;
