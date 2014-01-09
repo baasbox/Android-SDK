@@ -91,6 +91,11 @@ public class BAASBox {
          */
         public AuthType AUTHENTICATION_TYPE = AuthType.BASIC_AUTHENTICATION;
 
+        /**
+         * Number of threads to use for asynchronous requests.
+         * If it's <code>0</code> it uses a computed default value.
+         */
+        public int NUM_THREADS = 0;
     }
 
     private final Context context;
@@ -111,7 +116,7 @@ public class BAASBox {
         final RestClient client = new HttpUrlConnectionClient(this.config);
         this.requestFactory = new RequestFactory(this.config, credentialStore);
         this.syncDispatcher = new SameThreadDispatcher(this, client);
-        this.asyncDispatcher = new DefaultDispatcher(this, 4, client);
+        this.asyncDispatcher = new DefaultDispatcher(this, client);
     }
 
     public static BAASBox createClient(Context context) {

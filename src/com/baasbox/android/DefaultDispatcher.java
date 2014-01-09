@@ -33,7 +33,7 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
 
     private PriorityBlockingQueue<BaasRequest<?,?>> requests;
 
-    DefaultDispatcher(BAASBox box, int threads, RestClient client) {
+    DefaultDispatcher(BAASBox box, RestClient client) {
         this.box = box;
         this.client = client;
         this.config = box.config;
@@ -41,8 +41,13 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         this.requests = new PriorityBlockingQueue<BaasRequest<?,?>>();
         this.dispatcher= new ResponseHandler();
         this.cancelMap = new ConcurrentHashMap<Object, Integer>();
-        this.workers = new Worker[threads];
+        this.workers = createWorkers(config.NUM_THREADS);
 
+    }
+
+    private static Worker[] createWorkers(int threads) {
+        Worker[] workers = new Worker[threads == 0 ? Runtime.getRuntime().availableProcessors() : threads];
+        return workers;
     }
 
 //    DefaultDispatcher(int threads,RestClient client,BAASBox.Config config,CredentialStore credentialStore){
