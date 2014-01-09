@@ -8,13 +8,14 @@ import com.baasbox.android.spi.RequestDispatcher;
 import com.baasbox.android.spi.RestClient;
 
 /**
- * Created by eto on 23/12/13.
+ * This class represents the main context of BaasBox SDK.
+ *
+ * Created by Andrea Tortorella on 23/12/13.
  */
 public class BAASBox {
 
     <R, T> BaasPromise<R> submitRequest(BaasRequest<R, T> breq) {
         return asyncDispatcher.post(breq);
-
     }
 
     /**
@@ -33,7 +34,12 @@ public class BAASBox {
         public void handle(BaasResult<R> result, T tag);
     }
 
+    /**
+     * The configuration for BaasBox client
+     */
     public final static class Config {
+
+
         /**
          * The supported authentication types.
          */
@@ -112,18 +118,30 @@ public class BAASBox {
         }
         this.context = context.getApplicationContext();
         this.config = config == null ? new Config() : config;
-        this.credentialStore = new PreferenceCredentialStore(context, "");
+        this.credentialStore = new PreferenceCredentialStore(this.context, "");
         final RestClient client = new HttpUrlConnectionClient(this.config);
         this.requestFactory = new RequestFactory(this.config, credentialStore);
         this.syncDispatcher = new SameThreadDispatcher(this, client);
         this.asyncDispatcher = new DefaultDispatcher(this, client);
     }
 
+    /**
+     * Creates a client with default configuration
+     *
+     * @param context main context of the application
+     * @return a BAASBox client
+     */
     public static BAASBox createClient(Context context) {
         return createClient(context, null);
 
     }
 
+    /**
+     * Creates a client with provided configuration.
+     * @param context main context of the application
+     * @param config a {@link com.baasbox.android.BAASBox.Config} for this client
+     * @return
+     */
     public static BAASBox createClient(Context context, Config config) {
         BAASBox box = new BAASBox(context, config);
         box.asyncDispatcher.start();
@@ -136,31 +154,5 @@ public class BAASBox {
         return box;
     }
 
-//    final BaasRequest.ResponseParser<Void> logoutParser = new BaasRequest.BaseResponseParser<Void>() {
-//        @Override
-//        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
-//            try {
-//                credentialStore.set(null);
-//                return null;
-//            } catch (Exception e) {
-//                throw new BAASBoxException("Error logging out", e);
-//            }
-//        }
-//    };
-
-//    final BaasRequest.ResponseParser<Void> signupResponseParser = new BaasRequest.BaseResponseParser<Void>() {
-//        @Override
-//        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
-//            try {
-//                JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
-//                JsonObject data = content.getObject("data");
-//                String token = data.getString("X-BB-SESSION");
-//                credentialStore.updateToken(token);
-//                return null;
-//            } catch (JsonException e) {
-//                throw new BAASBoxException("Could not parse server response", e);
-//            }
-//        }
-//    };
 }
 
