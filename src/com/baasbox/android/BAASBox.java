@@ -154,5 +154,8 @@ public class BAASBox {
         return box;
     }
 
+    public void cancel(Object tag) {
+
+    }
 }
 

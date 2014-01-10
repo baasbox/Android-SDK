@@ -111,8 +111,8 @@ public class BaasFile {
         return id;
     }
 
-    private static final BaasRequest.BaseResponseParser<Void> deleteParser =
-            new BaasRequest.BaseResponseParser<Void>() {
+    private static final BaseResponseParser<Void> deleteParser =
+            new BaseResponseParser<Void>() {
                 @Override
                 protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
                     Logging.debug(getJsonEntity(response, config.HTTP_CHARSET).toString());
@@ -120,7 +120,7 @@ public class BaasFile {
                 }
             };
 
-    private static class DownloadParser extends BaasRequest.BaseResponseParser<BaasFile> {
+    private static class DownloadParser extends BaseResponseParser<BaasFile> {
         private final String id;
 
         DownloadParser(String id) {
@@ -160,7 +160,7 @@ public class BaasFile {
 
     }
 
-    private static class UploadParser extends BaasRequest.BaseResponseParser<BaasFile> {
+    private static class UploadParser extends BaseResponseParser<BaasFile> {
         BaasFile initial;
 
         UploadParser(BaasFile file) {

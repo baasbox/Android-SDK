@@ -30,4 +30,6 @@ public interface AsyncRequestDispatcher  extends RequestDispatcher{
      */
     @Override
     <Resp> BaasPromise<Resp> post(BaasRequest<Resp, ?> request);
+
+    public void cancel(Object tag);
 }

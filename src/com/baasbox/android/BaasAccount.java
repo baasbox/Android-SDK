@@ -154,7 +154,7 @@ public class BaasAccount extends BaasPerson {
         return object;
     }
 
-    private static final BaasRequest.ResponseParser<BaasAccount> accountProfile = new BaasRequest.BaseResponseParser<BaasAccount>() {
+    private static final ResponseParser<BaasAccount> accountProfile = new BaseResponseParser<BaasAccount>() {
         @Override
         protected BaasAccount handleOk(BaasRequest<BaasAccount, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             try {
@@ -169,7 +169,7 @@ public class BaasAccount extends BaasPerson {
         }
     };
 
-    private static final BaasRequest.ResponseParser<BaasAccount> profileParser = new BaasRequest.BaseResponseParser<BaasAccount>() {
+    private static final ResponseParser<BaasAccount> profileParser = new BaseResponseParser<BaasAccount>() {
         @Override
         protected BaasAccount handleOk(BaasRequest<BaasAccount, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             try {
@@ -184,7 +184,7 @@ public class BaasAccount extends BaasPerson {
         }
     };
 
-    private final static class SignupParser extends BaasRequest.BaseResponseParser<Void> {
+    private final static class SignupParser extends BaseResponseParser<Void> {
         private final String username;
         private final String password;
 
@@ -212,7 +212,7 @@ public class BaasAccount extends BaasPerson {
         }
     }
 
-    private static final BaasRequest.ResponseParser<Void> logoutParser = new BaasRequest.BaseResponseParser<Void>() {
+    private static final ResponseParser<Void> logoutParser = new BaseResponseParser<Void>() {
         @Override
         protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             try {

@@ -42,13 +42,13 @@ public class BaasObject {
     }
 
 
-    public JsonObject toJson(){
+    public JsonObject toJson() {
         return object;
     }
 
     @Override
     public String toString() {
-        return "#BaasObject<"+object.toString()+">";
+        return "#BaasObject<" + object.toString() + ">";
     }
 
     public BaasObject putString(String name, String value) {
@@ -219,8 +219,8 @@ public class BaasObject {
         return client.submitRequest(breq);
     }
 
-    private final static BaasRequest.BaseResponseParser<List<BaasObject>> listParser =
-            new BaasRequest.BaseResponseParser<List<BaasObject>>() {
+    private final static BaseResponseParser<List<BaasObject>> listParser =
+            new BaseResponseParser<List<BaasObject>>() {
                 @Override
                 protected List<BaasObject> handleOk(BaasRequest<List<BaasObject>, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
                     JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
@@ -237,7 +237,7 @@ public class BaasObject {
                 }
             };
 
-    private final static BaasRequest.BaseResponseParser<Long> countParser = new BaasRequest.BaseResponseParser<Long>() {
+    private final static BaseResponseParser<Long> countParser = new BaseResponseParser<Long>() {
         @Override
         protected Long handleOk(BaasRequest<Long, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
@@ -247,7 +247,7 @@ public class BaasObject {
     };
 
 
-    private final static BaasRequest.BaseResponseParser<Void> deleteParser = new BaasRequest.BaseResponseParser<Void>() {
+    private final static BaseResponseParser<Void> deleteParser = new BaseResponseParser<Void>() {
         @Override
         protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             return null;
@@ -266,10 +266,11 @@ public class BaasObject {
 
     /**
      * Saves this object to the backend using the provided client instance
-     * @param client the client
-     * @param tag an optional tag
+     *
+     * @param client   the client
+     * @param tag      an optional tag
      * @param priority an optional priority defaults to 0
-     * @param handler the handler for the request
+     * @param handler  the handler for the request
      * @param <T>
      * @return a disposer that can be used to control the request
      */
@@ -293,7 +294,7 @@ public class BaasObject {
         return object.getString("id");
     }
 
-    private static class ObjectParser extends BaasRequest.BaseResponseParser<BaasObject> {
+    private static class ObjectParser extends BaseResponseParser<BaasObject> {
         private BaasObject obj;
 
         ObjectParser(BaasObject data) {
@@ -315,7 +316,7 @@ public class BaasObject {
         }
     }
 
-    private final static BaasRequest.ResponseParser<BaasObject> parser = new BaasRequest.BaseResponseParser<BaasObject>() {
+    private final static ResponseParser<BaasObject> parser = new BaseResponseParser<BaasObject>() {
         @Override
         protected BaasObject handleOk(BaasRequest<BaasObject, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject data = getJsonEntity(response, config.HTTP_CHARSET);
@@ -324,16 +325,16 @@ public class BaasObject {
         }
     };
 
-    public <T> BaasDisposer save(BAASBox client,T tag,BAASBox.BAASHandler<BaasObject,T> handler){
-        return save(client,tag,0,handler);
+    public <T> BaasDisposer save(BAASBox client, T tag, BAASBox.BAASHandler<BaasObject, T> handler) {
+        return save(client, tag, 0, handler);
     }
 
-    public BaasDisposer save(BAASBox client, int priority,BAASBox.BAASHandler<BaasObject,?> handler){
-        return save(client,null,priority,handler);
+    public BaasDisposer save(BAASBox client, int priority, BAASBox.BAASHandler<BaasObject, ?> handler) {
+        return save(client, null, priority, handler);
     }
 
-    public BaasDisposer save(BAASBox client,BAASBox.BAASHandler<BaasObject,?> handler){
-        return save(client,null,0,handler);
+    public BaasDisposer save(BAASBox client, BAASBox.BAASHandler<BaasObject, ?> handler) {
+        return save(client, null, 0, handler);
     }
 
 }

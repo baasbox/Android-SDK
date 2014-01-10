@@ -91,7 +91,7 @@ public class BaasAsset {
         return client.submitRequest(req);
     }
 
-    protected static class DataParser<T> extends BaasRequest.BaseResponseParser<BaasAsset> {
+    protected static class DataParser<T> extends BaseResponseParser<BaasAsset> {
         private final DataHandler<T> dataHandler;
         private final String dataName;
 

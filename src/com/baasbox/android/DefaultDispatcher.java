@@ -26,12 +26,14 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
     private final BAASBox box;
 
     private final ConcurrentHashMap<Object,Integer> cancelMap;
+
     private final BAASBox.Config config;
     private final ResponseHandler dispatcher;
     private final Worker[] workers;
     private final CredentialStore credentialStore;
 
     private PriorityBlockingQueue<BaasRequest<?,?>> requests;
+
 
     DefaultDispatcher(BAASBox box, RestClient client) {
         this.box = box;
@@ -42,23 +44,12 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         this.dispatcher= new ResponseHandler();
         this.cancelMap = new ConcurrentHashMap<Object, Integer>();
         this.workers = createWorkers(config.NUM_THREADS);
-
     }
 
     private static Worker[] createWorkers(int threads) {
         Worker[] workers = new Worker[threads == 0 ? Runtime.getRuntime().availableProcessors() : threads];
         return workers;
     }
-
-//    DefaultDispatcher(int threads,RestClient client,BAASBox.Config config,CredentialStore credentialStore){
-//        this.client = client;
-//        this.config = config;
-//        this.requests = new PriorityBlockingQueue<BaasRequest<?,?>>();
-//        this.dispatcher= new ResponseHandler();
-//        this.cancelMap = new ConcurrentHashMap<Object, Integer>();
-//        this.workers = new Worker[threads];
-//        this.credentialStore = credentialStore;
-//    }
 
     @Override
     public void start() {
@@ -81,13 +72,17 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
 
 
     @Override
-    public <T> BaasPromise<T> post(BaasRequest<T,?> request) {
-        request.requestNumber=REQUEST_COUNTER.getAndIncrement();
+    public void cancel(Object tag) {
+        cancelMap.put(tag, REQUEST_COUNTER.getAndIncrement());
+    }
 
+    @Override
+    public <T> BaasPromise<T> post(BaasRequest<T,?> request) {
+
+        request.requestNumber = REQUEST_COUNTER.getAndIncrement();
         requests.add(request);
         return BaasPromise.of(request);
     }
-
 
     private static class ResponseHandler extends Handler{
         ResponseHandler(){
@@ -131,7 +126,6 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
             this.quit = false;
         }
 
-
         void quit(){
             quit=true;
             interrupt();
@@ -152,14 +146,10 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
                 }
                 markRequest(request);
                 if (request.isCanceled()) {
+                    Logging.debug("Request has been cancelled");
                     continue;
                 }
 
-                // todo implement suspend
-                if (request.isSuspended()){
-                    suspend(request);
-                    continue;
-                }
                 if(executeRequest(request,client)){
                     if (request.handler!=null){
                         poster.post(request);
