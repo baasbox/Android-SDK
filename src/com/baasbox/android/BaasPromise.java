@@ -49,7 +49,7 @@ public class BaasPromise<T> extends BaasResult<T> implements BaasDisposer {
     }
 
     @Override
-    protected BAASBoxException error() {
+    public BAASBoxException error() {
         await();
         return result.error();
     }

@@ -14,6 +14,7 @@ public abstract class BaasResult<T> {
     public static<T> BaasResult<T> success(T result){
         return new Immediate<T>(result,null);
     }
+
     public static class Immediate<T> extends BaasResult<T>{
 
         private final T value;
@@ -35,7 +36,7 @@ public abstract class BaasResult<T> {
         }
 
         @Override
-        protected BAASBoxException error() {
+        public BAASBoxException error() {
             return error;
         }
 
@@ -64,7 +65,7 @@ public abstract class BaasResult<T> {
     }
 
 
-    protected abstract BAASBoxException error();
+    public abstract BAASBoxException error();
 
     public abstract T value();
 

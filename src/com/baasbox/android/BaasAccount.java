@@ -13,13 +13,13 @@ import org.apache.http.HttpResponse;
  * This class represents the account of the user on BaasBox.
  * Created by Andrea Tortorella on 02/01/14.
  */
-public class BaasAccount extends BaasPerson{
+public class BaasAccount extends BaasPerson {
 
     public final String password;
 
-    public BaasAccount(String username,String password) {
+    public BaasAccount(String username, String password) {
         super(username);
-        this.password=password;
+        this.password = password;
     }
 
     private BaasAccount(String username, String password, JsonObject data) {
@@ -27,16 +27,16 @@ public class BaasAccount extends BaasPerson{
         this.password = password;
     }
 
-    public BaasDisposer signup(BAASBox client,BAASBox.BAASHandler<Void,?> handler){
-        return signup(client,null,0,handler);
+    public BaasDisposer signup(BAASBox client, BAASBox.BAASHandler<Void, ?> handler) {
+        return signup(client, null, 0, handler);
     }
 
-    public BaasDisposer signup(BAASBox client,int priority,BAASBox.BAASHandler<Void,?> handler){
-        return signup(client,null,priority,handler);
+    public BaasDisposer signup(BAASBox client, int priority, BAASBox.BAASHandler<Void, ?> handler) {
+        return signup(client, null, priority, handler);
     }
 
-    public <T> BaasDisposer signup(BAASBox client,T tag,BAASBox.BAASHandler<Void,T> handler){
-        return signup(client,tag,0,handler);
+    public <T> BaasDisposer signup(BAASBox client, T tag, BAASBox.BAASHandler<Void, T> handler) {
+        return signup(client, tag, 0, handler);
     }
 
     /**
@@ -60,7 +60,7 @@ public class BaasAccount extends BaasPerson{
      * @param <T>      the type of the custom tag
      * @return a {@link com.baasbox.android.BaasDisposer} to control the execution of this request
      */
-    public <T> BaasDisposer signup(BAASBox client,T tag,int priority,BAASBox.BAASHandler<Void,T> handler){
+    public <T> BaasDisposer signup(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("user");
         HttpRequest request = factory.post(endpoint, toJson());
@@ -68,18 +68,17 @@ public class BaasAccount extends BaasPerson{
         return client.submitRequest(breq);
     }
 
-    public BaasDisposer login(BAASBox client,BAASBox.BAASHandler<Void,?> handler){
-        return login(client,null,0,handler);
+    public BaasDisposer login(BAASBox client, BAASBox.BAASHandler<Void, ?> handler) {
+        return login(client, null, 0, handler);
     }
 
-    public <T> BaasDisposer login(BAASBox client,T tag,BAASBox.BAASHandler<Void,T> handler){
-        return login(client,tag,0,handler);
+    public <T> BaasDisposer login(BAASBox client, T tag, BAASBox.BAASHandler<Void, T> handler) {
+        return login(client, tag, 0, handler);
     }
 
-    public BaasDisposer login(BAASBox client,int priority,BAASBox.BAASHandler<Void,?> handler){
-        return login(client,null,priority,handler);
+    public BaasDisposer login(BAASBox client, int priority, BAASBox.BAASHandler<Void, ?> handler) {
+        return login(client, null, priority, handler);
     }
-
 
     public <T> BaasDisposer login(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
         return client.submitRequest(new LoginRequest<T>(client, username, password, priority, tag, handler));
@@ -97,7 +96,7 @@ public class BaasAccount extends BaasPerson{
         return get(client, tag, 0, handler);
     }
 
-    public static<T> BaasDisposer get(BAASBox client,T tag,int priority,BAASBox.BAASHandler<BaasAccount,T> handler){
+    public static <T> BaasDisposer get(BAASBox client, T tag, int priority, BAASBox.BAASHandler<BaasAccount, T> handler) {
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("me");
         HttpRequest get = factory.get(endpoint);
@@ -136,14 +135,14 @@ public class BaasAccount extends BaasPerson{
         return logout(client, null, priority, handler);
     }
 
-    public static <T> BaasDisposer logout(BAASBox client,T tag,BAASBox.BAASHandler<Void,T> handler){
-        return logout(client,tag,0,handler);
+    public static <T> BaasDisposer logout(BAASBox client, T tag, BAASBox.BAASHandler<Void, T> handler) {
+        return logout(client, tag, 0, handler);
     }
 
-    public static <T> BaasDisposer logout(BAASBox client,T tag,int priority,BAASBox.BAASHandler<Void,T> handler){
+    public static <T> BaasDisposer logout(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("logout");
-        HttpRequest post = factory.post(endpoint,null,null);
+        HttpRequest post = factory.post(endpoint, null, null);
         BaasRequest<Void, T> breq = new BaasRequest<Void, T>(post, priority, tag, logoutParser, handler, false);
         return client.submitRequest(breq);
     }
@@ -191,7 +190,7 @@ public class BaasAccount extends BaasPerson{
 
         SignupParser(String username, String password) {
             this.username = username;
-            this.password=password;
+            this.password = password;
         }
 
         @Override
