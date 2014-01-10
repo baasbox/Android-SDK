@@ -11,41 +11,41 @@ public class BaasPromise<T> extends BaasResult<T> implements BaasDisposer {
 
     private CountDownLatch latch = new CountDownLatch(1);
 
-    private BaasRequest<T,?> request;
+    private BaasRequest<T, ?> request;
     private BaasResult<T> result;
 
-    public static<T> BaasPromise<T> of(BaasRequest<T,?> req){
+    public static <T> BaasPromise<T> of(BaasRequest<T, ?> req) {
         req.promise = new BaasPromise<T>(req);
-        if(req.result!=null){
+        if (req.result != null) {
             req.promise.deliver(req.result);
         }
         return req.promise;
     }
 
-    private BaasPromise(BaasRequest<T,?> request){
-        this.request=request;
+    private BaasPromise(BaasRequest<T, ?> request) {
+        this.request = request;
     }
 
 
-    void deliver(BaasResult<T> result){
-        this.result=result;
-        this.request=null;
+    void deliver(BaasResult<T> result) {
+        this.result = result;
+        this.request = null;
         latch.countDown();
     }
 
     @Override
     public boolean isPending() {
-        return latch.getCount()>0;
+        return latch.getCount() > 0;
     }
 
     @Override
     public boolean isFailed() {
-        return !isPending()&&result.isFailed();
+        return !isPending() && result.isFailed();
     }
 
     @Override
     public boolean isSuccess() {
-        return !isPending()&&result.isSuccess();
+        return !isPending() && result.isSuccess();
     }
 
     @Override
@@ -68,7 +68,7 @@ public class BaasPromise<T> extends BaasResult<T> implements BaasDisposer {
 
     @Override
     public boolean cancel() {
-        if (isPending()){
+        if (isPending()) {
             request.cancel();
             return true;
         }
@@ -79,9 +79,8 @@ public class BaasPromise<T> extends BaasResult<T> implements BaasDisposer {
     public void await() {
         try {
             latch.await();
-        }catch (InterruptedException e){
+        } catch (InterruptedException e) {
             return;
         }
     }
-
 }
