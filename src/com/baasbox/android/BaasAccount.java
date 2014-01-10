@@ -10,6 +10,7 @@ import com.baasbox.android.spi.HttpRequest;
 import org.apache.http.HttpResponse;
 
 /**
+ * This class represents the account of the user on BaasBox.
  * Created by Andrea Tortorella on 02/01/14.
  */
 public class BaasAccount extends BaasPerson{
@@ -38,11 +39,32 @@ public class BaasAccount extends BaasPerson{
         return signup(client,tag,0,handler);
     }
 
+    /**
+     * Returns wether the user is currently logged in
+     *
+     * @param client
+     * @return true if the user is logged in
+     */
+    public static boolean isUserLoggedIn(BAASBox client) {
+        Credentials credentials = client.credentialStore.get(true);
+        return credentials != null && credentials.username != null && credentials.password != null;
+    }
+
+    /**
+     * Asynchronously signups a user to BAASBox
+     *
+     * @param client   an instance of the service
+     * @param tag      a custom tag usable as user data
+     * @param priority an integer priority for the request
+     * @param handler  an handler t be called upon request completion
+     * @param <T>      the type of the custom tag
+     * @return a {@link com.baasbox.android.BaasDisposer} to control the execution of this request
+     */
     public <T> BaasDisposer signup(BAASBox client,T tag,int priority,BAASBox.BAASHandler<Void,T> handler){
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("user");
-        HttpRequest request = factory.post(endpoint,toJson());
-        BaasRequest<Void, T> breq = new BaasRequest<Void, T>(request, priority, tag, signupResponseParser, handler, false);
+        HttpRequest request = factory.post(endpoint, toJson());
+        BaasRequest<Void, T> breq = new BaasRequest<Void, T>(request, priority, tag, new SignupParser(username, password), handler, false);
         return client.submitRequest(breq);
     }
 
@@ -163,20 +185,33 @@ public class BaasAccount extends BaasPerson{
         }
     };
 
-    private final BaasRequest.ResponseParser<Void> signupResponseParser = new BaasRequest.BaseResponseParser<Void>() {
+    private final static class SignupParser extends BaasRequest.BaseResponseParser<Void> {
+        private final String username;
+        private final String password;
+
+        SignupParser(String username, String password) {
+            this.username = username;
+            this.password=password;
+        }
+
         @Override
         protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             try {
                 JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
                 JsonObject data = content.getObject("data");
                 String token = data.getString("X-BB-SESSION");
-                credentialStore.updateToken(token);
+                Credentials c = new Credentials();
+                c.username = username;
+                c.password = password;
+                c.sessionToken = token;
+                credentialStore.set(c);
+//                credentialStore.updateToken(token);
                 return null;
             } catch (JsonException e) {
                 throw new BAASBoxException("Could not parse server response", e);
             }
         }
-    };
+    }
 
     private static final BaasRequest.ResponseParser<Void> logoutParser = new BaasRequest.BaseResponseParser<Void>() {
         @Override
