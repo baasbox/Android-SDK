@@ -7,16 +7,15 @@ import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.RequestDispatcher;
 import com.baasbox.android.spi.RestClient;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This class represents the main context of BaasBox SDK.
  *
  * Created by Andrea Tortorella on 23/12/13.
  */
 public class BAASBox {
-
-    <R, T> BaasPromise<R> submitRequest(BaasRequest<R, T> breq) {
-        return asyncDispatcher.post(breq);
-    }
 
     /**
      * Interface definition for a callback to be invoked when baasbox responds to a request
@@ -111,6 +110,7 @@ public class BAASBox {
     final CredentialStore credentialStore;
     final RequestFactory requestFactory;
     final Config config;
+    final Map<String, RequestToken> suspended = new HashMap<String, RequestToken>();
 
     private BAASBox(Context context, Config config) {
         if (context == null) {
@@ -154,8 +154,37 @@ public class BAASBox {
         return box;
     }
 
-    public void cancel(Object tag) {
-
+    RequestToken submitRequest(BaasRequest<?, ?> breq) {
+        return asyncDispatcher.post(breq);
     }
+
+    public void cancel(RequestToken token) {
+        asyncDispatcher.cancel(token);
+    }
+
+    public void suspend(RequestToken token) {
+        asyncDispatcher.suspend(token);
+    }
+
+    public void suspend(String name, RequestToken token) {
+        if (token != null) {
+            suspend(token);
+            suspended.put(name, token);
+        }
+    }
+
+    public <T> RequestToken resume(String name, T tag, BAASHandler<?, T> handler) {
+        RequestToken token = suspended.remove(name);
+        if (token != null) {
+            asyncDispatcher.resume(token, tag, handler);
+        }
+        return token;
+    }
+
+    public <T> void resume(RequestToken token, T tag, BAASHandler<?, T> handler) {
+        asyncDispatcher.resume(token, tag, handler);
+    }
+
+
 }
 

@@ -66,11 +66,11 @@ public class BaasAsset {
     }
 
 
-    public static <T> BaasDisposer get(BAASBox client, String name, T tag, int priority, BaasDataHandler<T> handler) {
+    public static <T> RequestToken get(BAASBox client, String name, T tag, int priority, BaasDataHandler<T> handler) {
         return get(client, name, tag, priority, handler, handler);
     }
 
-    public static <T> BaasDisposer get(BAASBox client, String name, T tag, int priority, BAASBox.BAASHandler<BaasAsset, T> handler) {
+    public static <T> RequestToken get(BAASBox client, String name, T tag, int priority, BAASBox.BAASHandler<BaasAsset, T> handler) {
         return get(client, name, tag, priority, new DataHandler<T>() {
             @Override
             public boolean read(BaasAsset asset, InputStream in, T tag) throws IOException {
@@ -83,7 +83,7 @@ public class BaasAsset {
         }, handler);
     }
 
-    public static <T> BaasDisposer get(BAASBox client, String name, T tag, int priority, DataHandler<T> dataHandler, BAASBox.BAASHandler<BaasAsset, T> endHandler) {
+    public static <T> RequestToken get(BAASBox client, String name, T tag, int priority, DataHandler<T> dataHandler, BAASBox.BAASHandler<BaasAsset, T> endHandler) {
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("asset/?", name);
         HttpRequest get = factory.get(endpoint);

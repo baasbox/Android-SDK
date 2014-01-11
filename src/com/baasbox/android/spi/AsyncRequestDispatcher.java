@@ -1,7 +1,8 @@
 package com.baasbox.android.spi;
 
-import com.baasbox.android.BaasPromise;
+import com.baasbox.android.BAASBox;
 import com.baasbox.android.BaasRequest;
+import com.baasbox.android.RequestToken;
 
 /**
  * A dispathcer that executes requests in background.
@@ -25,11 +26,19 @@ public interface AsyncRequestDispatcher  extends RequestDispatcher{
      * but returns a promise of the result.
      *
      * @param request
-     * @param <Resp>
      * @return
      */
     @Override
-    <Resp> BaasPromise<Resp> post(BaasRequest<Resp, ?> request);
+    RequestToken post(BaasRequest<?, ?> request);
 
-    public void cancel(Object tag);
+    /**
+     * Cancels the execution of a submitted request
+     *
+     * @param token
+     */
+    public void cancel(RequestToken token);
+
+    void suspend(RequestToken token);
+
+    <T> void resume(RequestToken token, T tag, BAASBox.BAASHandler<?, T> handler);
 }

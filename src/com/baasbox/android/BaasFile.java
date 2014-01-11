@@ -64,7 +64,7 @@ public class BaasFile {
         return new File(fileName);
     }
 
-    public <T> BaasDisposer save(BAASBox client, T tag, int priority, BAASBox.BAASHandler<BaasFile, T> handler) {
+    public <T> RequestToken save(BAASBox client, T tag, int priority, BAASBox.BAASHandler<BaasFile, T> handler) {
         RequestFactory factory = client.requestFactory;
         String endPoint = factory.getEndpoint("file");
         try {
@@ -80,7 +80,7 @@ public class BaasFile {
         }
     }
 
-    public static <T> BaasDisposer delete(BAASBox client, String id, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
+    public static <T> RequestToken delete(BAASBox client, String id, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("file/?", id);
         HttpRequest delete = factory.delete(endpoint);
@@ -88,14 +88,14 @@ public class BaasFile {
         return client.submitRequest(req);
     }
 
-    public <T> BaasDisposer delete(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
+    public <T> RequestToken delete(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
         String id = getId();
         if (id == null)
             throw new IllegalStateException("File is local only and does not exists on baasbox");
         return delete(client, id, tag, priority, handler);
     }
 
-    public static <T> BaasDisposer download(BAASBox client, String id, T tag, int priority, BAASBox.BAASHandler<BaasFile, T> handler) {
+    public static <T> RequestToken download(BAASBox client, String id, T tag, int priority, BAASBox.BAASHandler<BaasFile, T> handler) {
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("file/?", id);
         HttpRequest get = factory.get(endpoint);

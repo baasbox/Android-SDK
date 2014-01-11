@@ -25,15 +25,16 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
     private final RestClient client;
     private final BAASBox box;
 
-    private final ConcurrentHashMap<Object,Integer> cancelMap;
 
     private final BAASBox.Config config;
     private final ResponseHandler dispatcher;
     private final Worker[] workers;
     private final CredentialStore credentialStore;
 
-    private PriorityBlockingQueue<BaasRequest<?,?>> requests;
-
+    private final PriorityBlockingQueue<BaasRequest<?, ?>> requests;
+    final ConcurrentHashMap<Integer, BaasRequest<?, ?>> submittedRequests;
+    final ConcurrentHashMap<Integer, BAASBox.BAASHandler<?, ?>> handlersMap;
+    final ConcurrentHashMap<Integer, Object> tagsMap;
 
     DefaultDispatcher(BAASBox box, RestClient client) {
         this.box = box;
@@ -41,9 +42,12 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         this.config = box.config;
         this.credentialStore = box.credentialStore;
         this.requests = new PriorityBlockingQueue<BaasRequest<?,?>>();
-        this.dispatcher= new ResponseHandler();
-        this.cancelMap = new ConcurrentHashMap<Object, Integer>();
+        this.dispatcher = new ResponseHandler(this);
         this.workers = createWorkers(config.NUM_THREADS);
+
+        this.submittedRequests = new ConcurrentHashMap<Integer, BaasRequest<?, ?>>();
+        this.handlersMap = new ConcurrentHashMap<Integer, BAASBox.BAASHandler<?, ?>>();
+        this.tagsMap = new ConcurrentHashMap<Integer, Object>();
     }
 
     private static Worker[] createWorkers(int threads) {
@@ -72,32 +76,84 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
 
 
     @Override
-    public void cancel(Object tag) {
-        cancelMap.put(tag, REQUEST_COUNTER.getAndIncrement());
+    public void cancel(RequestToken tag) {
+        BaasRequest<?, ?> req = submittedRequests.get(tag.requestId);
+        if (req != null && req.cancel()) {
+            submittedRequests.remove(tag.requestId);
+            handlersMap.remove(tag.requestId);
+            tagsMap.remove(tag.requestId);
+        }
+    }
+
+
+    @Override
+    public RequestToken post(BaasRequest<?, ?> request) {
+        request.requestNumber = REQUEST_COUNTER.getAndIncrement();
+        BAASBox.BAASHandler<?, ?> handler = request.handler;
+        request.handler = null;
+        Object tag = request.tag;
+        request.tag = null;
+        RequestToken token = new RequestToken(request.requestNumber);
+
+        submittedRequests.put(request.requestNumber, request);
+        handlersMap.put(request.requestNumber, handler);
+        if (tag != null) {
+            tagsMap.put(request.requestNumber, tag);
+        }
+        requests.add(request);
+        return token;
     }
 
     @Override
-    public <T> BaasPromise<T> post(BaasRequest<T,?> request) {
+    public <T> void resume(RequestToken token, T tag, BAASBox.BAASHandler<?, T> handler) {
+        BaasRequest<?, ?> req = submittedRequests.get(token.requestId);
+        Logging.debug("Resuming: " + (req != null) + (req != null ? (req.status() + " " + req.suspended.get()) : "---"));
+        if (req != null && req.suspended.compareAndSet(true, false)) {
 
-        request.requestNumber = REQUEST_COUNTER.getAndIncrement();
-        requests.add(request);
-        return BaasPromise.of(request);
+            if (tag != null) tagsMap.put(req.requestNumber, tag);
+            handlersMap.put(req.requestNumber, handler);
+            if (req.status.get() == BaasRequest.State.EXECUTED) {
+                dispatcher.post(req);
+            }
+        }
+
+    }
+
+
+    private <R, T> void finishDispatch(BaasRequest<R, T> req) {
+        Logging.debug("Dispatching: " + (req != null) + (req.suspended.get()) + "" + (req.status()));
+        if (req.advanceIfNotCanceled(BaasRequest.State.EXECUTED, BaasRequest.State.DELIVERED) && !req.suspended.get()) {
+            BAASBox.BAASHandler<R, T> h = (BAASBox.BAASHandler<R, T>) handlersMap.remove(req.requestNumber);
+            T t = (T) tagsMap.remove(req.requestNumber);
+            h.handle(req.result, t);
+            submittedRequests.remove(req.requestNumber);
+        }
+    }
+
+    @Override
+    public void suspend(RequestToken token) {
+        BaasRequest<?, ?> req = submittedRequests.get(token.requestId);
+        Logging.debug("request status: " + (req != null) + " " + (req != null ? req.status.get() : "---"));
+        if (req != null && req.status.get() != BaasRequest.State.DELIVERED && req.suspended.compareAndSet(false, true)) {
+            handlersMap.remove(token.requestId);
+            tagsMap.remove(token.requestId);
+        }
     }
 
     private static class ResponseHandler extends Handler{
-        ResponseHandler(){
+        private final DefaultDispatcher dispatcher;
+
+        ResponseHandler(DefaultDispatcher dispatcher) {
             super(Looper.getMainLooper());
+            this.dispatcher = dispatcher;
         }
 
         @Override
         public void handleMessage(Message msg) {
             BaasRequest req =(BaasRequest)msg.obj;
-            finishDispatch(req);
+            dispatcher.finishDispatch(req);
         }
 
-        private<T,R> void finishDispatch(BaasRequest<T,R> req){
-            req.handler.handle(req.result,req.tag);
-        }
 
         public void post(BaasRequest request){
             sendMessage(obtainMessage(request.requestNumber,request));
@@ -108,7 +164,6 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         private final PriorityBlockingQueue<BaasRequest<?,?>> requests;
         private final ResponseHandler poster;
         private final RestClient client;
-        private final ConcurrentHashMap<Object,Integer> cancelMap;
         private final BAASBox.Config config;
         private final CredentialStore credentialStore;
         private final DefaultDispatcher dispatcher;
@@ -119,10 +174,8 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
             this.requests=dispatcher.requests;
             this.client=dispatcher.client;
             this.poster=dispatcher.dispatcher;
-            this.cancelMap=dispatcher.cancelMap;
             this.config = dispatcher.config;
             this.credentialStore=dispatcher.credentialStore;
-
             this.quit = false;
         }
 
@@ -135,7 +188,6 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         public void run() {
             BaasRequest<?,?> request;
             while (true) {
-                resumePendingRequests();
                 try {
                     request = requests.take();
                 } catch (InterruptedException interrupt) {
@@ -144,47 +196,32 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
                     }
                     continue;
                 }
-                markRequest(request);
-                if (request.isCanceled()) {
-                    Logging.debug("Request has been cancelled");
-                    continue;
-                }
 
-                if(executeRequest(request,client)){
-                    if (request.handler!=null){
-                        poster.post(request);
-                    }
-                }
-            }
-        }
-
-        private void markRequest(BaasRequest<?,?> request) {
-            final Object tag = request.tag;
-            final int requestId = request.requestNumber;
-
-            if(tag == null)return;
-            for(;;){
-                Integer seq = cancelMap.get(tag);
-                if (seq==null) return;
-                if (seq>requestId){
-                    break;
-                } else {
-                    if (!cancelMap.remove(tag,seq)) {
+                request.boundedThread = Thread.currentThread();
+                boolean executed = false;
+                try {
+                    executed = request.advanceIfNotCanceled(BaasRequest.State.ACTIVE, BaasRequest.State.PROCESSING) &&
+                            executeRequest(request, client) &&
+                            request.advanceIfNotCanceled(BaasRequest.State.PROCESSING, BaasRequest.State.EXECUTED);
+                    request.boundedThread = null;
+                } catch (InterruptedException e) {
+                    if (request.isCanceled()) {
                         continue;
                     }
-                    return;
                 }
+
+                if (executed) poster.post(request);
+
             }
-            request.cancel();
         }
 
-        private <T> boolean executeRequest(final BaasRequest<T, ?> req, RestClient client) {
-            T t = null;
+
+        private <T> boolean executeRequest(final BaasRequest<T, ?> req, RestClient client) throws InterruptedException {
             boolean handle = true;
             try {
                 Logging.debug("REQUEST: " + req.httpRequest);
                 HttpResponse response = client.execute(req.httpRequest);
-                t = req.parser.parseResponse(req, response, config, credentialStore);
+                T t = req.parser.parseResponse(req, response, config, credentialStore);
                 req.result = BaasResult.success(t);
             } catch (BAASBoxInvalidSessionException ex){
                 Logging.debug("invalid session");
@@ -205,26 +242,10 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
                 Logging.debug("error with " + e.getMessage());
                 req.result= BaasResult.failure(e);
             }
-            if (handle){
-                req.promise.deliver(req.result);
-            }
             return handle;
         }
 
-        private void resumePendingRequests() {
 
-        }
-
-        private boolean isSupended(BaasRequest<?,?> request){
-            return false;
-        }
-
-        private void suspend(BaasRequest<?,?> request){
-            return;
-        }
-
-        private boolean isCancelled(BaasRequest<?,?> request) {
-            return false;
-        }
     }
+
 }

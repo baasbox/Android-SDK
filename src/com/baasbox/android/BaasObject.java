@@ -183,7 +183,7 @@ public class BaasObject {
         return object.remove(name);
     }
 
-    public static <T> BaasDisposer count(BAASBox client, String collection, T tag, int priority, BAASBox.BAASHandler<Long, T> handler) {
+    public static <T> RequestToken count(BAASBox client, String collection, T tag, int priority, BAASBox.BAASHandler<Long, T> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         final RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("document/?/count", collection);
@@ -193,14 +193,14 @@ public class BaasObject {
     }
 
 
-    public <T> BaasDisposer delete(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
+    public <T> RequestToken delete(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
         String id = getId();
         if (id == null)
             throw new IllegalStateException("document is not bound to an instance on the server");
         return delete(client, this.collection, getId(), tag, priority, handler);
     }
 
-    public static <T> BaasDisposer delete(BAASBox client, String collection, String id, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
+    public static <T> RequestToken delete(BAASBox client, String collection, String id, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         if (id == null) throw new NullPointerException("id cannot be null");
         final RequestFactory factory = client.requestFactory;
@@ -210,7 +210,7 @@ public class BaasObject {
         return client.submitRequest(breq);
     }
 
-    public static <T> BaasDisposer getAll(BAASBox client, String collection, T tag, int priority, BAASBox.BAASHandler<List<BaasObject>, T> handler) {
+    public static <T> RequestToken getAll(BAASBox client, String collection, T tag, int priority, BAASBox.BAASHandler<List<BaasObject>, T> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         final RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("document/?", collection);
@@ -254,7 +254,7 @@ public class BaasObject {
         }
     };
 
-    public static <T> BaasDisposer get(BAASBox client, String collection, String id, T tag, int priority, BAASBox.BAASHandler<BaasObject, T> handler) {
+    public static <T> RequestToken get(BAASBox client, String collection, String id, T tag, int priority, BAASBox.BAASHandler<BaasObject, T> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         if (id == null) throw new NullPointerException("id cannot be null");
         final RequestFactory factory = client.requestFactory;
@@ -274,7 +274,7 @@ public class BaasObject {
      * @param <T>
      * @return a disposer that can be used to control the request
      */
-    public <T> BaasDisposer save(BAASBox client, T tag, int priority, BAASBox.BAASHandler<BaasObject, T> handler) {
+    public <T> RequestToken save(BAASBox client, T tag, int priority, BAASBox.BAASHandler<BaasObject, T> handler) {
         RequestFactory factory = client.requestFactory;
         String id = getId();
         if (id == null) {
@@ -325,15 +325,15 @@ public class BaasObject {
         }
     };
 
-    public <T> BaasDisposer save(BAASBox client, T tag, BAASBox.BAASHandler<BaasObject, T> handler) {
+    public <T> RequestToken save(BAASBox client, T tag, BAASBox.BAASHandler<BaasObject, T> handler) {
         return save(client, tag, 0, handler);
     }
 
-    public BaasDisposer save(BAASBox client, int priority, BAASBox.BAASHandler<BaasObject, ?> handler) {
+    public RequestToken save(BAASBox client, int priority, BAASBox.BAASHandler<BaasObject, ?> handler) {
         return save(client, null, priority, handler);
     }
 
-    public BaasDisposer save(BAASBox client, BAASBox.BAASHandler<BaasObject, ?> handler) {
+    public RequestToken save(BAASBox client, BAASBox.BAASHandler<BaasObject, ?> handler) {
         return save(client, null, 0, handler);
     }
 

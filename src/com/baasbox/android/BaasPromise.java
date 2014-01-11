@@ -15,11 +15,7 @@ public class BaasPromise<T> extends BaasResult<T> implements BaasDisposer {
     private BaasResult<T> result;
 
     public static <T> BaasPromise<T> of(BaasRequest<T, ?> req) {
-        req.promise = new BaasPromise<T>(req);
-        if (req.result != null) {
-            req.promise.deliver(req.result);
-        }
-        return req.promise;
+        return null;
     }
 
     private BaasPromise(BaasRequest<T, ?> request) {

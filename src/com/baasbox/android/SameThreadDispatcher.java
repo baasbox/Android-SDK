@@ -27,7 +27,7 @@ final class SameThreadDispatcher implements RequestDispatcher {
 
 
     @Override
-    public <T> BaasResult<T> post(BaasRequest<T,?>request) {
+    public RequestToken post(BaasRequest<?, ?> request) {
         if(executeRequest(request)){
             handleResponse(request);
 //            if (request.handler!=null){
@@ -35,7 +35,7 @@ final class SameThreadDispatcher implements RequestDispatcher {
 //                req.handler.handle(req.result,req.tag);
 //            }
         }
-        return request.result;
+        return null;
     }
 
 

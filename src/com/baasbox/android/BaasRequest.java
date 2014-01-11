@@ -2,6 +2,7 @@ package com.baasbox.android;
 
 import com.baasbox.android.spi.HttpRequest;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -15,31 +16,26 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
     public static final int MAX_PRIORITY = Integer.MAX_VALUE;
 
     static enum State {
-        POSTED, RUNNING, EXECUTED, DELIVERED, SUSPENDED, CANCELED
+        ACTIVE, PROCESSING, EXECUTED, DELIVERED, CANCELED
     }
 
-    /*
-        Requests can be in different statuses:
-        SUBMITTED --> ACTIVE --> EXECUTED ---------> DELIVERED
-             \         |              `-->SUSPENDED--'
-              `-->CANCELED
-        ACTIVE
-        EXECUTED
-        DELIVERED
-     */
 
     public final HttpRequest httpRequest;
     public final ResponseParser<Resp> parser;
 
     public volatile BAASBox.BAASHandler<Resp, Tag> handler;
-    public final Tag tag;
+    public volatile Tag tag;
+
     public volatile int priority;
     volatile int requestNumber;
+    final AtomicBoolean suspended = new AtomicBoolean(false);
+    volatile Thread boundedThread;
     volatile BaasResult<Resp> result;
-    public BaasPromise<Resp> promise;
-
+    //    public BaasPromise<Resp> promise;
     private boolean retry;
-    final AtomicReference<State> status = new AtomicReference<State>(State.POSTED);
+
+
+    final AtomicReference<State> status = new AtomicReference<State>(State.ACTIVE);
 
     BaasRequest(HttpRequest request,
                 int priority,
@@ -56,15 +52,6 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
         this.retry = retry;
     }
 
-
-    public boolean isCanceled() {
-        return status.get() == State.CANCELED;
-    }
-
-    public boolean isSuspended() {
-        return status.get() == State.SUSPENDED;
-    }
-
     public boolean takeRetry() {
         boolean retry = this.retry;
         this.retry = false;
@@ -78,12 +65,49 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
                 priority - another.priority;
     }
 
+
+    boolean tryMark(State expected, State newState) {
+        return status.compareAndSet(expected, newState);
+    }
+
     protected State status() {
         return status.get();
     }
 
-    public void cancel() {
-        //todo
+    public boolean isCanceled() {
+        return status.get() == State.CANCELED;
     }
 
+    public boolean isSuspended() {
+        return false;
+    }
+
+    boolean cancel() {
+        if (cancelIfNotDelivered()) {
+            Thread t = boundedThread;
+            if (t != null) t.interrupt();
+            return true;
+
+        }
+        return false;
+    }
+
+
+    public <T> void resume(T tag, BAASBox.BAASHandler<?, T> handler) {
+
+    }
+
+    boolean advanceIfNotCanceled(State from, State to) {
+        return status.compareAndSet(from, to);
+    }
+
+    boolean cancelIfNotDelivered() {
+        for (; ; ) {
+            State current = status.get();
+            if (current == State.DELIVERED) return false;
+            if (status.compareAndSet(current, State.CANCELED)) {
+                return true;
+            }
+        }
+    }
 }
