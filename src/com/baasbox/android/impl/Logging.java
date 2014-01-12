@@ -10,7 +10,7 @@ public class Logging {
 
     public static void debug(String message) {
         if (LOG_ENABLED) {
-            Log.d("TESTING_BAAS", message);
+            Log.d("BBLOG", message);
         }
     }
 }

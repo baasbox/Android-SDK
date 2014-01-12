@@ -7,7 +7,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * Created by eto on 24/12/13.
  */
-public class BaasPromise<T> extends BaasResult<T> implements BaasDisposer {
+class BaasPromise<T> extends BaasResult<T> implements BaasDisposer {
 
     private CountDownLatch latch = new CountDownLatch(1);
 
