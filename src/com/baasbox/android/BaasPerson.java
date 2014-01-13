@@ -1,12 +1,11 @@
 package com.baasbox.android;
 
-import com.baasbox.android.json.JsonConvertible;
 import com.baasbox.android.json.JsonObject;
 
 /**
  * Created by eto on 02/01/14.
  */
-public class BaasPerson implements JsonConvertible {
+public class BaasPerson {
     public final String username;
 
     protected final JsonObject privateData;
@@ -70,7 +69,6 @@ public class BaasPerson implements JsonConvertible {
         return object;
     }
 
-    @Override
     public JsonObject toJson() {
         return toJson(true);
     }

@@ -28,15 +28,15 @@ public class BaasAccount extends BaasPerson {
     }
 
     public RequestToken signup(BAASBox client, BAASBox.BAASHandler<Void, ?> handler) {
-        return signup(client, null, 0, handler);
+        return signup(client, null, Priority.NORMAL, handler);
     }
 
-    public RequestToken signup(BAASBox client, int priority, BAASBox.BAASHandler<Void, ?> handler) {
+    public RequestToken signup(BAASBox client, Priority priority, BAASBox.BAASHandler<Void, ?> handler) {
         return signup(client, null, priority, handler);
     }
 
     public <T> RequestToken signup(BAASBox client, T tag, BAASBox.BAASHandler<Void, T> handler) {
-        return signup(client, tag, 0, handler);
+        return signup(client, tag, Priority.NORMAL, handler);
     }
 
     /**
@@ -58,9 +58,9 @@ public class BaasAccount extends BaasPerson {
      * @param priority an integer priority for the request
      * @param handler  an handler t be called upon request completion
      * @param <T>      the type of the custom tag
-     * @return a {@link com.baasbox.android.BaasDisposer} to control the execution of this request
+     * @return a {@link com.baasbox.android.RequestToken} to control the execution of this request
      */
-    public <T> RequestToken signup(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
+    public <T> RequestToken signup(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("user");
         HttpRequest request = factory.post(endpoint, toJson());
@@ -69,34 +69,34 @@ public class BaasAccount extends BaasPerson {
     }
 
     public RequestToken login(BAASBox client, BAASBox.BAASHandler<Void, ?> handler) {
-        return login(client, null, 0, handler);
+        return login(client, null, Priority.NORMAL, handler);
     }
 
     public <T> RequestToken login(BAASBox client, T tag, BAASBox.BAASHandler<Void, T> handler) {
-        return login(client, tag, 0, handler);
+        return login(client, tag, Priority.NORMAL, handler);
     }
 
-    public RequestToken login(BAASBox client, int priority, BAASBox.BAASHandler<Void, ?> handler) {
+    public RequestToken login(BAASBox client, Priority priority, BAASBox.BAASHandler<Void, ?> handler) {
         return login(client, null, priority, handler);
     }
 
-    public <T> RequestToken login(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
+    public <T> RequestToken login(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
         return client.submitRequest(new LoginRequest<T>(client, username, password, priority, tag, handler));
     }
 
     public static RequestToken get(BAASBox client, BAASBox.BAASHandler<BaasAccount, ?> handler) {
-        return get(client, null, 0, handler);
+        return get(client, null, Priority.NORMAL, handler);
     }
 
-    public static RequestToken get(BAASBox client, int priority, BAASBox.BAASHandler<BaasAccount, ?> handler) {
+    public static RequestToken get(BAASBox client, Priority priority, BAASBox.BAASHandler<BaasAccount, ?> handler) {
         return get(client, null, priority, handler);
     }
 
     public static <T> RequestToken get(BAASBox client, T tag, BAASBox.BAASHandler<BaasAccount, T> handler) {
-        return get(client, tag, 0, handler);
+        return get(client, tag, Priority.NORMAL, handler);
     }
 
-    public static <T> RequestToken get(BAASBox client, T tag, int priority, BAASBox.BAASHandler<BaasAccount, T> handler) {
+    public static <T> RequestToken get(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<BaasAccount, T> handler) {
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("me");
         HttpRequest get = factory.get(endpoint);
@@ -105,19 +105,19 @@ public class BaasAccount extends BaasPerson {
     }
 
     public RequestToken save(BAASBox client, BAASBox.BAASHandler<BaasAccount, ?> handler) {
-        return save(client, null, 0, handler);
+        return save(client, null, Priority.NORMAL, handler);
     }
 
-    public RequestToken save(BAASBox client, int priority, BAASBox.BAASHandler<BaasAccount, ?> handler) {
+    public RequestToken save(BAASBox client, Priority priority, BAASBox.BAASHandler<BaasAccount, ?> handler) {
         return save(client, null, priority, handler);
     }
 
     public <T> RequestToken save(BAASBox client, T tag, BAASBox.BAASHandler<BaasAccount, T> handler) {
-        return save(client, tag, 0, handler);
+        return save(client, tag, Priority.NORMAL, handler);
     }
 
     //todo handle merge profile
-    public <T> RequestToken save(BAASBox client, T tag, int priority, BAASBox.BAASHandler<BaasAccount, T> handler) {
+    public <T> RequestToken save(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<BaasAccount, T> handler) {
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("me");
         HttpRequest request = factory.put(endpoint, toJson(false));
@@ -127,19 +127,19 @@ public class BaasAccount extends BaasPerson {
 
 
     public static RequestToken logout(BAASBox client, BAASBox.BAASHandler<Void, ?> handler) {
-        return logout(client, null, 0, handler);
+        return logout(client, null, Priority.NORMAL, handler);
     }
 
 
-    public static RequestToken logout(BAASBox client, int priority, BAASBox.BAASHandler<Void, ?> handler) {
+    public static RequestToken logout(BAASBox client, Priority priority, BAASBox.BAASHandler<Void, ?> handler) {
         return logout(client, null, priority, handler);
     }
 
     public static <T> RequestToken logout(BAASBox client, T tag, BAASBox.BAASHandler<Void, T> handler) {
-        return logout(client, tag, 0, handler);
+        return logout(client, tag, Priority.NORMAL, handler);
     }
 
-    public static <T> RequestToken logout(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
+    public static <T> RequestToken logout(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
         RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("logout");
         HttpRequest post = factory.post(endpoint, null, null);

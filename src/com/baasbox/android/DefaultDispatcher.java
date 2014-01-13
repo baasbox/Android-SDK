@@ -227,7 +227,7 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
                 Logging.debug("invalid session");
                 if(req.takeRetry()){
                     Logging.debug("retry");
-                    LoginRequest<Void> refresh = new LoginRequest<Void>(dispatcher.box, MAX_PRIORITY, null, new BAASBox.BAASHandler<Void, Void>() {
+                    LoginRequest<Void> refresh = new LoginRequest<Void>(dispatcher.box, null, null, new BAASBox.BAASHandler<Void, Void>() {
                         @Override
                         public void handle(BaasResult<Void> result, Void tag) {
                             dispatcher.post(req);

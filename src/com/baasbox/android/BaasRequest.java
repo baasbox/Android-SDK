@@ -9,16 +9,12 @@ import java.util.concurrent.atomic.AtomicReference;
  * Created by eto on 23/12/13.
  */
 public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>> {
-    final static int STATUS_CANCEL_REQUEST = 0x01;
-    final static int STATUS_RETRY_REQUEST = 0x02;
 
-
-    public static final int MAX_PRIORITY = Integer.MAX_VALUE;
+//    public static final int MAX_PRIORITY = Integer.MAX_VALUE;
 
     static enum State {
         ACTIVE, PROCESSING, EXECUTED, DELIVERED, CANCELED
     }
-
 
     public final HttpRequest httpRequest;
     public final ResponseParser<Resp> parser;
@@ -26,19 +22,17 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
     public volatile BAASBox.BAASHandler<Resp, Tag> handler;
     public volatile Tag tag;
 
-    public volatile int priority;
+    public volatile Priority priority;
     volatile int requestNumber;
-    final AtomicBoolean suspended = new AtomicBoolean(false);
     volatile Thread boundedThread;
     volatile BaasResult<Resp> result;
-    //    public BaasPromise<Resp> promise;
     private boolean retry;
 
-
+    final AtomicBoolean suspended = new AtomicBoolean(false);
     final AtomicReference<State> status = new AtomicReference<State>(State.ACTIVE);
 
     BaasRequest(HttpRequest request,
-                int priority,
+                Priority priority,
                 Tag tag,
                 ResponseParser<Resp> parser,
                 BAASBox.BAASHandler<Resp, Tag> handler,
@@ -60,14 +54,15 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
 
     @Override
     public int compareTo(BaasRequest<Resp, Tag> another) {
-        return (priority == another.priority) ?
-                requestNumber - another.requestNumber :
-                priority - another.priority;
-    }
-
-
-    boolean tryMark(State expected, State newState) {
-        return status.compareAndSet(expected, newState);
+        if (priority == another.priority) {
+            return requestNumber - another.requestNumber;
+        } else if (priority == null) {
+            return -1;
+        } else if (another.priority == null) {
+            return 1;
+        } else {
+            return priority.compareTo(another.priority);
+        }
     }
 
     protected State status() {
@@ -79,7 +74,7 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
     }
 
     public boolean isSuspended() {
-        return false;
+        return suspended.get();
     }
 
     boolean cancel() {
@@ -87,14 +82,8 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
             Thread t = boundedThread;
             if (t != null) t.interrupt();
             return true;
-
         }
         return false;
-    }
-
-
-    public <T> void resume(T tag, BAASBox.BAASHandler<?, T> handler) {
-
     }
 
     boolean advanceIfNotCanceled(State from, State to) {

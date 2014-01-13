@@ -18,12 +18,12 @@ import java.util.Map;
  */
 final class LoginRequest<T> extends BaasRequest<Void,T> {
 
-    LoginRequest(BAASBox box,int priority,T tag,BAASBox.BAASHandler<Void,T> handler){
+    LoginRequest(BAASBox box, Priority priority, T tag, BAASBox.BAASHandler<Void, T> handler) {
         super(makeRequest(box), priority, tag, new LoginResponseParser(box.credentialStore.get(true)), handler, false);
 
     }
 
-    LoginRequest(BAASBox box,String username,String password,int priority,T tag,BAASBox.BAASHandler<Void,T> handler){
+    LoginRequest(BAASBox box, String username, String password, Priority priority, T tag, BAASBox.BAASHandler<Void, T> handler) {
         super(makeRequest(box, username, password), priority, tag, new LoginResponseParser(username, password), handler, false);
 
     }

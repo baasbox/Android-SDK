@@ -18,29 +18,28 @@ import java.util.List;
 /**
  * Created by eto on 02/01/14.
  */
-public class BaasObject {
+public class BaasDocument {
     public final String collection;
     protected final JsonObject object;
 
-    public BaasObject(JsonObject data) {
+    public BaasDocument(JsonObject data) {
         super();
         this.collection = data.getString("@class");
         data.remove("@class");
         object = data;
     }
 
-    public BaasObject(String collection, JsonObject data) {
+    public BaasDocument(String collection, JsonObject data) {
         super();
         this.collection = collection;
         this.object = data;
     }
 
-    public BaasObject(String collection) {
+    public BaasDocument(String collection) {
         super();
         this.collection = collection;
         this.object = new JsonObject();
     }
-
 
     public JsonObject toJson() {
         return object;
@@ -48,45 +47,45 @@ public class BaasObject {
 
     @Override
     public String toString() {
-        return "#BaasObject<" + object.toString() + ">";
+        return "#BaasDocument<" + object.toString() + ">";
     }
 
-    public BaasObject putString(String name, String value) {
+    public BaasDocument putString(String name, String value) {
         object.putString(name, value);
         return this;
     }
 
-    public BaasObject putObject(String name, JsonObject value) {
+    public BaasDocument putObject(String name, JsonObject value) {
         object.putObject(name, value);
         return this;
     }
 
-    public BaasObject putArray(String name, JsonArray array) {
+    public BaasDocument putArray(String name, JsonArray array) {
         object.putArray(name, array);
         return this;
     }
 
-    public BaasObject putStructure(String name, JsonStructure structure) {
+    public BaasDocument putStructure(String name, JsonStructure structure) {
         object.putStructure(name, structure);
         return this;
     }
 
-    public BaasObject putNumber(String name, Number number) {
+    public BaasDocument putNumber(String name, Number number) {
         object.putNumber(name, number);
         return this;
     }
 
-    public BaasObject putBoolean(String name, Boolean bool) {
+    public BaasDocument putBoolean(String name, Boolean bool) {
         object.putBoolean(name, bool);
         return this;
     }
 
-    public BaasObject putBinary(String name, byte[] bytes) {
+    public BaasDocument putBinary(String name, byte[] bytes) {
         object.putBinary(name, bytes);
         return this;
     }
 
-    public BaasObject put(String name, Object value) {
+    public BaasDocument put(String name, Object value) {
         object.put(name, value);
         return this;
     }
@@ -183,7 +182,7 @@ public class BaasObject {
         return object.remove(name);
     }
 
-    public static <T> RequestToken count(BAASBox client, String collection, T tag, int priority, BAASBox.BAASHandler<Long, T> handler) {
+    public static <T> RequestToken count(BAASBox client, String collection, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         final RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("document/?/count", collection);
@@ -193,14 +192,14 @@ public class BaasObject {
     }
 
 
-    public <T> RequestToken delete(BAASBox client, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
+    public <T> RequestToken delete(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
         String id = getId();
         if (id == null)
             throw new IllegalStateException("document is not bound to an instance on the server");
         return delete(client, this.collection, getId(), tag, priority, handler);
     }
 
-    public static <T> RequestToken delete(BAASBox client, String collection, String id, T tag, int priority, BAASBox.BAASHandler<Void, T> handler) {
+    public static <T> RequestToken delete(BAASBox client, String collection, String id, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         if (id == null) throw new NullPointerException("id cannot be null");
         final RequestFactory factory = client.requestFactory;
@@ -210,27 +209,27 @@ public class BaasObject {
         return client.submitRequest(breq);
     }
 
-    public static <T> RequestToken getAll(BAASBox client, String collection, T tag, int priority, BAASBox.BAASHandler<List<BaasObject>, T> handler) {
+    public static <T> RequestToken getAll(BAASBox client, String collection, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         final RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("document/?", collection);
         HttpRequest get = factory.get(endpoint);
-        BaasRequest<List<BaasObject>, T> breq = new BaasRequest<List<BaasObject>, T>(get, priority, tag, listParser, handler, true);
+        BaasRequest<List<BaasDocument>, T> breq = new BaasRequest<List<BaasDocument>, T>(get, priority, tag, listParser, handler, true);
         return client.submitRequest(breq);
     }
 
-    private final static BaseResponseParser<List<BaasObject>> listParser =
-            new BaseResponseParser<List<BaasObject>>() {
+    private final static BaseResponseParser<List<BaasDocument>> listParser =
+            new BaseResponseParser<List<BaasDocument>>() {
                 @Override
-                protected List<BaasObject> handleOk(BaasRequest<List<BaasObject>, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+                protected List<BaasDocument> handleOk(BaasRequest<List<BaasDocument>, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
                     JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
                     JsonArray data = o.getArray("data");
                     if (data == null) {
                         return Collections.emptyList();
                     } else {
-                        ArrayList<BaasObject> res = new ArrayList<BaasObject>();
+                        ArrayList<BaasDocument> res = new ArrayList<BaasDocument>();
                         for (Object obj : data) {
-                            res.add(new BaasObject((JsonObject) obj));
+                            res.add(new BaasDocument((JsonObject) obj));
                         }
                         return res;
                     }
@@ -254,13 +253,13 @@ public class BaasObject {
         }
     };
 
-    public static <T> RequestToken get(BAASBox client, String collection, String id, T tag, int priority, BAASBox.BAASHandler<BaasObject, T> handler) {
+    public static <T> RequestToken get(BAASBox client, String collection, String id, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         if (id == null) throw new NullPointerException("id cannot be null");
         final RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("document/?/?", collection, id);
         HttpRequest request = factory.get(endpoint);
-        BaasRequest<BaasObject, T> req = new BaasRequest<BaasObject, T>(request, priority, tag, new ObjectParser(null), handler, true);
+        BaasRequest<BaasDocument, T> req = new BaasRequest<BaasDocument, T>(request, priority, tag, new ObjectParser(null), handler, true);
         return client.submitRequest(req);
     }
 
@@ -274,18 +273,18 @@ public class BaasObject {
      * @param <T>
      * @return a disposer that can be used to control the request
      */
-    public <T> RequestToken save(BAASBox client, T tag, int priority, BAASBox.BAASHandler<BaasObject, T> handler) {
+    public <T> RequestToken save(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
         RequestFactory factory = client.requestFactory;
         String id = getId();
         if (id == null) {
             String endpoint = factory.getEndpoint("document/?", collection);
             HttpRequest post = factory.post(endpoint, toJson().copy());
-            BaasRequest<BaasObject, T> req = new BaasRequest<BaasObject, T>(post, priority, tag, new ObjectParser(this), handler, true);
+            BaasRequest<BaasDocument, T> req = new BaasRequest<BaasDocument, T>(post, priority, tag, new ObjectParser(this), handler, true);
             return client.submitRequest(req);
         } else {
             String endpoint = factory.getEndpoint("document/?/?", collection, id);
             HttpRequest put = factory.put(endpoint, toJson().copy());
-            BaasRequest<BaasObject, T> req = new BaasRequest<BaasObject, T>(put, priority, tag, new ObjectParser(this), handler, true);
+            BaasRequest<BaasDocument, T> req = new BaasRequest<BaasDocument, T>(put, priority, tag, new ObjectParser(this), handler, true);
             return client.submitRequest(req);
         }
     }
@@ -294,15 +293,15 @@ public class BaasObject {
         return object.getString("id");
     }
 
-    private static class ObjectParser extends BaseResponseParser<BaasObject> {
-        private BaasObject obj;
+    private static class ObjectParser extends BaseResponseParser<BaasDocument> {
+        private BaasDocument obj;
 
-        ObjectParser(BaasObject data) {
+        ObjectParser(BaasDocument data) {
             this.obj = data;
         }
 
         @Override
-        protected BaasObject handleOk(BaasRequest<BaasObject, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+        protected BaasDocument handleOk(BaasRequest<BaasDocument, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
             JsonObject data = content.getObject("data");
             Logging.debug("RECEIVED " + data.toString());
@@ -311,30 +310,30 @@ public class BaasObject {
                 this.obj.object.merge(data);
                 return this.obj;
             } else {
-                return new BaasObject(data);
+                return new BaasDocument(data);
             }
         }
     }
 
-    private final static ResponseParser<BaasObject> parser = new BaseResponseParser<BaasObject>() {
+    private final static ResponseParser<BaasDocument> parser = new BaseResponseParser<BaasDocument>() {
         @Override
-        protected BaasObject handleOk(BaasRequest<BaasObject, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+        protected BaasDocument handleOk(BaasRequest<BaasDocument, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject data = getJsonEntity(response, config.HTTP_CHARSET);
             Logging.debug("RECEIVED " + data.toString());
-            return new BaasObject("simple");
+            return new BaasDocument("simple");
         }
     };
 
-    public <T> RequestToken save(BAASBox client, T tag, BAASBox.BAASHandler<BaasObject, T> handler) {
-        return save(client, tag, 0, handler);
+    public <T> RequestToken save(BAASBox client, T tag, BAASBox.BAASHandler<BaasDocument, T> handler) {
+        return save(client, tag, Priority.NORMAL, handler);
     }
 
-    public RequestToken save(BAASBox client, int priority, BAASBox.BAASHandler<BaasObject, ?> handler) {
+    public RequestToken save(BAASBox client, Priority priority, BAASBox.BAASHandler<BaasDocument, ?> handler) {
         return save(client, null, priority, handler);
     }
 
-    public RequestToken save(BAASBox client, BAASBox.BAASHandler<BaasObject, ?> handler) {
-        return save(client, null, 0, handler);
+    public RequestToken save(BAASBox client, BAASBox.BAASHandler<BaasDocument, ?> handler) {
+        return save(client, null, Priority.NORMAL, handler);
     }
 
 }

@@ -13,6 +13,7 @@ import org.apache.http.HttpResponse;
  */
 final class SameThreadDispatcher implements RequestDispatcher {
     private final BAASBox box;
+
     private final BAASBox.Config config;
     private final RestClient client;
     private final CredentialStore credentialStore;
@@ -24,43 +25,31 @@ final class SameThreadDispatcher implements RequestDispatcher {
         this.credentialStore = box.credentialStore;
     }
 
-
-
     @Override
-    public RequestToken post(BaasRequest<?, ?> request) {
-        if(executeRequest(request)){
-            handleResponse(request);
-//            if (request.handler!=null){
-//                BaasRequest<T,?> req = request;
-//                req.handler.handle(req.result,req.tag);
-//            }
-        }
-        return null;
+    public <T> BaasResult<T> post(BaasRequest<T, ?> request) {
+        executeRequest(request);
+        return request.result;
     }
 
-
-    private <T, E> void handleResponse(BaasRequest<T, E> request) {
-        if (request.handler != null) {
-            request.handler.handle(request.result, request.tag);
-        }
-    }
-
-    private <T> boolean executeRequest(BaasRequest<T, ?> request) {
-        boolean handle = true;
+    private <T> void executeRequest(BaasRequest<T, ?> request) {
         try {
             HttpResponse response =client.execute(request.httpRequest);
             request.result = BaasResult.success(request.parser.parseResponse(request, response, config, credentialStore));
-
         } catch (BAASBoxInvalidSessionException e){
             if(request.takeRetry()){
-                //todo handle resubmit with login
-                handle = false;
+                LoginRequest<Object> login = new LoginRequest<Object>(box, null, null, null);
+                BaasResult<Void> relogin = post(login);
+                if (relogin.isSuccess()) {
+                    executeRequest(request);
+                    return;
+                } else {
+                    request.result = BaasResult.failure(e);
+                }
             } else {
                 request.result = BaasResult.failure(e);
             }
         }catch (BAASBoxException e) {
             request.result = BaasResult.failure(e);
         }
-        return handle;
     }
 }

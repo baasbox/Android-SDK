@@ -1,7 +1,7 @@
 package com.baasbox.android.spi;
 
 import com.baasbox.android.BaasRequest;
-import com.baasbox.android.RequestToken;
+import com.baasbox.android.BaasResult;
 
 /**
  * A dispatcher of requests from the client to the server.
@@ -16,5 +16,5 @@ public interface RequestDispatcher {
      * @param request
      * @return
      */
-    public RequestToken post(BaasRequest<?,/*tag*/?> request);
+    public <T> BaasResult<T> post(BaasRequest<T,/*tag*/?> request);
 }

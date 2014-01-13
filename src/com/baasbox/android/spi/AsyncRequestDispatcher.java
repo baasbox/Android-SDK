@@ -6,10 +6,10 @@ import com.baasbox.android.RequestToken;
 
 /**
  * A dispathcer that executes requests in background.
- *
+ * <p/>
  * Created by eto on 02/01/14.
  */
-public interface AsyncRequestDispatcher  extends RequestDispatcher{
+public interface AsyncRequestDispatcher {
 
     /**
      * Starts the dispatcher
@@ -28,7 +28,6 @@ public interface AsyncRequestDispatcher  extends RequestDispatcher{
      * @param request
      * @return
      */
-    @Override
     RequestToken post(BaasRequest<?, ?> request);
 
     /**

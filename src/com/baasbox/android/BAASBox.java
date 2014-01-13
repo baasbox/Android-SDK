@@ -12,10 +12,13 @@ import java.util.Map;
 
 /**
  * This class represents the main context of BaasBox SDK.
- *
+ * <p/>
  * Created by Andrea Tortorella on 23/12/13.
  */
 public class BAASBox {
+
+    private static volatile BAASBox sDefaultClient;
+    private static final Object LOCK = new Object();
 
     /**
      * Interface definition for a callback to be invoked when baasbox responds to a request
@@ -138,24 +141,53 @@ public class BAASBox {
 
     /**
      * Creates a client with provided configuration.
+     *
      * @param context main context of the application
-     * @param config a {@link com.baasbox.android.BAASBox.Config} for this client
+     * @param config  a {@link com.baasbox.android.BAASBox.Config} for this client
      * @return
      */
     public static BAASBox createClient(Context context, Config config) {
+        return createClient(context, config, null);
+    }
+
+    public static BAASBox createClient(Context context, Config config, String sessionToken) {
         BAASBox box = new BAASBox(context, config);
+        if (sessionToken != null) box.credentialStore.updateToken(sessionToken);
         box.asyncDispatcher.start();
         return box;
     }
 
-    public static BAASBox createClient(Context context, Config config, String sessionToken) {
-        BAASBox box = createClient(context, config);
-        box.credentialStore.updateToken(sessionToken);
-        return box;
+
+    public static void initDefault(Context context) {
+        initDefault(context, null, null);
+    }
+
+    public static void initDefault(Context context, Config config) {
+        initDefault(context, config, null);
+    }
+
+    public static void initDefault(Context context, Config config, String session) {
+        if (sDefaultClient == null) {
+            synchronized (LOCK) {
+                if (sDefaultClient == null) {
+                    sDefaultClient = createClient(context, config, session);
+                }
+            }
+        }
+    }
+
+    public static BAASBox getDefaultChecked() {
+        if (sDefaultClient == null)
+            throw new IllegalStateException("Trying to use implicit client, but no default initialized");
+        return sDefaultClient;
     }
 
     RequestToken submitRequest(BaasRequest<?, ?> breq) {
         return asyncDispatcher.post(breq);
+    }
+
+    <Resp> BaasResult<Resp> submitRequestSync(BaasRequest<Resp, Void> request) {
+        return syncDispatcher.post(request);
     }
 
     public void cancel(RequestToken token) {
@@ -184,7 +216,6 @@ public class BAASBox {
     public <T> void resume(RequestToken token, T tag, BAASHandler<?, T> handler) {
         asyncDispatcher.resume(token, tag, handler);
     }
-
 
 }
 
