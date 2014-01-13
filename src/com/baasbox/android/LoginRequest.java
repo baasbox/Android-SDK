@@ -1,7 +1,7 @@
 package com.baasbox.android;
 
 import com.baasbox.android.exceptions.BAASBoxException;
-import com.baasbox.android.impl.Logging;
+import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * Created by eto on 04/01/14.
  */
-final class LoginRequest<T> extends BaasRequest<Void,T> {
+final class LoginRequest<T> extends BaasRequest<Void, T> {
 
     LoginRequest(BAASBox box, Priority priority, T tag, BAASBox.BAASHandler<Void, T> handler) {
         super(makeRequest(box), priority, tag, new LoginResponseParser(box.credentialStore.get(true)), handler, false);
@@ -28,18 +28,18 @@ final class LoginRequest<T> extends BaasRequest<Void,T> {
 
     }
 
-    private static HttpRequest makeRequest(BAASBox client){
+    private static HttpRequest makeRequest(BAASBox client) {
         Credentials credentials = client.credentialStore.get(true);
-        Logging.debug("Credentials loaded: " + credentials);
-        return makeRequest(client,credentials.username,credentials.password);
+        BAASLogging.debug("Credentials loaded: " + credentials);
+        return makeRequest(client, credentials.username, credentials.password);
     }
 
-    private static HttpRequest makeRequest(BAASBox client,String username,String password){
+    private static HttpRequest makeRequest(BAASBox client, String username, String password) {
         String ep = client.requestFactory.getEndpoint("login");
-        Map<String,String> params = new LinkedHashMap<String, String>();
-        params.put("username",username);
-        params.put("password",password);
-        params.put("appcode",client.config.APP_CODE);
+        Map<String, String> params = new LinkedHashMap<String, String>();
+        params.put("username", username);
+        params.put("password", password);
+        params.put("appcode", client.config.APP_CODE);
         HttpRequest request = client.requestFactory.post(ep, params);
         return request;
     }
@@ -61,7 +61,7 @@ final class LoginRequest<T> extends BaasRequest<Void,T> {
         @Override
         protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             try {
-                JsonObject content = getJsonEntity(response,config.HTTP_CHARSET);
+                JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
                 JsonObject data = content.getObject("data");
                 String token = data.getString("X-BB-SESSION");
                 Credentials c = new Credentials();
@@ -70,7 +70,7 @@ final class LoginRequest<T> extends BaasRequest<Void,T> {
                 c.sessionToken = token;
                 credentialStore.set(c);
                 return null;
-            }catch (JsonException e){
+            } catch (JsonException e) {
                 throw new BAASBoxException("Could not parse response");
             }
 

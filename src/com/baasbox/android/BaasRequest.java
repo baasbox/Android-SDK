@@ -6,29 +6,69 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Created by eto on 23/12/13.
+ * A request to the server
+ * Created by Andrea Tortorella on 23/12/13.
  */
 public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>> {
 
-//    public static final int MAX_PRIORITY = Integer.MAX_VALUE;
-
+    /**
+     * Possible states of the request
+     */
     static enum State {
         ACTIVE, PROCESSING, EXECUTED, DELIVERED, CANCELED
     }
 
+    /**
+     * Http request
+     */
     public final HttpRequest httpRequest;
+
     public final ResponseParser<Resp> parser;
 
+    /**
+     * Handler for the request
+     */
     public volatile BAASBox.BAASHandler<Resp, Tag> handler;
+
+    /**
+     * Custom tag for the request
+     */
     public volatile Tag tag;
 
+    /**
+     * Request priority
+     */
     public volatile Priority priority;
+
+    /**
+     * Unique increasing id of the request
+     */
     volatile int requestNumber;
+
+    /**
+     * Thread to which the request is bounded
+     */
     volatile Thread boundedThread;
+
+    /**
+     * Result of the request
+     */
     volatile BaasResult<Resp> result;
+
+    /**
+     * Flag indicating if the request should be resubmitted when not
+     * logged in
+     */
     private boolean retry;
 
+    /**
+     * Flag indicating if the request has been suspended
+     */
     final AtomicBoolean suspended = new AtomicBoolean(false);
+
+    /**
+     * Current state of the request
+     */
     final AtomicReference<State> status = new AtomicReference<State>(State.ACTIVE);
 
     BaasRequest(HttpRequest request,
@@ -46,6 +86,11 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
         this.retry = retry;
     }
 
+    /**
+     * Gets and clear the retry flag
+     *
+     * @return
+     */
     public boolean takeRetry() {
         boolean retry = this.retry;
         this.retry = false;
@@ -65,18 +110,34 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
         }
     }
 
+    /**
+     * Get current request status
+     * @return
+     */
     protected State status() {
         return status.get();
     }
 
+    /**
+     * Returns true if the request has been canceled
+     * @return
+     */
     public boolean isCanceled() {
         return status.get() == State.CANCELED;
     }
 
+    /**
+     * Returns true if the request is currently suspended
+     * @return
+     */
     public boolean isSuspended() {
         return suspended.get();
     }
 
+    /**
+     * Cancels the request
+     * @return true if the cancellation was successfull
+     */
     boolean cancel() {
         if (cancelIfNotDelivered()) {
             Thread t = boundedThread;
@@ -86,11 +147,18 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
         return false;
     }
 
+    /**
+     * Updates the state of the request
+     * @param from
+     * @param to
+     * @return
+     */
     boolean advanceIfNotCanceled(State from, State to) {
         return status.compareAndSet(from, to);
     }
 
-    boolean cancelIfNotDelivered() {
+
+    private boolean cancelIfNotDelivered() {
         for (; ; ) {
             State current = status.get();
             if (current == State.DELIVERED) return false;

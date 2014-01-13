@@ -1,7 +1,7 @@
 package com.baasbox.android;
 
 import com.baasbox.android.exceptions.BAASBoxException;
-import com.baasbox.android.impl.Logging;
+import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
@@ -101,7 +101,7 @@ public class BaasFile {
         @Override
         protected BaasFile handleOk(BaasRequest<BaasFile, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject details = getJsonEntity(response, config.HTTP_CHARSET);
-            Logging.debug(details.toString());
+            BAASLogging.debug(details.toString());
             return null;
         }
     };
@@ -213,7 +213,7 @@ public class BaasFile {
         @Override
         protected BaasFile handleOk(BaasRequest<BaasFile, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject o = getJsonEntity(response, config.HTTP_CHARSET).getObject("data");
-            Logging.debug(o.toString());
+            BAASLogging.debug(o.toString());
             initial.setId(o.getString("id"));
             return initial;
         }
@@ -247,7 +247,7 @@ public class BaasFile {
         @Override
         protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
-            Logging.debug(o.toString());
+            BAASLogging.debug(o.toString());
             if (file != null) {
                 file.setId(null);
             }
@@ -316,7 +316,7 @@ public class BaasFile {
                         entity.consumeContent();
                     }
                 } catch (IOException e) {
-                    Logging.debug("Error while parsing data " + e.getMessage());
+                    BAASLogging.debug("Error while parsing data " + e.getMessage());
                 }
             }
             return null;

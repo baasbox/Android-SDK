@@ -6,7 +6,7 @@ import android.os.Message;
 
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxInvalidSessionException;
-import com.baasbox.android.impl.Logging;
+import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.spi.AsyncRequestDispatcher;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.RestClient;
@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by eto on 23/12/13.
  */
 final class DefaultDispatcher implements AsyncRequestDispatcher {
-    private final static AtomicInteger REQUEST_COUNTER=new AtomicInteger(Integer.MIN_VALUE);
+    private final static AtomicInteger REQUEST_COUNTER = new AtomicInteger(Integer.MIN_VALUE);
     private final RestClient client;
     private final BAASBox box;
 
@@ -41,7 +41,7 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         this.client = client;
         this.config = box.config;
         this.credentialStore = box.credentialStore;
-        this.requests = new PriorityBlockingQueue<BaasRequest<?,?>>();
+        this.requests = new PriorityBlockingQueue<BaasRequest<?, ?>>();
         this.dispatcher = new ResponseHandler(this);
         this.workers = createWorkers(config.NUM_THREADS);
 
@@ -58,18 +58,18 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
     @Override
     public void start() {
         stop();
-        for(int i=0;i<workers.length;i++){
-            workers[i]=new Worker(this);
+        for (int i = 0; i < workers.length; i++) {
+            workers[i] = new Worker(this);
             workers[i].start();
         }
     }
 
     @Override
     public void stop() {
-        for(int i = 0;i<workers.length;i++){
-            if(workers[i]!=null){
+        for (int i = 0; i < workers.length; i++) {
+            if (workers[i] != null) {
                 workers[i].quit();
-                workers[i]=null;
+                workers[i] = null;
             }
         }
     }
@@ -107,7 +107,7 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
     @Override
     public <T> void resume(RequestToken token, T tag, BAASBox.BAASHandler<?, T> handler) {
         BaasRequest<?, ?> req = submittedRequests.get(token.requestId);
-        Logging.debug("Resuming: " + (req != null) + (req != null ? (req.status() + " " + req.suspended.get()) : "---"));
+        BAASLogging.debug("Resuming: " + (req != null) + (req != null ? (req.status() + " " + req.suspended.get()) : "---"));
         if (req != null && req.suspended.compareAndSet(true, false)) {
 
             if (tag != null) tagsMap.put(req.requestNumber, tag);
@@ -121,7 +121,7 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
 
 
     private <R, T> void finishDispatch(BaasRequest<R, T> req) {
-        Logging.debug("Dispatching: " + (req != null) + (req.suspended.get()) + "" + (req.status()));
+        BAASLogging.debug("Dispatching: " + (req != null) + (req.suspended.get()) + "" + (req.status()));
         if (req.advanceIfNotCanceled(BaasRequest.State.EXECUTED, BaasRequest.State.DELIVERED) && !req.suspended.get()) {
             BAASBox.BAASHandler<R, T> h = (BAASBox.BAASHandler<R, T>) handlersMap.remove(req.requestNumber);
             T t = (T) tagsMap.remove(req.requestNumber);
@@ -133,14 +133,14 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
     @Override
     public void suspend(RequestToken token) {
         BaasRequest<?, ?> req = submittedRequests.get(token.requestId);
-        Logging.debug("request status: " + (req != null) + " " + (req != null ? req.status.get() : "---"));
+        BAASLogging.debug("request status: " + (req != null) + " " + (req != null ? req.status.get() : "---"));
         if (req != null && req.status.get() != BaasRequest.State.DELIVERED && req.suspended.compareAndSet(false, true)) {
             handlersMap.remove(token.requestId);
             tagsMap.remove(token.requestId);
         }
     }
 
-    private static class ResponseHandler extends Handler{
+    private static class ResponseHandler extends Handler {
         private final DefaultDispatcher dispatcher;
 
         ResponseHandler(DefaultDispatcher dispatcher) {
@@ -150,18 +150,18 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
 
         @Override
         public void handleMessage(Message msg) {
-            BaasRequest req =(BaasRequest)msg.obj;
+            BaasRequest req = (BaasRequest) msg.obj;
             dispatcher.finishDispatch(req);
         }
 
 
-        public void post(BaasRequest request){
-            sendMessage(obtainMessage(request.requestNumber,request));
+        public void post(BaasRequest request) {
+            sendMessage(obtainMessage(request.requestNumber, request));
         }
     }
 
-    private static class Worker extends Thread{
-        private final PriorityBlockingQueue<BaasRequest<?,?>> requests;
+    private static class Worker extends Thread {
+        private final PriorityBlockingQueue<BaasRequest<?, ?>> requests;
         private final ResponseHandler poster;
         private final RestClient client;
         private final BAASBox.Config config;
@@ -169,24 +169,24 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         private final DefaultDispatcher dispatcher;
         private volatile boolean quit;
 
-        Worker(DefaultDispatcher dispatcher){
-            this.dispatcher=dispatcher;
-            this.requests=dispatcher.requests;
-            this.client=dispatcher.client;
-            this.poster=dispatcher.dispatcher;
+        Worker(DefaultDispatcher dispatcher) {
+            this.dispatcher = dispatcher;
+            this.requests = dispatcher.requests;
+            this.client = dispatcher.client;
+            this.poster = dispatcher.dispatcher;
             this.config = dispatcher.config;
-            this.credentialStore=dispatcher.credentialStore;
+            this.credentialStore = dispatcher.credentialStore;
             this.quit = false;
         }
 
-        void quit(){
-            quit=true;
+        void quit() {
+            quit = true;
             interrupt();
         }
 
         @Override
         public void run() {
-            BaasRequest<?,?> request;
+            BaasRequest<?, ?> request;
             while (true) {
                 try {
                     request = requests.take();
@@ -219,14 +219,14 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         private <T> boolean executeRequest(final BaasRequest<T, ?> req, RestClient client) throws InterruptedException {
             boolean handle = true;
             try {
-                Logging.debug("REQUEST: " + req.httpRequest);
+                BAASLogging.debug("REQUEST: " + req.httpRequest);
                 HttpResponse response = client.execute(req.httpRequest);
                 T t = req.parser.parseResponse(req, response, config, credentialStore);
                 req.result = BaasResult.success(t);
-            } catch (BAASBoxInvalidSessionException ex){
-                Logging.debug("invalid session");
-                if(req.takeRetry()){
-                    Logging.debug("retry");
+            } catch (BAASBoxInvalidSessionException ex) {
+                BAASLogging.debug("invalid session");
+                if (req.takeRetry()) {
+                    BAASLogging.debug("retry");
                     LoginRequest<Void> refresh = new LoginRequest<Void>(dispatcher.box, null, null, new BAASBox.BAASHandler<Void, Void>() {
                         @Override
                         public void handle(BaasResult<Void> result, Void tag) {
@@ -238,9 +238,9 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
                 } else {
                     req.result = BaasResult.failure(ex);
                 }
-            }catch (BAASBoxException e) {
-                Logging.debug("error with " + e.getMessage());
-                req.result= BaasResult.failure(e);
+            } catch (BAASBoxException e) {
+                BAASLogging.debug("error with " + e.getMessage());
+                req.result = BaasResult.failure(e);
             }
             return handle;
         }

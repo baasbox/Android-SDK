@@ -2,7 +2,7 @@ package com.baasbox.android;
 
 
 import com.baasbox.android.exceptions.BAASBoxException;
-import com.baasbox.android.impl.Logging;
+import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.json.JsonStructure;
@@ -304,7 +304,7 @@ public class BaasDocument {
         protected BaasDocument handleOk(BaasRequest<BaasDocument, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
             JsonObject data = content.getObject("data");
-            Logging.debug("RECEIVED " + data.toString());
+            BAASLogging.debug("RECEIVED " + data.toString());
             if (this.obj != null) {
                 data.remove("@class");
                 this.obj.object.merge(data);
@@ -319,7 +319,7 @@ public class BaasDocument {
         @Override
         protected BaasDocument handleOk(BaasRequest<BaasDocument, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject data = getJsonEntity(response, config.HTTP_CHARSET);
-            Logging.debug("RECEIVED " + data.toString());
+            BAASLogging.debug("RECEIVED " + data.toString());
             return new BaasDocument("simple");
         }
     };

@@ -5,7 +5,7 @@ import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxIOException;
 import com.baasbox.android.exceptions.BAASBoxInvalidSessionException;
 import com.baasbox.android.exceptions.BAASBoxServerException;
-import com.baasbox.android.impl.Logging;
+import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
@@ -94,7 +94,7 @@ abstract class BaseResponseParser<T> implements ResponseParser<T> {
             if (!"".equals(bbCodeStr)) {
                 bbCode = Integer.parseInt(bbCodeStr);
             }
-            Logging.debug(json.toString());
+            BAASLogging.debug(json.toString());
             HashMap<String, String> headers = new HashMap<String, String>();
             if (header != null) {
                 Iterator<String> it = header.getFieldNames().iterator();

@@ -5,7 +5,7 @@ import android.util.Log;
 /**
  * Created by eto on 02/01/14.
  */
-public class Logging {
+public class BAASLogging {
     private final static boolean LOG_ENABLED = true;
 
     public static void debug(String message) {
