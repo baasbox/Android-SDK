@@ -1,6 +1,10 @@
 package com.baasbox.android;
 
+import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.HttpRequest;
+
+import org.apache.http.HttpResponse;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -9,7 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * A request to the server
  * Created by Andrea Tortorella on 23/12/13.
  */
-public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>> {
+public abstract class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>> {
 
     /**
      * Possible states of the request
@@ -22,8 +26,6 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
      * Http request
      */
     public final HttpRequest httpRequest;
-
-    public final ResponseParser<Resp> parser;
 
     /**
      * Handler for the request
@@ -74,13 +76,11 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
     BaasRequest(HttpRequest request,
                 Priority priority,
                 Tag tag,
-                ResponseParser<Resp> parser,
                 BAASBox.BAASHandler<Resp, Tag> handler,
                 boolean retry) {
 
         this.httpRequest = request;
         this.handler = handler;
-        this.parser = parser;
         this.tag = tag;
         this.priority = priority;
         this.retry = retry;
@@ -167,4 +167,7 @@ public class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<Resp, Tag>
             }
         }
     }
+
+
+    public abstract Resp parseResponse(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException;
 }

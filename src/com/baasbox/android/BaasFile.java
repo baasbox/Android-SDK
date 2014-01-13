@@ -61,7 +61,7 @@ public class BaasFile {
         RequestFactory factory = box.requestFactory;
         String endpoint = factory.getEndpoint("file/details/?", id);
         HttpRequest req = factory.get(endpoint);
-        BaasRequest<BaasFile, T> breq = new BaasRequest<BaasFile, T>(req, priority, tag, fileDetailsResponseParser, handler, true);
+        BaasRequest<BaasFile, T> breq = new DetailsRequest<T>(req, priority, tag, handler);
         return box.submitRequest(breq);
     }
 
@@ -69,13 +69,18 @@ public class BaasFile {
         RequestFactory factory = box.requestFactory;
         String endpoint = factory.getEndpoint("file/details");
         HttpRequest req = factory.get(endpoint);
-        BaasRequest<List<BaasFile>, T> breq = new BaasRequest<List<BaasFile>, T>(req, priority, tag, fileCollectionResponseParser, handler, true);
+        BaasRequest<List<BaasFile>, T> breq = new ListRequest<T>(req, priority, tag, handler);
         return box.submitRequest(breq);
     }
 
-    private final static ResponseParser<List<BaasFile>> fileCollectionResponseParser = new BaseResponseParser<List<BaasFile>>() {
+    private final static class ListRequest<T> extends BaseRequest<List<BaasFile>, T> {
+
+        ListRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<List<BaasFile>, T> handler) {
+            super(request, priority, t, handler);
+        }
+
         @Override
-        protected List<BaasFile> handleOk(BaasRequest<List<BaasFile>, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+        protected List<BaasFile> handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject details = getJsonEntity(response, config.HTTP_CHARSET);
             JsonArray data = details.getArray("data");
             ArrayList<BaasFile> files = new ArrayList<BaasFile>();
@@ -95,16 +100,21 @@ public class BaasFile {
             }
             return files;
         }
-    };
+    }
 
-    private final static ResponseParser<BaasFile> fileDetailsResponseParser = new BaseResponseParser<BaasFile>() {
+    private final static class DetailsRequest<T> extends BaseRequest<BaasFile, T> {
+
+        DetailsRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<BaasFile, T> handler) {
+            super(request, priority, t, handler);
+        }
+
         @Override
-        protected BaasFile handleOk(BaasRequest<BaasFile, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+        protected BaasFile handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject details = getJsonEntity(response, config.HTTP_CHARSET);
             BAASLogging.debug(details.toString());
             return null;
         }
-    };
+    }
 
     public static <T> RequestToken save(BAASBox box, JsonObject attachedData, InputStream in, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
         BaasFile file = new BaasFile(attachedData);
@@ -154,7 +164,7 @@ public class BaasFile {
         } catch (IOException e) {
         }
         HttpRequest upload = factory.uploadFile(endpoint, true, in, name, mimeType, attachedData);
-        BaasRequest<BaasFile, Void> breq = new BaasRequest<BaasFile, Void>(upload, Priority.NORMAL, null, new UploadParser(this), null, true);
+        BaasRequest<BaasFile, Void> breq = new UploadRequest<Void>(this, upload, null, null, null);
         return box.submitRequestSync(breq);
     }
 
@@ -167,7 +177,7 @@ public class BaasFile {
 
         }
         HttpRequest upload = factory.uploadFile(endpoint, true, stream, name, mimeType, attachedData);
-        BaasRequest<BaasFile, T> breq = new BaasRequest<BaasFile, T>(upload, priority, tag, new UploadParser(this), handler, true);
+        BaasRequest<BaasFile, T> breq = new UploadRequest<T>(this, upload, priority, tag, handler);
         return box.submitRequest(breq);
     }
 
@@ -203,15 +213,17 @@ public class BaasFile {
         return this.contentLength;
     }
 
-    private static class UploadParser extends BaseResponseParser<BaasFile> {
-        BaasFile initial;
 
-        UploadParser(BaasFile file) {
-            initial = file;
+    private final static class UploadRequest<T> extends BaseRequest<BaasFile, T> {
+        private final BaasFile initial;
+
+        UploadRequest(BaasFile file, HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<BaasFile, T> handler) {
+            super(request, priority, t, handler);
+            this.initial = file;
         }
 
         @Override
-        protected BaasFile handleOk(BaasRequest<BaasFile, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+        protected BaasFile handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject o = getJsonEntity(response, config.HTTP_CHARSET).getObject("data");
             BAASLogging.debug(o.toString());
             initial.setId(o.getString("id"));
@@ -223,43 +235,20 @@ public class BaasFile {
         RequestFactory f = box.requestFactory;
         String endpoint = f.getEndpoint("file/?", id);
         HttpRequest delete = f.delete(endpoint);
-        BaasRequest<Void, T> breq = new BaasRequest<Void, T>(delete, priority, tag, DeleteParser.UNBOUND, handler, true);
+        BaasRequest<Void, T> breq = new BAASObject.DeleteRequest<T>(delete, priority, tag, handler);
         return box.submitRequest(breq);
     }
 
     public <T> RequestToken delete(BAASBox box, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
-        RequestFactory f = box.requestFactory;
-        String endpoint = f.getEndpoint("file/?", id);
-        HttpRequest delete = f.delete(endpoint);
-        BaasRequest<Void, T> breq = new BaasRequest<Void, T>(delete, priority, tag, new DeleteParser(this), handler, true);
-        return box.submitRequest(breq);
-    }
-
-    private static class DeleteParser extends BaseResponseParser<Void> {
-        final static DeleteParser UNBOUND = new DeleteParser(null);
-
-        private final BaasFile file;
-
-        DeleteParser(BaasFile file) {
-            this.file = file;
-        }
-
-        @Override
-        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
-            BAASLogging.debug(o.toString());
-            if (file != null) {
-                file.setId(null);
-            }
-            return null;
-        }
+        return BaasFile.delete(box, id, tag, priority, handler);
     }
 
     public static <T> RequestToken download(BAASBox box, String id, T tag, Priority priority, DataHandler<T> contentHandler, BAASBox.BAASHandler<Void, T> handler) {
         RequestFactory factory = box.requestFactory;
         String endpoint = factory.getEndpoint("file/?", id);
         HttpRequest request = factory.get(endpoint);
-        BaasRequest<Void, T> breq = new BaasRequest<Void, T>(request, priority, tag, new DataParser<T>(id, contentHandler, tag), handler, true);
+        BaasRequest<Void, T> breq = new DataRequest<T>(id, request, priority, tag, contentHandler, handler);
+        ;
         return box.submitRequest(breq);
     }
 
@@ -274,19 +263,18 @@ public class BaasFile {
         public boolean onData(byte[] data, String id, String contentType, T tag, boolean more) throws Exception;
     }
 
-    private static class DataParser<T> extends BaseResponseParser<Void> {
+    private static class DataRequest<T> extends BaseRequest<Void, T> {
         private final String id;
-        private final DataHandler dataHandler;
-        private final T tag;
+        private final DataHandler<T> dataHandler;
 
-        DataParser(String id, DataHandler dataHandler, T tag) {
+        DataRequest(String id, HttpRequest request, Priority priority, T t, DataHandler<T> dataHandler, BAASBox.BAASHandler<Void, T> handler) {
+            super(request, priority, t, handler);
             this.id = id;
             this.dataHandler = dataHandler;
-            this.tag = tag;
         }
 
         @Override
-        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+        protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             HttpEntity entity = null;
             BufferedInputStream in = null;
             try {

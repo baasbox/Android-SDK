@@ -221,7 +221,7 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
             try {
                 BAASLogging.debug("REQUEST: " + req.httpRequest);
                 HttpResponse response = client.execute(req.httpRequest);
-                T t = req.parser.parseResponse(req, response, config, credentialStore);
+                T t = req.parseResponse(response, config, credentialStore);
                 req.result = BaasResult.success(t);
             } catch (BAASBoxInvalidSessionException ex) {
                 BAASLogging.debug("invalid session");

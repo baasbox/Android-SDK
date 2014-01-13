@@ -34,7 +34,7 @@ final class SameThreadDispatcher implements RequestDispatcher {
     private <T> void executeRequest(BaasRequest<T, ?> request) {
         try {
             HttpResponse response =client.execute(request.httpRequest);
-            request.result = BaasResult.success(request.parser.parseResponse(request, response, config, credentialStore));
+            request.result = BaasResult.success(request.parseResponse(response, config, credentialStore));
         } catch (BAASBoxInvalidSessionException e){
             if(request.takeRetry()){
                 LoginRequest<Object> login = new LoginRequest<Object>(box, null, null, null);

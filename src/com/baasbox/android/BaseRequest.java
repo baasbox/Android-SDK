@@ -9,6 +9,7 @@ import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
+import com.baasbox.android.spi.HttpRequest;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -19,35 +20,43 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * Created by eto on 10/01/14.
+ * Created by eto on 13/01/14.
  */
-abstract class BaseResponseParser<T> implements ResponseParser<T> {
-    @Override
-    public T parseResponse(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+abstract class BaseRequest<Resp, Tag> extends BaasRequest<Resp, Tag> {
 
+    BaseRequest(HttpRequest request, Priority priority, Tag tag, BAASBox.BAASHandler<Resp, Tag> handler, boolean retry) {
+        super(request, priority, tag, handler, retry);
+    }
+
+    BaseRequest(HttpRequest request, Priority priority, Tag tag, BAASBox.BAASHandler<Resp, Tag> handler) {
+        this(request, priority, tag, handler, true);
+    }
+
+    @Override
+    public Resp parseResponse(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
         int status = response.getStatusLine().getStatusCode();
         int statusClass = status / 100;
-
         switch (statusClass) {
             case 1:
-                return handleContinue(request, response, config, credentialStore);
+                return handleContinue(response, config, credentialStore);
             case 2:
-                return handleOk(request, response, config, credentialStore);
+                return handleOk(response, config, credentialStore);
             case 3:
-                return redirect(request, response, config, credentialStore);
+                return redirect(response, config, credentialStore);
             case 4:
             case 5:
-                return handleFail(request, response, config, credentialStore);
+                return handleFail(response, config, credentialStore);
             default:
                 throw new Error("Unreachable code");
         }
     }
 
-    protected T handleContinue(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+
+    protected Resp handleContinue(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
         return null;
     }
 
-    protected abstract T handleOk(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException;
+    protected abstract Resp handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException;
 
     protected JsonObject getJsonEntity(HttpResponse response, String charset) throws BAASBoxIOException {
         HttpEntity entity = response.getEntity();
@@ -65,12 +74,11 @@ abstract class BaseResponseParser<T> implements ResponseParser<T> {
     }
 
 
-    protected T redirect(BaasRequest<T, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) {
+    protected Resp redirect(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) {
         return null;
     }
 
-    protected T handleFail(BaasRequest<T, ?> request,
-                           HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+    protected Resp handleFail(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
         try {
 
             int statusCode = response.getStatusLine().getStatusCode();

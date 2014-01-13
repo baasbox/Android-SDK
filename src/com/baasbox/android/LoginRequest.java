@@ -16,16 +16,22 @@ import java.util.Map;
 /**
  * Created by eto on 04/01/14.
  */
-final class LoginRequest<T> extends BaasRequest<Void, T> {
+final class LoginRequest<T> extends BaseRequest<Void, T> {
+
+    private final String userName;
+    private final String password;
 
     LoginRequest(BAASBox box, Priority priority, T tag, BAASBox.BAASHandler<Void, T> handler) {
-        super(makeRequest(box), priority, tag, new LoginResponseParser(box.credentialStore.get(true)), handler, false);
-
+        super(makeRequest(box), priority, tag, handler, false);
+        Credentials c = box.credentialStore.get(true);
+        userName = c.username;
+        password = c.password;
     }
 
     LoginRequest(BAASBox box, String username, String password, Priority priority, T tag, BAASBox.BAASHandler<Void, T> handler) {
-        super(makeRequest(box, username, password), priority, tag, new LoginResponseParser(username, password), handler, false);
-
+        super(makeRequest(box, username, password), priority, tag, handler, false);
+        this.userName = username;
+        this.password = password;
     }
 
     private static HttpRequest makeRequest(BAASBox client) {
@@ -44,37 +50,22 @@ final class LoginRequest<T> extends BaasRequest<Void, T> {
         return request;
     }
 
-    private static class LoginResponseParser extends BaseResponseParser<Void> {
-        private final String username;
-        private final String password;
 
-        LoginResponseParser(String username, String password) {
-            this.username = username;
-            this.password = password;
+    @Override
+    protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+        try {
+            JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
+            JsonObject data = content.getObject("data");
+            String token = data.getString("X-BB-SESSION");
+            Credentials c = new Credentials();
+            c.username = userName;
+            c.password = password;
+            c.sessionToken = token;
+            credentialStore.set(c);
+            return null;
+        } catch (JsonException e) {
+            throw new BAASBoxException("Could not parse response");
         }
 
-        LoginResponseParser(Credentials c) {
-            username = c.username;
-            password = c.password;
-        }
-
-        @Override
-        protected Void handleOk(BaasRequest<Void, ?> request, HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            try {
-                JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
-                JsonObject data = content.getObject("data");
-                String token = data.getString("X-BB-SESSION");
-                Credentials c = new Credentials();
-                c.username = username;
-                c.password = password;
-                c.sessionToken = token;
-                credentialStore.set(c);
-                return null;
-            } catch (JsonException e) {
-                throw new BAASBoxException("Could not parse response");
-            }
-
-        }
     }
-
 }
