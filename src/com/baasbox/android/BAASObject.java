@@ -11,7 +11,31 @@ import org.apache.http.HttpResponse;
 /**
  * Created by eto on 13/01/14.
  */
-public abstract class BAASObject {
+public abstract class BAASObject<E extends BAASObject<E>> {
+
+
+    public abstract <T> RequestToken save(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<E, T> handler);
+
+    public RequestToken save(BAASBox client, BAASBox.BAASHandler<E, ?> handler) {
+        return save(client, null, Priority.NORMAL, handler);
+    }
+
+    public <T> RequestToken save(T tag, Priority priority, BAASBox.BAASHandler<E, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        return save(box, tag, priority, handler);
+    }
+
+    public RequestToken save(BAASBox.BAASHandler<E, ?> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        return save(box, null, Priority.NORMAL, handler);
+    }
+
+    public abstract BaasResult<E> saveSync(BAASBox client);
+
+    public BaasResult<E> saveSync() {
+        return saveSync(BAASBox.getDefaultChecked());
+    }
+
 
     final static class DebugRequest<R, T> extends BaseRequest<R, T> {
 

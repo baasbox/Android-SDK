@@ -5,7 +5,7 @@ import com.baasbox.android.json.JsonObject;
 /**
  * Created by eto on 02/01/14.
  */
-public class BaasPerson {
+public class BaasUser {
     public final String username;
 
     protected final JsonObject privateData;
@@ -26,7 +26,7 @@ public class BaasPerson {
         }
     }
 
-    protected BaasPerson(String username, JsonObject data) {
+    protected BaasUser(String username, JsonObject data) {
         this.username = username;
         this.privateData = data.getObject(Scope.PRIVATE.visibilityName, new JsonObject());
         this.friendVisibleData = data.getObject(Scope.FRIEND.visibilityName, new JsonObject());
@@ -34,7 +34,7 @@ public class BaasPerson {
         this.publicVisibleData = data.getObject(Scope.PUBLIC.visibilityName, new JsonObject());
     }
 
-    protected BaasPerson(String username) {
+    protected BaasUser(String username) {
         this.username = username;
         this.privateData = new JsonObject();
         this.friendVisibleData = new JsonObject();

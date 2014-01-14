@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Created by eto on 02/01/14.
  */
-public class BaasDocument {
+public class BaasDocument extends BAASObject<BaasDocument> {
     public final String collection;
     protected final JsonObject object;
 
@@ -32,6 +32,7 @@ public class BaasDocument {
     public BaasDocument(String collection, JsonObject data) {
         super();
         this.collection = collection;
+        data.remove("@class");
         this.object = data;
     }
 
@@ -182,21 +183,77 @@ public class BaasDocument {
         return object.remove(name);
     }
 
-    public static <T> RequestToken count(BAASBox client, String collection, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
-        if (collection == null) throw new NullPointerException("collection cannot be null");
-        final RequestFactory factory = client.requestFactory;
-        String endpoint = factory.getEndpoint("document/?/count", collection);
-        HttpRequest get = factory.get(endpoint);
-        BaasRequest<Long, T> request = new CountRequest<T>(get, priority, tag, handler);
+    /// methods
+
+    // counting
+    public static <T> RequestToken count(String collection, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        BAASBox client = BAASBox.getDefaultChecked();
+        priority = priority == null ? Priority.NORMAL : priority;
+        BaasRequest<Long, T> request = countRequest(client.requestFactory, collection, tag, priority, handler);
         return client.submitRequest(request);
     }
 
+    public static <T> RequestToken count(BAASBox client, String collection, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        if (client == null) throw new NullPointerException("client cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        BaasRequest<Long, T> req = countRequest(client.requestFactory, collection, tag, priority, handler);
+        return client.submitRequest(req);
+    }
+
+    public static BaasResult<Long> counSync(String collection) {
+        BAASBox client = BAASBox.getDefaultChecked();
+        BaasRequest<Long, Void> req = countRequest(client.requestFactory, collection, null, null, null);
+        return client.submitRequestSync(req);
+    }
+
+    public static BaasResult<Long> countSync(BAASBox client, String collection) {
+        if (client == null) throw new NullPointerException("client cannot be null");
+        BaasRequest<Long, Void> req = countRequest(client.requestFactory, collection, null, null, null);
+        return client.submitRequestSync(req);
+    }
+
+    private static <T> BaasRequest<Long, T> countRequest(RequestFactory factory, String collection, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
+        if (collection == null) throw new NullPointerException("collection cannot be null");
+        String endpoint = factory.getEndpoint("document/?/count", collection);
+        HttpRequest req = factory.get(endpoint);
+        return new CountRequest<T>(req, priority, tag, handler);
+    }
+
+
+    // delete
+
+    public RequestToken delete(BAASBox.BAASHandler<Void, ?> handler) {
+        return delete(BAASBox.getDefaultChecked(), null, Priority.NORMAL, handler);
+    }
+
+    public <T> RequestToken delete(T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        return delete(BAASBox.getDefaultChecked(), tag, priority, handler);
+    }
+
+    public RequestToken delete(BAASBox client, BAASBox.BAASHandler<Void, ?> handler) {
+        return delete(client, null, Priority.NORMAL, handler);
+    }
 
     public <T> RequestToken delete(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
         String id = getId();
         if (id == null)
             throw new IllegalStateException("document is not bound to an instance on the server");
         return delete(client, this.collection, getId(), tag, priority, handler);
+    }
+
+
+    public static RequestToken delete(String collection, String id, BAASBox.BAASHandler<Void, ?> handler) {
+        return BaasDocument.delete(BAASBox.getDefaultChecked(), collection, id, null, Priority.NORMAL, handler);
+    }
+
+    public static RequestToken delete(BAASBox client, String collection, String id, BAASBox.BAASHandler<Void, ?> handler) {
+        return BaasDocument.delete(client, collection, id, null, Priority.NORMAL, handler);
+    }
+
+    public static <T> RequestToken delete(String collection, String id, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        return BaasDocument.delete(BAASBox.getDefaultChecked(), collection, id, tag, priority, handler);
     }
 
     public static <T> RequestToken delete(BAASBox client, String collection, String id, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
@@ -209,13 +266,48 @@ public class BaasDocument {
         return client.submitRequest(breq);
     }
 
+
+    // getall
+    public static RequestToken getAll(String collection, BAASBox.BAASHandler<List<BaasDocument>, ?> handler) {
+        return getAll(BAASBox.getDefaultChecked(), collection, null, Priority.NORMAL, handler);
+    }
+
+    public static <T> RequestToken getAll(String collection, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
+        BAASBox client = BAASBox.getDefaultChecked();
+        return getAll(client, collection, tag, priority, handler);
+    }
+
+
+    public static RequestToken getAll(BAASBox client, String collection, BAASBox.BAASHandler<List<BaasDocument>, ?> handler) {
+        return getAll(client, collection, null, Priority.NORMAL, handler);
+    }
+
     public static <T> RequestToken getAll(BAASBox client, String collection, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
+        if (client == null) throw new NullPointerException("client cannot be null");
         if (collection == null) throw new NullPointerException("collection cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        BaasRequest<List<BaasDocument>, T> breq = listRequest(client, collection, tag, priority, handler);
+        return client.submitRequest(breq);
+    }
+
+    public static BaasResult<List<BaasDocument>> getAllSync(String collection) {
+        BAASBox client = BAASBox.getDefaultChecked();
+        return getAllSync(client, collection);
+    }
+
+    public static BaasResult<List<BaasDocument>> getAllSync(BAASBox client, String collection) {
+        if (client == null) throw new NullPointerException("client cannot be null");
+        if (collection == null) throw new NullPointerException("collection cannot be null");
+        BaasRequest<List<BaasDocument>, Void> req = listRequest(client, collection, null, null, null);
+        return client.submitRequestSync(req);
+    }
+
+    private static <T> BaasRequest<List<BaasDocument>, T> listRequest(BAASBox client, String collection, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
         final RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("document/?", collection);
         HttpRequest get = factory.get(endpoint);
-        BaasRequest<List<BaasDocument>, T> breq = new ListRequest<T>(get, priority, tag, handler);
-        return client.submitRequest(breq);
+        return new ListRequest<T>(get, priority, tag, handler);
     }
 
     private final static class ListRequest<T> extends BaseRequest<List<BaasDocument>, T> {
@@ -254,15 +346,71 @@ public class BaasDocument {
         }
     }
 
+    // fetch
+    public static RequestToken get(String collection, String id, BAASBox.BAASHandler<BaasDocument, ?> handler) {
+        return BaasDocument.get(BAASBox.getDefaultChecked(), collection, id, null, Priority.NORMAL, handler);
+    }
+
+
+    public static <T> RequestToken get(String collection, String id, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
+        return get(BAASBox.getDefaultChecked(), collection, id, tag, priority, handler);
+    }
+
+
+    public static RequestToken get(BAASBox client, String collection, String id, BAASBox.BAASHandler<BaasDocument, ?> handler) {
+        return get(client, collection, id, null, Priority.NORMAL, handler);
+    }
+
 
     public static <T> RequestToken get(BAASBox client, String collection, String id, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
+        if (client == null) throw new NullPointerException("client cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        BaasRequest<BaasDocument, T> req = getRequest(client, collection, id, tag, priority, handler);
+        return client.submitRequest(req);
+    }
+
+
+    public static BaasResult<BaasDocument> getSync(String collection, String id) {
+        BAASBox client = BAASBox.getDefaultChecked();
+        return getSync(client, collection, id);
+    }
+
+    public static BaasResult<BaasDocument> getSync(BAASBox client, String collection, String id) {
+        if (client == null) throw new NullPointerException("client cannot be null");
+        BaasRequest<BaasDocument, Void> req = getRequest(client, collection, id, null, null, null);
+        BaasResult<BaasDocument> res = client.submitRequestSync(req);
+        return res;
+    }
+
+    private static <T> BaasRequest<BaasDocument, T> getRequest(BAASBox client, String collection, String id, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         if (id == null) throw new NullPointerException("id cannot be null");
         final RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("document/?/?", collection, id);
         HttpRequest request = factory.get(endpoint);
-        BaasRequest<BaasDocument, T> req = new DocumentRequest<T>(null, request, priority, tag, handler);
-        return client.submitRequest(req);
+        return new DocumentRequest<T>(null, request, priority, tag, handler);
+    }
+
+
+    public RequestToken save(BAASBox client, BAASBox.BAASHandler<BaasDocument, ?> handler) {
+        return save(client, null, Priority.NORMAL, handler);
+    }
+
+    @Override
+    public BaasResult<BaasDocument> saveSync(BAASBox client) {
+        RequestFactory factory = client.requestFactory;
+        String id = getId();
+        final HttpRequest req;
+        if (id == null) {
+            String endpoint = factory.getEndpoint("document/?", collection);
+            req = factory.post(endpoint, toJson().copy());
+        } else {
+            String endpoint = factory.getEndpoint("document/?/?", collection, id);
+            req = factory.put(endpoint, toJson().copy());
+        }
+        BaasRequest<BaasDocument, Void> breq = new DocumentRequest<Void>(this, req, null, null, null);
+        return client.submitRequestSync(breq);
     }
 
     /**
@@ -275,6 +423,7 @@ public class BaasDocument {
      * @param <T>
      * @return a disposer that can be used to control the request
      */
+    @Override
     public <T> RequestToken save(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
         RequestFactory factory = client.requestFactory;
         String id = getId();
@@ -293,6 +442,7 @@ public class BaasDocument {
     public String getId() {
         return object.getString("id");
     }
+
 
     private static class DocumentRequest<T> extends BaseRequest<BaasDocument, T> {
         private final BaasDocument obj;
@@ -316,18 +466,6 @@ public class BaasDocument {
                 return new BaasDocument(data);
             }
         }
-    }
-
-    public <T> RequestToken save(BAASBox client, T tag, BAASBox.BAASHandler<BaasDocument, T> handler) {
-        return save(client, tag, Priority.NORMAL, handler);
-    }
-
-    public RequestToken save(BAASBox client, Priority priority, BAASBox.BAASHandler<BaasDocument, ?> handler) {
-        return save(client, null, priority, handler);
-    }
-
-    public RequestToken save(BAASBox client, BAASBox.BAASHandler<BaasDocument, ?> handler) {
-        return save(client, null, Priority.NORMAL, handler);
     }
 
 }

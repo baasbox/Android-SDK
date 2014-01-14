@@ -13,7 +13,7 @@ import org.apache.http.HttpResponse;
  * This class represents the account of the user on BaasBox.
  * Created by Andrea Tortorella on 02/01/14.
  */
-public class BaasAccount extends BaasPerson {
+public class BaasAccount extends BaasUser {
 
     public final String password;
 
