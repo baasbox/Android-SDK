@@ -12,4 +12,12 @@ public class JsonException extends RuntimeException {
     public JsonException(String detailMessage) {
         super(detailMessage);
     }
+
+    public JsonException(String detailMessage, Throwable throwable) {
+        super(detailMessage, throwable);
+    }
+
+    public JsonException(Throwable throwable) {
+        super(throwable);
+    }
 }

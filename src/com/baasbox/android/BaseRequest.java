@@ -63,10 +63,19 @@ abstract class BaseRequest<Resp, Tag> extends BaasRequest<Resp, Tag> {
         if (entity != null) {
             try {
                 String content = EntityUtils.toString(entity, charset);
-                return content == null ? new JsonObject() : new JsonObject(content);
+                if (content == null) {
+                    return new JsonObject();
+                } else {
+                    BAASLogging.debug(content);
+                    JsonObject decoded = JsonObject.decode(content);
+                    BAASLogging.debug("DEC " + decoded);
+                    return decoded;
+                }
             } catch (IOException e) {
+                BAASLogging.debug(e.getMessage());
                 throw new BAASBoxIOException("Could not parse server response", e);
             } catch (JsonException e) {
+                BAASLogging.debug(e.getMessage());
                 throw new BAASBoxIOException("Could not parse server response", e);
             }
         }
@@ -88,10 +97,11 @@ abstract class BaseRequest<Resp, Tag> extends BaasRequest<Resp, Tag> {
             JsonObject json;
             if (entity != null) {
                 String content = EntityUtils.toString(entity, config.HTTP_CHARSET);
-                json = content == null ? new JsonObject() : new JsonObject(content);
+                json = content == null ? new JsonObject() : JsonObject.decode(content);
             } else {
                 json = new JsonObject();
             }
+            BAASLogging.debug(json.toString());
             String message = json.getString("message", null);
             String resource = json.getString("resource", null);
             String method = json.getString("method", null);

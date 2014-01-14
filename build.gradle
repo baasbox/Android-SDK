@@ -21,8 +21,8 @@ repositories {
 dependencies {
     compile fileTree(dir: 'libs', include: '*.jar', excludes: ['gson-2.2.2.jar'])
 //    compile 'com.google.code.gson:gson:2.2.+'
-    compile 'com.fasterxml.jackson.core:jackson-core:2.3.1'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.3.1'
+//    compile 'com.fasterxml.jackson.core:jackson-core:2.3.1'
+//    compile 'com.fasterxml.jackson.core:jackson-databind:2.3.1'
 }
 
 android {

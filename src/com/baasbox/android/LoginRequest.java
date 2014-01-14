@@ -55,6 +55,10 @@ final class LoginRequest<T> extends BaseRequest<Void, T> {
     protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
         try {
             JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
+            BAASLogging.debug(content.toString());
+            if (content == null) {
+                throw new BAASBoxException("error reading json");
+            }
             JsonObject data = content.getObject("data");
             String token = data.getString("X-BB-SESSION");
             Credentials c = new Credentials();

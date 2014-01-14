@@ -14,6 +14,7 @@ import org.apache.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by eto on 02/01/14.
@@ -71,8 +72,8 @@ public class BaasDocument extends BAASObject<BaasDocument> {
         return this;
     }
 
-    public BaasDocument putNumber(String name, Number number) {
-        object.putNumber(name, number);
+    public BaasDocument putNumber(String name, long number) {
+        object.putLong(name, number);
         return this;
     }
 
@@ -109,10 +110,6 @@ public class BaasDocument extends BAASObject<BaasDocument> {
 
     public byte[] getBinary(String name) {
         return object.getBinary(name);
-    }
-
-    public Number getNumber(String name) {
-        return object.getNumber(name);
     }
 
     public long getLong(String name) {
@@ -155,8 +152,56 @@ public class BaasDocument extends BAASObject<BaasDocument> {
         return object.getBoolean(name, otherwise);
     }
 
-    public Number getNumber(String name, Number otherwise) {
-        return object.getNumber(name, otherwise);
+    public static JsonObject decode(String json) {
+        return JsonObject.decode(json);
+    }
+
+    public JsonObject putLong(String name, long number) {
+        return object.putLong(name, number);
+    }
+
+    public boolean contains(String name) {
+        return object.contains(name);
+    }
+
+    public boolean isArray() {
+        return object.isArray();
+    }
+
+    public JsonArray asArray() {
+        return object.asArray();
+    }
+
+    public boolean isObject() {
+        return object.isObject();
+    }
+
+    public JsonObject merge(JsonObject other) {
+        return object.merge(other);
+    }
+
+    public int size() {
+        return object.size();
+    }
+
+    public JsonObject putBoolean(String name, boolean bool) {
+        return object.putBoolean(name, bool);
+    }
+
+    public boolean isNull(String name) {
+        return object.isNull(name);
+    }
+
+    public <T> T get(String name) {
+        return object.get(name);
+    }
+
+    public JsonObject putDouble(String name, double number) {
+        return object.putDouble(name, number);
+    }
+
+    public Set<String> getFieldNames() {
+        return object.getFieldNames();
     }
 
     public int getInt(String name, int otherwise) {
