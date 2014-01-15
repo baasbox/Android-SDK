@@ -16,6 +16,8 @@ import java.util.Map;
  * Created by Andrea Tortorella on 23/12/13.
  */
 public class BAASBox {
+    //todo thinking about removing singleton to enable multiple clients on the same device
+    //     for now without having different storage for credentials this is not possible
 
     private static volatile BAASBox sDefaultClient;
     private static final Object LOCK = new Object();
@@ -134,7 +136,7 @@ public class BAASBox {
      * @param context main context of the application
      * @return a BAASBox client
      */
-    public static BAASBox createClient(Context context) {
+    private static BAASBox createClient(Context context) {
         return createClient(context, null);
 
     }
@@ -146,11 +148,11 @@ public class BAASBox {
      * @param config  a {@link com.baasbox.android.BAASBox.Config} for this client
      * @return
      */
-    public static BAASBox createClient(Context context, Config config) {
+    private static BAASBox createClient(Context context, Config config) {
         return createClient(context, config, null);
     }
 
-    public static BAASBox createClient(Context context, Config config, String sessionToken) {
+    private static BAASBox createClient(Context context, Config config, String sessionToken) {
         BAASBox box = new BAASBox(context, config);
         if (sessionToken != null) box.credentialStore.updateToken(sessionToken);
         box.asyncDispatcher.start();
@@ -158,15 +160,15 @@ public class BAASBox {
     }
 
 
-    public static void initDefault(Context context) {
-        initDefault(context, null, null);
+    public static BAASBox initDefault(Context context) {
+        return initDefault(context, null, null);
     }
 
-    public static void initDefault(Context context, Config config) {
-        initDefault(context, config, null);
+    public static BAASBox initDefault(Context context, Config config) {
+        return initDefault(context, config, null);
     }
 
-    public static void initDefault(Context context, Config config, String session) {
+    public static BAASBox initDefault(Context context, Config config, String session) {
         if (sDefaultClient == null) {
             synchronized (LOCK) {
                 if (sDefaultClient == null) {
@@ -174,9 +176,24 @@ public class BAASBox {
                 }
             }
         }
+        return sDefaultClient;
     }
 
-    public static BAASBox getDefaultChecked() {
+    /**
+     * Returns the single baasbox instance for this device if one has been
+     * initialized through {@link com.baasbox.android.BAASBox#initDefault(android.content.Context)}
+     * or null.
+     *
+     * @return BAASbox instance
+     */
+    public static BAASBox getDefault() {
+        return sDefaultClient;
+    }
+
+    /**
+     * @return
+     */
+    static BAASBox getDefaultChecked() {
         if (sDefaultClient == null)
             throw new IllegalStateException("Trying to use implicit client, but no default initialized");
         return sDefaultClient;
