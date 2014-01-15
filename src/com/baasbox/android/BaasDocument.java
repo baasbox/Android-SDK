@@ -19,16 +19,19 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by eto on 02/01/14.
+ * Represents a document entity that belong to a collection
+ * on the server.
+ * Created by Andrea Tortorella on 02/01/14.
  */
 public class BaasDocument extends BAASObject<BaasDocument> implements Iterable<Map.Entry<String, Object>> {
-    protected final JsonObject object;
-    public final String collection;
+
+    private final JsonObject object;
+    private final String collection;
     private String id;
     private String author;
     private String creation_date;
-    private String rid;
     private long version;
+
 
     BaasDocument(JsonObject data) {
         super();
@@ -40,24 +43,36 @@ public class BaasDocument extends BAASObject<BaasDocument> implements Iterable<M
         data.remove("_author");
         this.creation_date = data.getString("_creation_date");
         data.remove("_creation_date");
-        this.rid = data.getString("@rid");
-        data.remove("@rid");
         this.version = data.getLong("@version");
         data.remove("@version");
+        data.remove("@rid");
         object = data;
     }
 
+    /**
+     * Creates a new local empty document belonging to <code>collection</code>
+     *
+     * @param collection
+     */
     public BaasDocument(String collection) {
         this(collection, null);
     }
 
+    /**
+     * Creates a new local document with fields belonging to data.
+     * Note that data is copied in the collection.
+     *
+     * @param collection
+     * @param data
+     */
     public BaasDocument(String collection, JsonObject data) {
         super();
         if (collection == null || collection.length() == 0)
             throw new IllegalArgumentException("collection name cannot be null");
         this.collection = collection;
         data = checkObject(data);
-        this.object = data == null ? new JsonObject() : data;
+        //fixme we copy the data to avoid insertion of forbidden fields, but this is a costly operation
+        this.object = data == null ? new JsonObject() : data.copy();
     }
 
     private static JsonObject cleanObject(JsonObject data) {
@@ -100,175 +115,502 @@ public class BaasDocument extends BAASObject<BaasDocument> implements Iterable<M
         return key;
     }
 
-    public JsonObject putString(String name, String value) {
-        return object.putString(checkKey(name), value);
+    /**
+     * Associate <code>name</code> key to the {@link java.lang.String} <code>value</code>
+     * in this document.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a non <code>null</code> {@link java.lang.String}
+     * @return this document with the new mapping created
+     */
+    public BaasDocument putString(String name, String value) {
+        object.putString(checkKey(name), value);
+        return this;
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.String}
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @param otherwise a default value
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public String getString(String name, String otherwise) {
         return object.getString(name, otherwise);
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.String}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public String getString(String name) {
         return object.getString(name);
     }
 
-    public JsonObject putBoolean(String name, boolean bool) {
-        return object.putBoolean(checkKey(name), bool);
+    /**
+     * Associate <code>name</code> key to the <code>boolean</code> <code>value</code>
+     * in this document.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a <code>boolean</code> value
+     * @return this document with the new mapping created
+     */
+    public BaasDocument putBoolean(String name, boolean value) {
+        object.putBoolean(checkKey(name), value);
+        return this;
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.Boolean}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public Boolean getBoolean(String name) {
         return object.getBoolean(name);
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>boolean</code>
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param otherwise a <code>boolean</code> default
+     * @param name a non <code>null</code> key
+     *
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public boolean getBoolean(String name, boolean otherwise) {
         return object.getBoolean(name, otherwise);
     }
 
-    public JsonObject putLong(String name, long number) {
-        return object.putLong(checkKey(name), number);
+    /**
+     * Associate <code>name</code> key to the <code>long</code> <code>value</code>
+     * in this document.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a <code>long</code> value
+     * @return this document with the new mapping created
+     */
+    public BaasDocument putLong(String name, long value) {
+        object.putLong(checkKey(name), value);
+        return this;
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.Long}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public Long getLong(String name) {
         return object.getLong(name);
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>long</code>
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param otherwise a <code>long</code> default
+     * @param name a non <code>null</code> key
+     *
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public long getLong(String name, long otherwise) {
         return object.getLong(name, otherwise);
     }
 
-    public JsonObject putDouble(String name, double number) {
-        return object.putDouble(checkKey(name), number);
+    /**
+     * Associate <code>name</code> key to the <code>double</code> <code>value</code>
+     * in this document.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a <code>double</code> value
+     * @return this document with the new mapping created
+     */
+    public BaasDocument putDouble(String name, double value) {
+        object.putDouble(checkKey(name), value);
+        return this;
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>double</code>
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param otherwise a <code>double</code> default
+     * @param name a non <code>null</code> key
+     *
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public double getDouble(String name, double otherwise) {
         return object.getDouble(name, otherwise);
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.Double}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public Double getDouble(String name) {
         return object.getDouble(name);
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>int</code>
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param otherwise a <code>int</code> default
+     * @param name a non <code>null</code> key
+     *
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public int getInt(String name, int otherwise) {
         return object.getInt(name, otherwise);
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.Integer}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public Integer getInt(String name) {
         return object.getInt(name);
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>float</code>
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param otherwise a <code>float</code> default
+     * @param name a non <code>null</code> key
+     *
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public float getFloat(String name, float otherwise) {
         return object.getFloat(name, otherwise);
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.Float}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public Float getFloat(String name) {
         return object.getFloat(name);
     }
 
-    public JsonObject putNull(String name) {
-        return object.putNull(checkKey(name));
+    /**
+     * Puts an explicit mapping to from <code>name</code> to <code>null</code>
+     * in this document.
+     * <p/>
+     * This is different from not having the mapping at all, to completely remove
+     * the mapping use instead {@link com.baasbox.android.BaasDocument#remove(String)}
+     *
+     * @param name a non <code>null</code> key
+     * @return this document with the new mapping created
+     * @see com.baasbox.android.BaasDocument#remove(String)
+     */
+    public BaasDocument putNull(String name) {
+        object.putNull(checkKey(name));
+        return this;
     }
 
+    /**
+     * Checks if <code>name</code> maps explicitly to <code>null</code>
+     *
+     * @param name a non <code>null</code> key
+     * @return <code>true</code> if the document contains a mapping from <code>name</code> to <code>null</code>
+     *         <code>false</code> otherwise
+     */
     public boolean isNull(String name) {
         return object.isNull(name);
     }
 
-    public JsonObject putArray(String name, JsonArray value) {
-        return object.putArray(checkKey(name), value);
+    /**
+     * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonArray} <code>value</code>
+     * in this document.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a non <code>null</code> {@link com.baasbox.android.json.JsonArray}
+     * @return this document with the new mapping created
+     */
+    public BaasDocument putArray(String name, JsonArray value) {
+        object.putArray(checkKey(name), value);
+        return this;
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonArray}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public JsonArray getArray(String name) {
         return object.getArray(name);
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonArray}
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @param otherwise a default value
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public JsonArray getArray(String name, JsonArray otherwise) {
         return object.getArray(name, otherwise);
     }
 
-    public JsonObject putObject(String name, JsonObject value) {
-        return object.putObject(checkKey(name), value);
+
+    /**
+     * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonObject} <code>value</code>
+     * in this document.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a non <code>null</code> {@link com.baasbox.android.json.JsonObject}
+     * @return this document with the new mapping created
+     */
+    public BaasDocument putObject(String name, JsonObject value) {
+        object.putObject(checkKey(name), value);
+        return this;
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonObject}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public JsonObject getObject(String name) {
         return object.getObject(name);
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonObject}
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @param otherwise a default value
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public JsonObject getObject(String name, JsonObject otherwise) {
         return object.getObject(name, otherwise);
     }
 
-    public JsonObject putStructure(String name, JsonStructure value) {
-        return object.putStructure(checkKey(name), value);
+    /**
+     * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonStructure} <code>value</code>
+     * in this document.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a non <code>null</code> {@link com.baasbox.android.json.JsonStructure}
+     * @return this document with the new mapping created
+     * @see com.baasbox.android.BaasDocument#putArray(String, com.baasbox.android.json.JsonArray)
+     * @see com.baasbox.android.BaasDocument#putObject(String, com.baasbox.android.json.JsonObject)
+     */
+    public BaasDocument putStructure(String name, JsonStructure value) {
+        object.putStructure(checkKey(name), value);
+        return this;
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonStructure}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public JsonStructure getStructure(String name) {
         return object.getStructure(name);
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonStructure}
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @param otherwise a default value
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public JsonStructure getStructure(String name, JsonStructure otherwise) {
         return object.getStructure(name, otherwise);
     }
 
-    public JsonObject putBinary(String name, byte[] value) {
-        return object.putBinary(checkKey(name), value);
+    /**
+     * Associate <code>name</code> key to the <code>byte[]</code> <code>value</code>
+     * in this document.
+     * Binary data will be encoded using base64 during serialization.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a non <code>null</code> <code>byte[]</code> array
+     * @return this document with the new mapping created
+     */
+    public BaasDocument putBinary(String name, byte[] value) {
+        object.putBinary(checkKey(name), value);
+        return this;
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>byte[]</code> array
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public byte[] getBinary(String name) {
         return object.getBinary(name);
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>byte[]</code> array
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param name      a non <code>null</code> key
+     * @param otherwise a default value
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public byte[] getBinary(String name, byte[] otherwise) {
         return object.getBinary(name, otherwise);
     }
 
+    /**
+     * Removes the mapping with <code>name</code> key from the document.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value that was mapped to <code>name</code> if present or <code>null</code>
+     */
     public Object remove(String name) {
         return object.remove(name);
     }
 
+    /**
+     * Checks if this document contains a mapping with <code>name</code> key
+     * @param name a non <code>null</code> key
+     * @return <code>true</code> if the document contains the mapping <code>false</code> otherwise
+     */
     public boolean contains(String name) {
         return object.contains(name);
     }
 
+    /**
+     * Returns a {@link java.util.Set<java.lang.String>} of all the keys contained in this document
+     *
+     * @return a set of the keys contained in this document
+     */
     public Set<String> getFieldNames() {
         return object.getFieldNames();
     }
 
+    /**
+     * Returns the number of mappings contained in this document.
+     *
+     * @return the number of mappings contained in this document.
+     */
     public int size() {
         return object.size();
     }
 
-    public JsonObject merge(JsonObject other) {
-        return object.merge(checkObject(other));
+    /**
+     * Removes all the mappings from this document
+     *
+     * @return this document with no mappings
+     */
+    public BaasDocument clear() {
+        object.clear();
+        return this;
     }
 
+    /**
+     * Returns a {@link com.baasbox.android.json.JsonArray} representation
+     * of the values contained in this document.
+     *
+     * @return a {@link com.baasbox.android.json.JsonArray} representation
+     * of the values
+     */
+    public JsonArray values() {
+        return object.values();
+    }
+
+    /**
+     * Merges the content of <code>other</code> into this
+     * document overwriting any mapping for wich other contains a key.
+     * Note that other is copied before merging.
+     *
+     * @param other {@link com.baasbox.android.json.JsonObject}
+     * @return this document with <code>other</code> mappings merged in
+     */
+    public BaasDocument merge(JsonObject other) {
+        JsonObject o = checkObject(other);
+        object.merge(o == null ? o : o.copy());
+        return this;
+    }
+
+
+    /**
+     * Returns an {@link java.util.Iterator} over the mappings of this document
+     * @return an iterator over the mappings of this document
+     */
     @Override
     public Iterator<Map.Entry<String, Object>> iterator() {
         return object.iterator();
     }
 
+    /**
+     * Returns the id of this document
+     *
+     * @return
+     */
     public final String getId() {
-        return object.getString("id");
+        return id;
     }
 
+    /**
+     * Returns the author of this document
+     * @return
+     */
     public final String getAuthor() {
         return author;
     }
 
+    /**
+     * The creation date of this document as a {@link java.lang.String}
+     * @return
+     */
     public final String getCreationDate() {
         return creation_date;
     }
 
-    public final String getRid() {
-        return rid;
-    }
 
+    /**
+     * Returns the version number of this document
+     * @return a <code>long</code> representing the version of this object
+     */
     public final long getVersion() {
         return version;
     }
 
-    /// methods
-
     // counting
-
     public static <T> RequestToken count(String collection, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
         if (handler == null) throw new NullPointerException("handler cannot be null");
         BAASBox client = BAASBox.getDefaultChecked();
