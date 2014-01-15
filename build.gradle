@@ -52,6 +52,14 @@ android {
         release.setRoot('build-types/release')
     }
 
+    libraryVariants.all { variant ->
+        task("generate${variant.name}Javadoc", type: Javadoc) {
+            description "Generates Javadoc for $variant.name."
+            source = variant.javaCompile.source
+            ext.androidJar = "${android.plugin.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+            classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+        }
+    }
 }
 
 install {
