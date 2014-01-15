@@ -129,7 +129,7 @@ public class BAASBox {
         }
         this.context = context.getApplicationContext();
         this.config = config == null ? new Config() : config;
-        this.credentialStore = new PreferenceCredentialStore(this.context, "");
+        this.credentialStore = new PreferenceCredentialStore(this.context);
         final RestClient client = new HttpUrlConnectionClient(this.config);
         this.requestFactory = new RequestFactory(this.config, credentialStore);
         this.syncDispatcher = new SameThreadDispatcher(this, client);

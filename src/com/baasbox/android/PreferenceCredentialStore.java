@@ -18,8 +18,9 @@ class PreferenceCredentialStore implements CredentialStore {
     private final Object lock = new Object();
 
     private final SharedPreferences preferences;
-    PreferenceCredentialStore(Context context,String prefix){
-        preferences = context.getSharedPreferences(BAASBOX_PERSISTENCE_PREFIX+prefix+context.getPackageName(),Context.MODE_PRIVATE);
+
+    PreferenceCredentialStore(Context context) {
+        preferences = context.getSharedPreferences(BAASBOX_PERSISTENCE_PREFIX + context.getPackageName(), Context.MODE_PRIVATE);
     }
 
     @Override
