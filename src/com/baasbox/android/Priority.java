@@ -1,8 +1,12 @@
 package com.baasbox.android;
 
 /**
- * Created by eto on 13/01/14.
+ * Priority values for asynchronous requests.
+ * Requests will be executed from higher to lower
+ * priority when executed asynchronously.
+ *
+ * Created by Andrea Tortorella on 13/01/14.
  */
 public enum Priority {
-    LOW, NORMAL, HIGH
+    LOW, NORMAL, HIGH;
 }
