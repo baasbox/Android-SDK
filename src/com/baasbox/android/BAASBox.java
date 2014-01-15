@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class represents the main context of BaasBox SDK.
+ * This class represents the main context of BAASBox SDK.
  * <p/>
  * Created by Andrea Tortorella on 23/12/13.
  */
@@ -45,7 +45,7 @@ public class BAASBox {
     }
 
     /**
-     * The configuration for BaasBox client
+     * The configuration for BAASBox client
      */
     public final static class Config {
 
@@ -151,7 +151,7 @@ public class BAASBox {
      * Creates a client with provided configuration.
      *
      * @param context main context of the application
-     * @param config  a {@link com.baasbox.android.BAASBox.Config} for this client
+     * @param config  a {@link BAASBox.Config} for this client
      * @return
      */
     private static BAASBox createClient(Context context, Config config) {
@@ -187,7 +187,7 @@ public class BAASBox {
 
     /**
      * Returns the single baasbox instance for this device if one has been
-     * initialized through {@link com.baasbox.android.BAASBox#initDefault(android.content.Context)}
+     * initialized through {@link BAASBox#initDefault(android.content.Context)}
      * or null.
      *
      * @return BAASbox instance

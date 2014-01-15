@@ -33,10 +33,10 @@ final class SameThreadDispatcher implements RequestDispatcher {
 
     private <T> void executeRequest(BaasRequest<T, ?> request) {
         try {
-            HttpResponse response =client.execute(request.httpRequest);
+            HttpResponse response = client.execute(request.httpRequest);
             request.result = BaasResult.success(request.parseResponse(response, config, credentialStore));
-        } catch (BAASBoxInvalidSessionException e){
-            if(request.takeRetry()){
+        } catch (BAASBoxInvalidSessionException e) {
+            if (request.takeRetry()) {
                 LoginRequest<Object> login = new LoginRequest<Object>(box, null, null, null);
                 BaasResult<Void> relogin = post(login);
                 if (relogin.isSuccess()) {
@@ -48,7 +48,7 @@ final class SameThreadDispatcher implements RequestDispatcher {
             } else {
                 request.result = BaasResult.failure(e);
             }
-        }catch (BAASBoxException e) {
+        } catch (BAASBoxException e) {
             request.result = BaasResult.failure(e);
         }
     }

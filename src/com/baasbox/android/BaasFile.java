@@ -235,7 +235,7 @@ public class BaasFile {
         RequestFactory f = box.requestFactory;
         String endpoint = f.getEndpoint("file/?", id);
         HttpRequest delete = f.delete(endpoint);
-        BaasRequest<Void, T> breq = new BAASObject.DeleteRequest<T>(delete, priority, tag, handler);
+        BaasRequest<Void, T> breq = new BaasObject.DeleteRequest<T>(delete, priority, tag, handler);
         return box.submitRequest(breq);
     }
 

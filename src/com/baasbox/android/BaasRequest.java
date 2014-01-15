@@ -112,6 +112,7 @@ public abstract class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<R
 
     /**
      * Get current request status
+     *
      * @return
      */
     protected State status() {
@@ -120,6 +121,7 @@ public abstract class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<R
 
     /**
      * Returns true if the request has been canceled
+     *
      * @return
      */
     public boolean isCanceled() {
@@ -128,6 +130,7 @@ public abstract class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<R
 
     /**
      * Returns true if the request is currently suspended
+     *
      * @return
      */
     public boolean isSuspended() {
@@ -136,6 +139,7 @@ public abstract class BaasRequest<Resp, Tag> implements Comparable<BaasRequest<R
 
     /**
      * Cancels the request
+     *
      * @return true if the cancellation was successfull
      */
     boolean cancel() {
