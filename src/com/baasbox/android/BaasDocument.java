@@ -1,6 +1,9 @@
 package com.baasbox.android;
 
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonArray;
@@ -23,7 +26,7 @@ import java.util.Set;
  * on the server.
  * Created by Andrea Tortorella on 02/01/14.
  */
-public class BaasDocument extends BAASObject<BaasDocument> implements Iterable<Map.Entry<String, Object>> {
+public class BaasDocument extends BAASObject<BaasDocument> implements Iterable<Map.Entry<String, Object>>, Parcelable {
 
     private final JsonObject object;
     private final String collection;
@@ -749,6 +752,7 @@ public class BaasDocument extends BAASObject<BaasDocument> implements Iterable<M
         return saveSync(BAASBox.getDefaultChecked());
     }
 
+
     private final static class ListRequest<T> extends BaseRequest<List<BaasDocument>, T> {
 
         ListRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
@@ -902,4 +906,58 @@ public class BaasDocument extends BAASObject<BaasDocument> implements Iterable<M
         }
     }
 
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(collection);
+        writeOptString(dest, id);
+        dest.writeLong(version);
+        writeOptString(dest, author);
+        writeOptString(dest, creation_date);
+        dest.writeParcelable(object, 0);
+    }
+
+    BaasDocument(Parcel source) {
+        this.collection = source.readString();
+        this.id = readOptString(source);
+        this.version = source.readLong();
+        this.author = readOptString(source);
+        this.creation_date = readOptString(source);
+        this.object = source.readParcelable(JsonObject.class.getClassLoader());
+    }
+
+    public static Creator<BaasDocument> CREATOR = new Creator<BaasDocument>() {
+        @Override
+        public BaasDocument createFromParcel(Parcel source) {
+
+            return new BaasDocument(source);
+        }
+
+        @Override
+        public BaasDocument[] newArray(int size) {
+            return new BaasDocument[size];
+        }
+    };
+
+    private final static String readOptString(Parcel p) {
+        boolean read = p.readByte() == 1;
+        if (read) {
+            return p.readString();
+        }
+        return null;
+    }
+
+    private final static void writeOptString(Parcel p, String s) {
+        if (s == null) {
+            p.writeByte((byte) 0);
+        } else {
+            p.writeByte((byte) 1);
+            p.writeString(s);
+        }
+    }
 }
