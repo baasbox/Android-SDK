@@ -62,13 +62,15 @@ abstract class BaseRequest<Resp, Tag> extends BaasRequest<Resp, Tag> {
         HttpEntity entity = response.getEntity();
         if (entity != null) {
             try {
+                JsonObject decoded;
                 String content = EntityUtils.toString(entity, charset);
                 if (content == null) {
-                    return new JsonObject();
+                    decoded = new JsonObject();
                 } else {
-                    JsonObject decoded = JsonObject.decode(content);
-                    return decoded;
+                    decoded = JsonObject.decode(content);
                 }
+                BAASLogging.debug("RESPONSE: " + decoded);
+                return decoded;
             } catch (IOException e) {
                 BAASLogging.debug(e.getMessage());
                 throw new BAASBoxIOException("Could not parse server response", e);
