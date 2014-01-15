@@ -28,7 +28,7 @@ class RequestFactory {
     static final String APPCODE_HEADER_NAME = "X-BAASBOX-APPCODE";
     static final String CONTENT_HEADER = "Content-Type";
     static final String JSON_CONTENT = "application/json;charset=";
-    static final String FORM_ENCODED_CONTENT="application/x-www-form-urlencoded;charset=";
+    static final String FORM_ENCODED_CONTENT = "application/x-www-form-urlencoded;charset=";
 
     static final String CONTENT_LENGTH = "Content-Length";
 
@@ -37,13 +37,13 @@ class RequestFactory {
     private final CredentialStore credentials;
     private final String apiRoot;
 
-    RequestFactory(BAASBox.Config config,CredentialStore credential){
-        this.config =config;
+    RequestFactory(BAASBox.Config config, CredentialStore credential) {
+        this.config = config;
         this.credentials = credential;
         apiRoot = initApiRoot(config);
     }
 
-    private static String initApiRoot(BAASBox.Config config){
+    private static String initApiRoot(BAASBox.Config config) {
         StringBuilder api = new StringBuilder();
         api.append(config.HTTPS ? "https://" : "http://");
         api.append(config.API_DOMAIN);
@@ -62,12 +62,12 @@ class RequestFactory {
         return api.toString();
     }
 
-    public String getEndpoint(String endpointPattern,Object ...params){
-        if (params != null){
-            for (Object param:params)
-                endpointPattern = endpointPattern.replaceFirst("\\?",param.toString());
+    public String getEndpoint(String endpointPattern, Object... params) {
+        if (params != null) {
+            for (Object param : params)
+                endpointPattern = endpointPattern.replaceFirst("\\?", param.toString());
         }
-        return this.apiRoot+endpointPattern;
+        return this.apiRoot + endpointPattern;
     }
 
     public HttpRequest any(int method, String endpoint, JsonObject body) {
@@ -116,19 +116,19 @@ class RequestFactory {
         }
     }
 
-    public static String encodeParams(Map<String,String> formParams,String charset){
-        try{
+    public static String encodeParams(Map<String, String> formParams, String charset) {
+        try {
             StringBuilder builder = new StringBuilder();
             boolean first = true;
-            for(Map.Entry<String,String> p:formParams.entrySet()){
-                if(first) first = false;
+            for (Map.Entry<String, String> p : formParams.entrySet()) {
+                if (first) first = false;
                 else builder.append('&');
-                builder.append(URLEncoder.encode(p.getKey(),charset));
+                builder.append(URLEncoder.encode(p.getKey(), charset));
                 builder.append("=");
-                builder.append(URLEncoder.encode(p.getValue(),charset));
+                builder.append(URLEncoder.encode(p.getValue(), charset));
             }
             return builder.toString();
-        }catch (UnsupportedEncodingException e){
+        } catch (UnsupportedEncodingException e) {
             throw new Error(e);
         }
     }
@@ -138,29 +138,29 @@ class RequestFactory {
         return post(uri, (JsonObject) null);
     }
 
-    public HttpRequest post(String uri,Map<String,String> form_params){
+    public HttpRequest post(String uri, Map<String, String> form_params) {
         InputStream body = null;
-        Map<String,String> headers = null;
-        if (form_params!=null){
+        Map<String, String> headers = null;
+        if (form_params != null) {
             byte[] bytes = null;
             try {
-                String params = encodeParams(form_params,config.HTTP_CHARSET);
+                String params = encodeParams(form_params, config.HTTP_CHARSET);
                 BAASLogging.debug("PARAMS: " + params);
                 bytes = params.getBytes(config.HTTP_CHARSET);
-            }catch (UnsupportedEncodingException e){
+            } catch (UnsupportedEncodingException e) {
                 throw new Error(e);
             }
             headers = setContentType(headers, config, FORM_ENCODED_CONTENT, bytes.length);
             body = new ByteArrayInputStream(bytes);
         }
-        return post(uri, headers,body);
+        return post(uri, headers, body);
     }
 
-    public HttpRequest post(String uri,JsonObject object){
+    public HttpRequest post(String uri, JsonObject object) {
         InputStream body = null;
-        Map<String,String> headers = null;
-        if (object!=null){
-            byte[] bytes =null;
+        Map<String, String> headers = null;
+        if (object != null) {
+            byte[] bytes = null;
             try {
                 bytes = object.toString().getBytes(config.HTTP_CHARSET);
             } catch (UnsupportedEncodingException e) {
@@ -169,7 +169,7 @@ class RequestFactory {
             headers = setContentType(headers, config, JSON_CONTENT, bytes.length);
             body = new ByteArrayInputStream(bytes);
         }
-        return post(uri,headers, body);
+        return post(uri, headers, body);
     }
 
     public HttpRequest put(String uri, JsonObject object) {
@@ -193,7 +193,7 @@ class RequestFactory {
         return new HttpRequest(HttpRequest.PUT, uri, headers, body);
     }
 
-    public HttpRequest get(String endpoint){
+    public HttpRequest get(String endpoint) {
         return get(endpoint, null, (Param[]) null);
     }
 
@@ -211,7 +211,7 @@ class RequestFactory {
     }
 
 
-    public HttpRequest get(String endpoint,Map<String,String> headers){
+    public HttpRequest get(String endpoint, Map<String, String> headers) {
         return get(endpoint, headers, (Param[]) null);
     }
 
@@ -225,32 +225,33 @@ class RequestFactory {
     }
 
     public HttpRequest get(String endpoint, Map<String, String> headers, Param... queryParams) {
-        headers = fillHeaders(headers,config,credentials.get(false));
-        if (queryParams!=null){
+        headers = fillHeaders(headers, config, credentials.get(false));
+        if (queryParams != null) {
             String queryUrl = encodeQueryParams(queryParams, config.HTTP_CHARSET);
-            endpoint=endpoint+"?"+queryUrl;
+            endpoint = endpoint + "?" + queryUrl;
         }
-        return new HttpRequest(HttpRequest.GET,endpoint,headers,null);
-    }
-    public HttpRequest post(String uri,Map<String,String> headers,InputStream body){
-        headers = fillHeaders(headers,config,credentials.get(false));
-        return new HttpRequest(HttpRequest.POST,uri,headers,body);
+        return new HttpRequest(HttpRequest.GET, endpoint, headers, null);
     }
 
-    private static Map<String,String> setContentType(Map<String,String> headers,BAASBox.Config config,String contentType,int length){
-        headers = headers==null?new HashMap<String, String>():headers;
-        headers.put(CONTENT_HEADER,contentType+config.HTTP_CHARSET);
-        headers.put(CONTENT_LENGTH,Integer.toString(length));
+    public HttpRequest post(String uri, Map<String, String> headers, InputStream body) {
+        headers = fillHeaders(headers, config, credentials.get(false));
+        return new HttpRequest(HttpRequest.POST, uri, headers, body);
+    }
+
+    private static Map<String, String> setContentType(Map<String, String> headers, BAASBox.Config config, String contentType, int length) {
+        headers = headers == null ? new HashMap<String, String>() : headers;
+        headers.put(CONTENT_HEADER, contentType + config.HTTP_CHARSET);
+        headers.put(CONTENT_LENGTH, Integer.toString(length));
         return headers;
     }
 
-    private static Map<String,String> fillHeaders(Map<String,String> headers,BAASBox.Config config,Credentials credentials){
-        headers = headers==null?new HashMap<String, String>():headers;
-        headers.put(APPCODE_HEADER_NAME,config.APP_CODE);
+    private static Map<String, String> fillHeaders(Map<String, String> headers, BAASBox.Config config, Credentials credentials) {
+        headers = headers == null ? new HashMap<String, String>() : headers;
+        headers.put(APPCODE_HEADER_NAME, config.APP_CODE);
 
-        if(credentials !=null){
+        if (credentials != null) {
             BAASLogging.debug("updating credentials " + credentials.password + " " + credentials.username + " " + credentials.sessionToken);
-            switch (config.AUTHENTICATION_TYPE){
+            switch (config.AUTHENTICATION_TYPE) {
                 case BASIC_AUTHENTICATION:
                     if (credentials.username != null && credentials.password != null) {
                         String plain = credentials.username + ':' + credentials.password;
@@ -259,8 +260,8 @@ class RequestFactory {
                     }
                     break;
                 case SESSION_TOKEN:
-                    if(credentials.sessionToken!=null) {
-                        headers.put(BB_SESSION_HEADER_NAME,credentials.sessionToken);
+                    if (credentials.sessionToken != null) {
+                        headers.put(BB_SESSION_HEADER_NAME, credentials.sessionToken);
                     }
                     break;
             }

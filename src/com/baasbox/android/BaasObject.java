@@ -13,11 +13,11 @@ import org.apache.http.HttpResponse;
  * Base class for remote objects
  * Created by Andrea Tortorella on 13/01/14.
  */
-public abstract class BAASObject<E extends BAASObject<E>> {
+public abstract class BaasObject<E extends BaasObject<E>> {
     // todo this should provide common interface among remote objects
     //      such as dirty tracking timestamps ecc
 
-    BAASObject() {
+    BaasObject() {
     }
 
 
