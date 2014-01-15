@@ -66,9 +66,7 @@ abstract class BaseRequest<Resp, Tag> extends BaasRequest<Resp, Tag> {
                 if (content == null) {
                     return new JsonObject();
                 } else {
-                    BAASLogging.debug(content);
                     JsonObject decoded = JsonObject.decode(content);
-                    BAASLogging.debug("DEC " + decoded);
                     return decoded;
                 }
             } catch (IOException e) {
