@@ -250,7 +250,7 @@ public class BAASBox {
      * @param authenticate true if the client should try to refresh authentication automatically
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
-    public BaasResult<JsonObject> rawRequestSync(int method, String endpoint, JsonObject body, boolean authenticate) {
+    public BaasResult<JsonObject> restSync(int method, String endpoint, JsonObject body, boolean authenticate) {
         RequestFactory factory = requestFactory;
         endpoint = factory.getEndpoint(endpoint);
         HttpRequest any = factory.any(method, endpoint, body);
@@ -272,7 +272,7 @@ public class BAASBox {
      * @param handler      a callback to handle the json response
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
-    public <T> RequestToken rawRequest(int method, String endpoint, JsonObject body, boolean authenticate, T tag, Priority priority, BAASHandler<JsonObject, T> handler) {
+    public <T> RequestToken rest(int method, String endpoint, JsonObject body, boolean authenticate, T tag, Priority priority, BAASHandler<JsonObject, T> handler) {
         if (endpoint == null) throw new NullPointerException("endpoint cannot be null");
         if (handler == null) throw new NullPointerException("handler cannot be null");
         RequestFactory factory = requestFactory;
@@ -296,8 +296,8 @@ public class BAASBox {
      * @param handler      a callback to handle the json response
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
-    public RequestToken rawRequest(int method, String endpoint, JsonObject body, boolean authenticate, BAASHandler<JsonObject, ?> handler) {
-        return rawRequest(method, endpoint, body, authenticate, null, Priority.NORMAL, handler);
+    public RequestToken rest(int method, String endpoint, JsonObject body, boolean authenticate, BAASHandler<JsonObject, ?> handler) {
+        return rest(method, endpoint, body, authenticate, null, Priority.NORMAL, handler);
     }
 
     private static class RawRequest<T> extends BaseRequest<JsonObject, T> {
