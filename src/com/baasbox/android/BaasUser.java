@@ -23,7 +23,7 @@ import java.util.Set;
 /**
  * Created by eto on 02/01/14.
  */
-public class BaasUser extends BAASObject<BaasUser> implements Parcelable {
+public class BaasUser extends BaasObject<BaasUser> implements Parcelable {
 
     protected String username;
     protected JsonObject privateData;
@@ -566,7 +566,6 @@ public class BaasUser extends BAASObject<BaasUser> implements Parcelable {
         UnFollowRequest<T> req = new UnFollowRequest<T>(client.requestFactory, this, username, priority, tag, handler);
         return client.submitRequest(req);
     }
-
 
     private static class GetUserRequest<T> extends BaseRequest<BaasUser, T> {
         private final BaasUser user;

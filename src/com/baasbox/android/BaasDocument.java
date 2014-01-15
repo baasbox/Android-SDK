@@ -26,7 +26,7 @@ import java.util.Set;
  * on the server.
  * Created by Andrea Tortorella on 02/01/14.
  */
-public class BaasDocument extends BAASObject<BaasDocument> implements Iterable<Map.Entry<String, Object>>, Parcelable {
+public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<Map.Entry<String, Object>>, Parcelable {
 
     private final JsonObject object;
     private final String collection;
@@ -690,7 +690,7 @@ public class BaasDocument extends BAASObject<BaasDocument> implements Iterable<M
         final RequestFactory factory = client.requestFactory;
         String endpoint = factory.getEndpoint("document/?/?", collection, id);
         HttpRequest delete = factory.delete(endpoint);
-        BaasRequest<Void, T> breq = new BAASObject.DeleteRequest<T>(delete, priority, tag, handler);
+        BaasRequest<Void, T> breq = new BaasObject.DeleteRequest<T>(delete, priority, tag, handler);
         return client.submitRequest(breq);
     }
 

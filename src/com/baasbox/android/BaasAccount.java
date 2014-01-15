@@ -10,7 +10,7 @@ import com.baasbox.android.spi.HttpRequest;
 import org.apache.http.HttpResponse;
 
 /**
- * This class represents the account of the user on BaasBox.
+ * This class represents the account of the user on BAASBox.
  * Created by Andrea Tortorella on 02/01/14.
  */
 public class BaasAccount extends BaasUser {
