@@ -70,6 +70,34 @@ class RequestFactory {
         return this.apiRoot+endpointPattern;
     }
 
+    static class Param {
+        public final String paramName;
+        public final String paramValue;
+
+        Param(String name, String value) {
+            this.paramName = name;
+            this.paramValue = value;
+        }
+    }
+
+    public static String encodeQueryParams(Param[] params, String charset) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            boolean first = true;
+            for (Param param : params) {
+                if (first) first = false;
+                else sb.append('&');
+                sb.append(URLEncoder.encode(param.paramName, charset));
+                sb.append('=');
+                if (param.paramValue != null) {
+                    sb.append(URLEncoder.encode(param.paramValue, charset));
+                }
+            }
+            return sb.toString();
+        } catch (UnsupportedEncodingException e) {
+            throw new Error(e);
+        }
+    }
 
     public static String encodeParams(Map<String,String> formParams,String charset){
         try{
@@ -163,7 +191,7 @@ class RequestFactory {
 
 
     public HttpRequest get(String endpoint,Map<String,String> headers){
-        return get(endpoint,null, headers);
+        return get(endpoint, headers, null);
     }
 
     public HttpRequest delete(String endpoint, Map<String, String> queryParams, Map<String, String> headers) {
@@ -175,10 +203,10 @@ class RequestFactory {
         return new HttpRequest(HttpRequest.DELETE, endpoint, headers, null);
     }
 
-    public HttpRequest get(String endpoint,Map<String,String> queryParams,Map<String,String>headers) {
+    public HttpRequest get(String endpoint, Map<String, String> headers, Param... queryParams) {
         headers = fillHeaders(headers,config,credentials.get(false));
         if (queryParams!=null){
-            String queryUrl =encodeParams(queryParams,config.HTTP_CHARSET);
+            String queryUrl = encodeQueryParams(queryParams, config.HTTP_CHARSET);
             endpoint=endpoint+"?"+queryUrl;
         }
         return new HttpRequest(HttpRequest.GET,endpoint,headers,null);
