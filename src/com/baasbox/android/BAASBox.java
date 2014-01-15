@@ -2,10 +2,16 @@ package com.baasbox.android;
 
 import android.content.Context;
 
+import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.json.JsonException;
+import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.AsyncRequestDispatcher;
 import com.baasbox.android.spi.CredentialStore;
+import com.baasbox.android.spi.HttpRequest;
 import com.baasbox.android.spi.RequestDispatcher;
 import com.baasbox.android.spi.RestClient;
+
+import org.apache.http.HttpResponse;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -234,5 +240,80 @@ public class BAASBox {
         asyncDispatcher.resume(token, tag, handler);
     }
 
+    /**
+     * Synchronously sends a raw rest request to the server that is specified by
+     * the parameters passed in.
+     *
+     * @param method       the method to use
+     * @param endpoint     the resource
+     * @param body         an optional jsono bject
+     * @param authenticate true if the client should try to refresh authentication automatically
+     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
+     */
+    public BaasResult<JsonObject> rawRequestSync(int method, String endpoint, JsonObject body, boolean authenticate) {
+        RequestFactory factory = requestFactory;
+        endpoint = factory.getEndpoint(endpoint);
+        HttpRequest any = factory.any(method, endpoint, body);
+        RawRequest<Void> req = new RawRequest<Void>(any, null, null, null, authenticate);
+        return submitRequestSync(req);
+
+    }
+
+    /**
+     * Asynchronously sends a raw rest request to the server that is specified by
+     * the parameters passed in
+     *
+     * @param priority     priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
+     * @param tag          custom user object passed back to the handler
+     * @param method       the method to use
+     * @param endpoint     the resource
+     * @param body         an optional jsono bject
+     * @param authenticate true if the client should try to refresh authentication automatically
+     * @param handler      a callback to handle the json response
+     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
+     */
+    public <T> RequestToken rawRequest(int method, String endpoint, JsonObject body, boolean authenticate, T tag, Priority priority, BAASHandler<JsonObject, T> handler) {
+        if (endpoint == null) throw new NullPointerException("endpoint cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        RequestFactory factory = requestFactory;
+        endpoint = factory.getEndpoint(endpoint);
+        HttpRequest any = factory.any(method, endpoint, body);
+        priority = priority == null ? priority = Priority.NORMAL : priority;
+        RawRequest<T> req = new RawRequest<T>(any, priority, tag, handler, authenticate);
+        return submitRequest(req);
+    }
+
+
+    /**
+     * Asynchronously sends a raw rest request to the server that is specified by
+     * the parameters passed in, using default {@link com.baasbox.android.Priority#NORMAL}
+     * and no tag.
+     *
+     * @param method       the method to use
+     * @param endpoint     the resource
+     * @param body         an optional jsono bject
+     * @param authenticate true if the client should try to refresh authentication automatically
+     * @param handler      a callback to handle the json response
+     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
+     */
+    public RequestToken rawRequest(int method, String endpoint, JsonObject body, boolean authenticate, BAASHandler<JsonObject, ?> handler) {
+        return rawRequest(method, endpoint, body, authenticate, null, Priority.NORMAL, handler);
+    }
+
+    private static class RawRequest<T> extends BaseRequest<JsonObject, T> {
+
+        RawRequest(HttpRequest request, Priority priority, T t, BAASHandler<JsonObject, T> handler, boolean retry) {
+            super(request, priority, t, handler, retry);
+        }
+
+        @Override
+        protected JsonObject handleOk(HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
+            try {
+                return getJsonEntity(response, config.HTTP_CHARSET);
+            } catch (JsonException e) {
+                throw new BAASBoxException(e);
+            }
+        }
+    }
 }
 

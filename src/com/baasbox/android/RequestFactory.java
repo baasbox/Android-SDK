@@ -70,6 +70,23 @@ class RequestFactory {
         return this.apiRoot+endpointPattern;
     }
 
+    public HttpRequest any(int method, String endpoint, JsonObject body) {
+        switch (method) {
+            case HttpRequest.GET:
+                return get(endpoint);
+            case HttpRequest.POST:
+                return post(endpoint, body);
+            case HttpRequest.PUT:
+                return put(endpoint, body);
+            case HttpRequest.DELETE:
+                return delete(endpoint);
+            case HttpRequest.PATCH:
+                throw new UnsupportedOperationException("method not supported");
+            default:
+                throw new IllegalArgumentException("method is not valid");
+        }
+    }
+
     static class Param {
         public final String paramName;
         public final String paramValue;
@@ -177,7 +194,11 @@ class RequestFactory {
     }
 
     public HttpRequest get(String endpoint){
-        return get(endpoint,null,null);
+        return get(endpoint, null, (Param[]) null);
+    }
+
+    public HttpRequest get(String endpoint, Param... params) {
+        return get(endpoint, null, params);
     }
 
 
@@ -191,7 +212,7 @@ class RequestFactory {
 
 
     public HttpRequest get(String endpoint,Map<String,String> headers){
-        return get(endpoint, headers, null);
+        return get(endpoint, headers, (Param[]) null);
     }
 
     public HttpRequest delete(String endpoint, Map<String, String> queryParams, Map<String, String> headers) {
