@@ -13,13 +13,15 @@ import org.apache.http.HttpResponse;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * Created by eto on 02/01/14.
  */
-public class BaasDocument extends BAASObject<BaasDocument> {
+public class BaasDocument extends BAASObject<BaasDocument> implements Iterable<Map.Entry<String, Object>> {
     protected final JsonObject object;
     public final String collection;
     private String id;
@@ -236,6 +238,31 @@ public class BaasDocument extends BAASObject<BaasDocument> {
 
     public JsonObject merge(JsonObject other) {
         return object.merge(checkObject(other));
+    }
+
+    @Override
+    public Iterator<Map.Entry<String, Object>> iterator() {
+        return object.iterator();
+    }
+
+    public final String getId() {
+        return object.getString("id");
+    }
+
+    public final String getAuthor() {
+        return author;
+    }
+
+    public final String getCreationDate() {
+        return creation_date;
+    }
+
+    public final String getRid() {
+        return rid;
+    }
+
+    public final long getVersion() {
+        return version;
     }
 
     /// methods
@@ -507,9 +534,6 @@ public class BaasDocument extends BAASObject<BaasDocument> {
         return client.submitRequest(breq);
     }
 
-    public String getId() {
-        return object.getString("id");
-    }
 
 
     private static class DocumentRequest<T> extends BaseRequest<BaasDocument, T> {
