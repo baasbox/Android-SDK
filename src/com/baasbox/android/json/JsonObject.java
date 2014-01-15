@@ -3,7 +3,6 @@ package com.baasbox.android.json;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.impl.Base64;
 
 import java.io.IOException;
@@ -169,11 +168,17 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         return l == null ? null : l.floatValue();
     }
 
-    private JsonObject putNull(String name) {
+    public JsonObject putNull(String name) {
         if (name == null) throw new NullPointerException("name cannot be null");
         map.put(name, null);
         return this;
     }
+
+    public JsonObject clear() {
+        map.clear();
+        return this;
+    }
+
 
     public boolean isNull(String name) {
         if (name == null) throw new NullPointerException("name cannot be null");
@@ -198,6 +203,11 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         if (a == null) return otherwise;
         if (a instanceof JsonArray) return (JsonArray) a;
         throw new JsonException("not an array");
+    }
+
+    @Override
+    public JsonArray values() {
+        return new JsonArray(map.values());
     }
 
     public JsonObject putObject(String name, JsonObject value) {
@@ -437,7 +447,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
             String propertyName = null;
             while (tok != JsonToken.END_OBJECT) {
                 tok = reader.peek();
-                BAASLogging.debug("TOKEN: " + tok.name());
                 switch (tok) {
                     case NAME:
                         if (propertyName != null) throw new JsonException("expected name");

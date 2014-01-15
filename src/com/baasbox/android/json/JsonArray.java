@@ -3,12 +3,12 @@ package com.baasbox.android.json;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.impl.Base64;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,6 +21,31 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
     public JsonArray() {
         list = new LinkedList<Object>();
+    }
+
+    JsonArray(Collection<Object> object) {
+        this();
+        for (Object o : object) {
+            if (o == null) {
+                list.add(null);
+            } else if (o instanceof JsonArray) {
+                list.add(((JsonArray) o).copy());
+            } else if (o instanceof JsonObject) {
+                list.add(((JsonObject) o).copy());
+            } else if (o instanceof byte[]) {
+                byte[] original = (byte[]) o;
+                byte[] copy = new byte[original.length];
+                System.arraycopy(original, 0, copy, 0, original.length);
+                list.add(copy);
+            } else {
+                list.add(o);
+            }
+        }
+    }
+
+    @Override
+    public JsonArray values() {
+        return this;
     }
 
     JsonArray(JsonArray other) {
@@ -456,7 +481,6 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
             JsonArray arr = new JsonArray();
             while (tok != JsonToken.END_ARRAY) {
                 tok = reader.peek();
-                BAASLogging.debug("TOK A: " + tok.name());
                 switch (tok) {
                     case NAME:
                         throw new JsonException("invalid json");

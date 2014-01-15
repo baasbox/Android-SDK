@@ -35,6 +35,8 @@ public abstract class JsonStructure{
         return decodeFully(r);
     }
 
+    public abstract JsonArray values();
+
     static JsonStructure decodeFully(JsonReader jr) {
         try {
             JsonToken t = jr.peek();
@@ -49,6 +51,5 @@ public abstract class JsonStructure{
         } catch (IOException e) {
             throw new JsonException("incalid json", e);
         }
-
     }
 }
