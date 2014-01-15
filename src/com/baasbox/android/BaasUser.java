@@ -1,32 +1,52 @@
 package com.baasbox.android;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.exceptions.BAASBoxIOException;
+import com.baasbox.android.impl.BAASLogging;
+import com.baasbox.android.json.JsonArray;
+import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
+import com.baasbox.android.spi.CredentialStore;
+import com.baasbox.android.spi.HttpRequest;
+
+import org.apache.http.HttpResponse;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by eto on 02/01/14.
  */
-public class BaasUser {
-    public final String username;
+public class BaasUser extends BAASObject<BaasUser> implements Parcelable {
 
-    protected final JsonObject privateData;
-    protected final JsonObject friendVisibleData;
-    protected final JsonObject registeredVisibleData;
-    protected final JsonObject publicVisibleData;
+    protected String username;
+    protected JsonObject privateData;
+    protected JsonObject friendVisibleData;
+    protected JsonObject registeredVisibleData;
+    protected JsonObject publicVisibleData;
+    private String signupDate;
+    private String status;
+    private final Set<String> roles = new HashSet<String>();
 
     public enum Scope {
         PRIVATE("visibleByTheUser"),
         FRIEND("visibleByFriends"),
         REGISTERED("visibleByRegisteredUsers"),
         PUBLIC("visibleByAnonymousUsers");
-
         final String visibilityName;
-
         Scope(String visibilityName) {
             this.visibilityName = visibilityName;
         }
     }
 
     protected BaasUser(String username, JsonObject data) {
+        super();
         this.username = username;
         this.privateData = data.getObject(Scope.PRIVATE.visibilityName, new JsonObject());
         this.friendVisibleData = data.getObject(Scope.FRIEND.visibilityName, new JsonObject());
@@ -34,7 +54,13 @@ public class BaasUser {
         this.publicVisibleData = data.getObject(Scope.PUBLIC.visibilityName, new JsonObject());
     }
 
-    protected BaasUser(String username) {
+    /**
+     * Creates a new user bound to username
+     *
+     * @param username
+     */
+    public BaasUser(String username) {
+        super();
         this.username = username;
         this.privateData = new JsonObject();
         this.friendVisibleData = new JsonObject();
@@ -42,6 +68,43 @@ public class BaasUser {
         this.publicVisibleData = new JsonObject();
     }
 
+    /**
+     * Must be invoked to build users retrieved
+     * from the server
+     *
+     * @param user
+     */
+    BaasUser(JsonObject user) {
+        super();
+        init(user);
+    }
+
+    private void init(JsonObject user) {
+        JsonObject accountData = user.getObject("user");
+        this.username = accountData.getString("name");
+        this.roles.clear();
+        addRoles(this.roles, accountData.getArray("roles"));
+        this.status = accountData.getString("status");
+        this.privateData = fetchOptionalData(user, Scope.PRIVATE.visibilityName);
+        this.friendVisibleData = fetchOptionalData(user, Scope.FRIEND.visibilityName);
+        this.registeredVisibleData = fetchOptionalData(user, Scope.REGISTERED.visibilityName);
+        this.publicVisibleData = fetchOptionalData(user, Scope.PUBLIC.visibilityName);
+        this.signupDate = user.getString("signUpDate");
+    }
+
+    private void update(JsonObject user) {
+        init(user);
+    }
+
+    /**
+     * Returns data associate to this user for the specific
+     * scope as a {@link com.baasbox.android.json.JsonObject}.
+     * If the data is not visible to the current logged in user
+     * returns null.
+     *
+     * @param scope a scope {@link com.baasbox.android.BaasUser.Scope}
+     * @return {@link com.baasbox.android.json.JsonObject}
+     */
     public JsonObject getScope(Scope scope) {
         switch (scope) {
             case PRIVATE:
@@ -56,6 +119,393 @@ public class BaasUser {
                 throw new NullPointerException("scope cannot be null");
         }
     }
+
+    /**
+     * Returns the signupdate for this user
+     * if available as a string
+     *
+     * @return
+     */
+    public String getSignupDate() {
+        return signupDate;
+    }
+
+    /**
+     * Returns the registration status of the user
+     *
+     * @return
+     */
+    public String getStatus() {
+        return status;
+    }
+
+    /**
+     * Returns an unmodifialble set of the roles
+     * to which the user belongs
+     *
+     * @return
+     */
+    public Set<String> getRoles() {
+        return Collections.unmodifiableSet(roles);
+    }
+
+    /**
+     * Checks if the user has a specific role
+     *
+     * @param role
+     * @return
+     */
+    public boolean hasRole(String role) {
+        return roles.contains(role);
+    }
+
+    /**
+     * Returns the name of the user.
+     *
+     * @return
+     */
+    public String getName() {
+        return username;
+    }
+
+    /**
+     * Asynchronously fetches an existing {@link com.baasbox.android.BaasUser} from the server
+     * given it's username, using default {@link com.baasbox.android.Priority} and no tag.
+     *
+     * @param username
+     * @param handler
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static RequestToken get(String username, BAASBox.BAASHandler<BaasUser, ?> handler) {
+        return get(BAASBox.getDefaultChecked(), username, null, Priority.NORMAL, handler);
+    }
+
+    /**
+     * Asynchronously fetches an existing {@link com.baasbox.android.BaasUser} from the server
+     * given it's username
+     *
+     * @param username
+     * @param tag
+     * @param priority
+     * @param handler
+     * @param <T>
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static <T> RequestToken get(String username, T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
+        return get(BAASBox.getDefaultChecked(), username, tag, priority, handler);
+    }
+
+
+    private static <T> RequestToken get(BAASBox client, String userId, T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
+        if (client == null) throw new NullPointerException("client cannot be null");
+        if (userId == null) throw new NullPointerException("userId cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        GetUserRequest<T> userRequest = new GetUserRequest<T>(client.requestFactory, userId, priority, tag, handler);
+        return client.submitRequest(userRequest);
+    }
+
+    /**
+     * Asynchronously fetches the list of users from the server, using no tag
+     * and default {@link com.baasbox.android.Priority}
+     *
+     * @param handler
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static RequestToken getAll(BAASBox.BAASHandler<List<BaasUser>, ?> handler) {
+        return getAll(BAASBox.getDefaultChecked(), null, Priority.NORMAL, handler);
+    }
+
+    /**
+     * Asynchronously fetches the list of users from the server.
+     *
+     * @param tag
+     * @param priority
+     * @param handler
+     * @param <T>
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static <T> RequestToken getAll(T tag, Priority priority, BAASBox.BAASHandler<List<BaasUser>, T> handler) {
+        return getAll(BAASBox.getDefaultChecked(), tag, priority, handler);
+    }
+
+    private static <T> RequestToken getAll(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<List<BaasUser>, T> handler) {
+        if (client == null) throw new NullPointerException("client cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        GetAllUsersRequest<T> allUsers = new GetAllUsersRequest<T>(client.requestFactory, priority, tag, handler);
+        return client.submitRequest(allUsers);
+    }
+
+    /**
+     * Asynchronously fetches the list of users that are followed by the current logged in user,
+     * using no tag and default {@link com.baasbox.android.Priority}
+     *
+     * @param handler
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+
+    public static RequestToken getFollowing(BAASBox.BAASHandler<List<BaasUser>, ?> handler) {
+        return getFollowing(BAASBox.getDefaultChecked(), null, Priority.NORMAL, handler);
+    }
+
+    /**
+     * Asynchronously fetches the list of users that are followed by the current logged in user.
+     *
+     * @param tag
+     * @param priority
+     * @param handler
+     * @param <T>
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static <T> RequestToken getFollowing(T tag, Priority priority, BAASBox.BAASHandler<List<BaasUser>, T> handler) {
+        return getFollowing(BAASBox.getDefaultChecked(), tag, priority, handler);
+    }
+
+    private static <T> RequestToken getFollowing(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<List<BaasUser>, T> handler) {
+        if (client == null) throw new NullPointerException("client cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        FollowingRequest<T> req = new FollowingRequest<T>(client.requestFactory, priority, tag, handler);
+        return client.submitRequest(req);
+    }
+
+
+    /**
+     * Asynchronously fetches the list of users that follow the current logged in user,
+     * using no tag and default {@link com.baasbox.android.Priority}
+     *
+     * @param handler
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+
+    public static RequestToken getFollowers(BAASBox.BAASHandler<List<BaasUser>, ?> handler) {
+        return getFollowing(BAASBox.getDefaultChecked(), null, Priority.NORMAL, handler);
+    }
+
+    /**
+     * Asynchronously fetches the list of users that follow the current logged in user.
+     *
+     * @param tag
+     * @param priority
+     * @param handler
+     * @param <T>
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static <T> RequestToken getFollowers(T tag, Priority priority, BAASBox.BAASHandler<List<BaasUser>, T> handler) {
+        return getFollowing(BAASBox.getDefaultChecked(), tag, priority, handler);
+    }
+
+    private static <T> RequestToken getFollowers(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<List<BaasUser>, T> handler) {
+        if (client == null) throw new NullPointerException("client cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        FollowersRequest<T> req = new FollowersRequest<T>(client.requestFactory, priority, tag, handler);
+        return client.submitRequest(req);
+    }
+
+    /**
+     * Asynchronously requests to follow a user given it's username,
+     * using no tag and default {@link com.baasbox.android.Priority}
+     *
+     * @param username
+     * @param handler
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static RequestToken follow(String username, BAASBox.BAASHandler<BaasUser, ?> handler) {
+        if (username == null) throw new NullPointerException("username cannot be null");
+        BaasUser user = new BaasUser(username);
+        return user.follow(BAASBox.getDefaultChecked(), null, Priority.NORMAL, handler);
+    }
+
+    /**
+     * Asynchronously requests to follow a user given it's username.
+     *
+     * @param username
+     * @param tag
+     * @param priority
+     * @param handler
+     * @param <T>
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static <T> RequestToken follow(String username, T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
+        if (username == null) throw new NullPointerException("username cannot be null");
+        BaasUser user = new BaasUser(username);
+        return user.follow(BAASBox.getDefaultChecked(), tag, priority, handler);
+    }
+
+    /**
+     * Asynchronously requests to follow the user,
+     * using not tag and default {@link com.baasbox.android.Priority}
+     *
+     * @param handler
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public RequestToken follow(BAASBox.BAASHandler<BaasUser, ?> handler) {
+        return follow(BAASBox.getDefaultChecked(), null, Priority.NORMAL, handler);
+    }
+
+    /**
+     * Asynchronously requests to follow the user.
+     *
+     * @param tag
+     * @param priority
+     * @param handler
+     * @param <T>
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public <T> RequestToken follow(T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
+        return follow(BAASBox.getDefaultChecked(), tag, priority, handler);
+    }
+
+    private <T> RequestToken follow(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
+        if (client == null) throw new NullPointerException("client cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        FollowRequest<T> req = new FollowRequest<T>(client.requestFactory, this, priority, tag, handler);
+        return client.submitRequest(req);
+    }
+
+    /**
+     * Asynchronously requests to unfollow the user
+     * using no tag and default {@link com.baasbox.android.Priority}
+     *
+     * @param handler
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public RequestToken unfollow(BAASBox.BAASHandler<BaasUser, ?> handler) {
+        return unfollow(BAASBox.getDefaultChecked(), null, Priority.NORMAL, handler);
+    }
+
+    /**
+     * Asynchronously requests to unfollow the user
+     *
+     * @param tag
+     * @param priority
+     * @param handler
+     * @param <T>
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public <T> RequestToken unfollow(T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
+        return unfollow(BAASBox.getDefaultChecked(), tag, priority, handler);
+    }
+
+    private <T> RequestToken unfollow(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
+        if (client == null) throw new NullPointerException("client cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        UnFollowRequest<T> req = new UnFollowRequest<T>(client.requestFactory, this, priority, tag, handler);
+        return client.submitRequest(req);
+    }
+
+
+    private static class GetUserRequest<T> extends BaseRequest<BaasUser, T> {
+
+        GetUserRequest(RequestFactory factory, String userId, Priority priority, T t, BAASBox.BAASHandler<BaasUser, T> handler) {
+            super(factory.get(factory.getEndpoint("user", userId)), priority, t, handler, true);
+        }
+
+        @Override
+        protected BaasUser handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            try {
+                JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
+                JsonObject user = o.getObject("data");
+                return new BaasUser(user);
+            } catch (JsonException e) {
+                throw new BAASBoxException(e);
+            }
+        }
+    }
+
+
+    private static abstract class UserListRequest<T> extends BaseRequest<List<BaasUser>, T> {
+        private UserListRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<List<BaasUser>, T> handler, boolean retry) {
+            super(request, priority, t, handler, retry);
+        }
+
+        @Override
+        protected List<BaasUser> handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            try {
+                JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
+                JsonArray data = o.getArray("data");
+                ArrayList<BaasUser> users = new ArrayList<BaasUser>();
+                for (Object obj : data) {
+                    BaasUser user = new BaasUser((JsonObject) obj);
+                    users.add(user);
+                }
+                return users;
+            } catch (JsonException e) {
+                throw new BAASBoxIOException(e);
+            }
+        }
+    }
+
+    private static class GetAllUsersRequest<T> extends UserListRequest<T> {
+        GetAllUsersRequest(RequestFactory factory, Priority priority, T t, BAASBox.BAASHandler<List<BaasUser>, T> handler) {
+            super(factory.get(factory.getEndpoint("users")), priority, t, handler, false);
+        }
+    }
+
+    private static class FollowingUsersRequest<T> extends UserListRequest<T> {
+        FollowingUsersRequest(RequestFactory factory, String user, Priority priority, T t, BAASBox.BAASHandler<List<BaasUser>, T> handler) {
+            super(factory.get(factory.getEndpoint("following/?", user)), priority, t, handler, true);
+        }
+    }
+
+    private static class FollowingRequest<T> extends UserListRequest<T> {
+        FollowingRequest(RequestFactory factory, Priority priority, T t, BAASBox.BAASHandler<List<BaasUser>, T> handler) {
+            super(factory.get(factory.getEndpoint("following")), priority, t, handler, true);
+        }
+    }
+
+    private static class FollowersOfUsersRequest<T> extends UserListRequest<T> {
+        FollowersOfUsersRequest(RequestFactory factory, String user, Priority priority, T t, BAASBox.BAASHandler<List<BaasUser>, T> handler) {
+            super(factory.get(factory.getEndpoint("followers/?", user)), priority, t, handler, true);
+        }
+    }
+
+    private static class FollowersRequest<T> extends UserListRequest<T> {
+        FollowersRequest(RequestFactory factory, Priority priority, T t, BAASBox.BAASHandler<List<BaasUser>, T> handler) {
+            super(factory.get(factory.getEndpoint("followers")), priority, t, handler, true);
+        }
+    }
+
+    private static class FollowRequest<T> extends BaseRequest<BaasUser, T> {
+        final BaasUser user;
+
+        FollowRequest(RequestFactory factory, BaasUser user, Priority priority, T t, BAASBox.BAASHandler<BaasUser, T> handler) {
+            super(factory.post(factory.getEndpoint("follow/?", user.username)), priority, t, handler, true);
+            this.user = user;
+        }
+
+        @Override
+        protected BaasUser handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
+            JsonObject data = o.getObject("data");
+            user.update(data);
+            BAASLogging.debug(o.toString());
+            return null;
+        }
+    }
+
+
+    private static class UnFollowRequest<T> extends BaseRequest<BaasUser, T> {
+        final BaasUser user;
+
+        UnFollowRequest(RequestFactory factory, BaasUser user, Priority priority, T t, BAASBox.BAASHandler<BaasUser, T> handler) {
+            super(factory.delete(factory.getEndpoint("follow/?", user.username)), priority, t, handler, true);
+            this.user = user;
+        }
+
+        @Override
+        protected BaasUser handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
+            //todo remove roles
+            user.friendVisibleData = null;
+            return user;
+        }
+    }
+
 
     protected JsonObject toJson(boolean credentials) {
         JsonObject object = new JsonObject();
@@ -73,4 +523,95 @@ public class BaasUser {
         return toJson(true);
     }
 
+
+    private static void addRoles(Set<String> roles, JsonArray jsonRoles) {
+        for (Object roleSpec : jsonRoles) {
+            String role = ((JsonObject) roleSpec).getString("name");
+            if (role != null) {
+                roles.add(role);
+            }
+        }
+    }
+
+    private static JsonObject fetchOptionalData(JsonObject userObject, String visibility) {
+        if (userObject.isNull(visibility)) {
+            return null;
+        } else {
+            JsonObject o = userObject.getObject(visibility);
+            return o == null ? new JsonObject() : o;
+        }
+    }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(username);
+        dest.writeString(signupDate);
+        dest.writeString(status);
+        writeStringSet(dest, roles);
+        writeOptJson(dest, privateData);
+        writeOptJson(dest, friendVisibleData);
+        writeOptJson(dest, registeredVisibleData);
+        writeOptJson(dest, publicVisibleData);
+    }
+
+    BaasUser(Parcel source) {
+        super();
+        this.username = source.readString();
+        this.signupDate = source.readString();
+        this.status = source.readString();
+        readStringSet(source, this.roles);
+        this.privateData = readOptJson(source);
+        this.friendVisibleData = readOptJson(source);
+        this.registeredVisibleData = readOptJson(source);
+        this.publicVisibleData = readOptJson(source);
+    }
+
+    private static JsonObject readOptJson(Parcel p) {
+        if (p.readByte() == 1) {
+            return p.readParcelable(JsonArray.class.getClassLoader());
+        } else {
+            return null;
+        }
+    }
+
+    private static void readStringSet(Parcel p, Set<String> set) {
+        int size = p.readInt();
+        String[] arr = new String[size];
+        p.readStringArray(arr);
+        for (String s : arr) {
+            set.add(s);
+        }
+    }
+
+    private static void writeStringSet(Parcel p, Set<String> s) {
+        p.writeInt(s.size());
+        p.writeStringArray(s.toArray(new String[s.size()]));
+    }
+
+    private static void writeOptJson(Parcel p, JsonObject o) {
+        if (o == null) {
+            p.writeByte((byte) 0);
+        } else {
+            p.writeByte((byte) 1);
+            p.writeParcelable(o, 0);
+        }
+    }
+
+    public final static Creator<BaasUser> CREATOR = new Creator<BaasUser>() {
+        @Override
+        public BaasUser createFromParcel(Parcel source) {
+            return new BaasUser(source);
+        }
+
+        @Override
+        public BaasUser[] newArray(int size) {
+            return new BaasUser[size];
+        }
+    };
 }
