@@ -6,6 +6,9 @@ import android.content.SharedPreferences;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.Credentials;
 
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Created by eto on 24/12/13.
  */
@@ -19,51 +22,88 @@ class PreferenceCredentialStore implements CredentialStore {
 
     private final SharedPreferences preferences;
 
+    private final AtomicReference<Credentials> memCredentials = new AtomicReference<Credentials>();
+
     PreferenceCredentialStore(Context context) {
         preferences = context.getSharedPreferences(BAASBOX_PERSISTENCE_PREFIX + context.getPackageName(), Context.MODE_PRIVATE);
     }
 
     @Override
-    public Credentials get(boolean forceLoad){
-        synchronized (lock) {
-            String user = preferences.getString(USERNAME_PERSISTENCE_KEY, null);
-            if (user == null) return null;
-            Credentials c = new Credentials();
-            c.username = user;
-            c.password = preferences.getString(PASSWORD_PERSISTENCE_KEY, null);
-            c.sessionToken = preferences.getString(BB_SESSION_PERSISTENCE_KEY, null);
+    public Credentials get(boolean forceLoad) {
+        if (forceLoad) {
+            for (; ; ) {
+                Credentials c = memCredentials.get();
+                Map<String, String> diskPrefs = (Map<String, String>) preferences.getAll();
+                String username = diskPrefs.get(USERNAME_PERSISTENCE_KEY);
+                if (username == null) {
+                    if (memCredentials.compareAndSet(c, null)) {
+                        return null;
+                    }
+                } else {
+                    Credentials update = new Credentials();
+                    update.username = username;
+                    update.password = diskPrefs.get(PASSWORD_PERSISTENCE_KEY);
+                    update.sessionToken = diskPrefs.get(BB_SESSION_PERSISTENCE_KEY);
+                    if (memCredentials.compareAndSet(c, update)) {
+                        return update;
+                    }
+                }
 
-            return c;
+            }
+        } else {
+            return memCredentials.get();
         }
     }
 
     @Override
-    public void set(Credentials credentials){
-        if (credentials == null) {
-            preferences.edit().clear().commit();
-        } else {
-            synchronized (lock) {
-                preferences.edit()
-                        .putString(USERNAME_PERSISTENCE_KEY, credentials.username)
+    public void set(Credentials credentials) {
+        if (credentials != null) {
+            for (; ; ) {
+                Credentials current = memCredentials.get();
+                if (preferences.edit().putString(USERNAME_PERSISTENCE_KEY, credentials.username)
                         .putString(PASSWORD_PERSISTENCE_KEY, credentials.password)
-                        .putString(BB_SESSION_PERSISTENCE_KEY, credentials.sessionToken)
-                        .commit();
+                        .putString(BB_SESSION_PERSISTENCE_KEY, credentials.sessionToken).commit()) {
+                    if (memCredentials.compareAndSet(current, credentials)) {
+                        return;
+                    }
+                }
+            }
+        } else {
+            for (; ; ) {
+                Credentials current = memCredentials.get();
+                if (preferences.edit().clear().commit()) {
+                    if (memCredentials.compareAndSet(current, null)) return;
+                }
             }
         }
+//        if (credentials == null) {
+//            preferences.edit().clear().commit();
+//        } else {
+//            synchronized (lock) {
+//                preferences.edit()
+//                        .putString(USERNAME_PERSISTENCE_KEY, credentials.username)
+//                        .putString(PASSWORD_PERSISTENCE_KEY, credentials.password)
+//                        .putString(BB_SESSION_PERSISTENCE_KEY, credentials.sessionToken)
+//                        .commit();
+//            }
+//        }
     }
 
     public Credentials updateToken(String token) {
-        synchronized (lock) {
-            preferences.edit().putString(BB_SESSION_PERSISTENCE_KEY, token).commit();
-            return get(true);
+        for (; ; ) {
+            Credentials c = memCredentials.get();
+            Credentials update = new Credentials();
+            if (c != null) {
+                update.username = c.username;
+                update.password = c.password;
+            }
+            update.sessionToken = token;
+            if (preferences.edit().putString(BB_SESSION_PERSISTENCE_KEY, update.sessionToken).commit()) {
+                if (memCredentials.compareAndSet(c, update)) {
+                    return update;
+                }
+            }
         }
     }
-
-
-    private void clearCredentials(){
-        set(null);
-    }
-
-
 
 }
