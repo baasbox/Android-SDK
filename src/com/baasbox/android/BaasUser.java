@@ -402,7 +402,7 @@ public class BaasUser extends BAASObject<BaasUser> implements Parcelable {
     private static class GetUserRequest<T> extends BaseRequest<BaasUser, T> {
 
         GetUserRequest(RequestFactory factory, String userId, Priority priority, T t, BAASBox.BAASHandler<BaasUser, T> handler) {
-            super(factory.get(factory.getEndpoint("user", userId)), priority, t, handler, true);
+            super(factory.get(factory.getEndpoint("user/?", userId)), priority, t, handler, true);
         }
 
         @Override
