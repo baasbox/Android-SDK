@@ -20,204 +20,198 @@ import java.util.Set;
  * Created by eto on 02/01/14.
  */
 public class BaasDocument extends BAASObject<BaasDocument> {
-    public final String collection;
     protected final JsonObject object;
+    public final String collection;
+    private String id;
+    private String author;
+    private String creation_date;
+    private String rid;
+    private long version;
 
-    public BaasDocument(JsonObject data) {
+    BaasDocument(JsonObject data) {
         super();
         this.collection = data.getString("@class");
         data.remove("@class");
+        this.id = data.getString("id");
+        data.remove("id");
+        this.author = data.getString("_author");
+        data.remove("_author");
+        this.creation_date = data.getString("_creation_date");
+        data.remove("_creation_date");
+        this.rid = data.getString("@rid");
+        data.remove("@rid");
+        this.version = data.getLong("@version");
+        data.remove("@version");
         object = data;
+    }
+
+    public BaasDocument(String collection) {
+        this(collection, null);
     }
 
     public BaasDocument(String collection, JsonObject data) {
         super();
+        if (collection == null || collection.length() == 0)
+            throw new IllegalArgumentException("collection name cannot be null");
         this.collection = collection;
-        data.remove("@class");
-        this.object = data;
+        data = checkObject(data);
+        this.object = data == null ? new JsonObject() : data;
     }
 
-    public BaasDocument(String collection) {
-        super();
-        this.collection = collection;
-        this.object = new JsonObject();
+    private static JsonObject cleanObject(JsonObject data) {
+        if (data == null) return new JsonObject();
+        data.remove("id");
+        for (String k : data.getFieldNames()) {
+            char f = k.charAt(0);
+            switch (f) {
+                case '@':
+                case '_':
+                    data.remove(k);
+                    break;
+            }
+        }
+        return data;
     }
 
-    public JsonObject toJson() {
-        return object;
+
+    private static JsonObject checkObject(JsonObject data) {
+        if (data == null) return null;
+        if (data.contains("id")) throw new IllegalArgumentException("key 'id' is reserved");
+        for (String k : data.getFieldNames()) {
+            char f = k.charAt(0);
+            switch (f) {
+                case '@':
+                case '_':
+                    throw new IllegalArgumentException("key names starting with '_' or '@' are reserved");
+            }
+        }
+        return data;
     }
 
-    @Override
-    public String toString() {
-        return "#BaasDocument<" + object.toString() + ">";
+    private static String checkKey(String key) {
+        if (key == null || key.length() == 0)
+            throw new IllegalArgumentException("key cannot be empty");
+        if ("id".equals(key)) throw new IllegalArgumentException("key 'id' is reserved");
+        char f = key.charAt(0);
+        if (f == '@' || f == '_')
+            throw new IllegalArgumentException("key names starting with '_' or '@' are reserved");
+        return key;
     }
 
-    public BaasDocument putString(String name, String value) {
-        object.putString(name, value);
-        return this;
-    }
-
-    public BaasDocument putObject(String name, JsonObject value) {
-        object.putObject(name, value);
-        return this;
-    }
-
-    public BaasDocument putArray(String name, JsonArray array) {
-        object.putArray(name, array);
-        return this;
-    }
-
-    public BaasDocument putStructure(String name, JsonStructure structure) {
-        object.putStructure(name, structure);
-        return this;
-    }
-
-    public BaasDocument putNumber(String name, long number) {
-        object.putLong(name, number);
-        return this;
-    }
-
-    public BaasDocument putBoolean(String name, Boolean bool) {
-        object.putBoolean(name, bool);
-        return this;
-    }
-
-    public BaasDocument putBinary(String name, byte[] bytes) {
-        object.putBinary(name, bytes);
-        return this;
-    }
-
-    public BaasDocument put(String name, Object value) {
-        object.put(name, value);
-        return this;
-    }
-
-    public String getString(String name) {
-        return object.getString(name);
-    }
-
-    public JsonObject getObject(String name) {
-        return object.getObject(name);
-    }
-
-    public JsonArray getArray(String name) {
-        return object.getArray(name);
-    }
-
-    public JsonStructure getStructure(String name) {
-        return object.getStructure(name);
-    }
-
-    public byte[] getBinary(String name) {
-        return object.getBinary(name);
-    }
-
-    public long getLong(String name) {
-        return object.getLong(name);
-    }
-
-    public int getInt(String name) {
-        return object.getInt(name);
-    }
-
-    public float getFloat(String name) {
-        return object.getFloat(name);
-    }
-
-    public double getDouble(String name) {
-        return object.getDouble(name);
-    }
-
-    public boolean getBoolean(String name) {
-        return object.getBoolean(name);
+    public JsonObject putString(String name, String value) {
+        return object.putString(checkKey(name), value);
     }
 
     public String getString(String name, String otherwise) {
         return object.getString(name, otherwise);
     }
 
-    public JsonObject getObject(String name, JsonObject otherwise) {
-        return object.getObject(name, otherwise);
+    public String getString(String name) {
+        return object.getString(name);
     }
 
-    public JsonArray getArray(String name, JsonArray otherwise) {
-        return object.getArray(name, otherwise);
+    public JsonObject putBoolean(String name, boolean bool) {
+        return object.putBoolean(checkKey(name), bool);
     }
 
-    public JsonStructure getStructure(String name, JsonStructure otherwise) {
-        return object.getStructure(name, otherwise);
+    public Boolean getBoolean(String name) {
+        return object.getBoolean(name);
     }
 
     public boolean getBoolean(String name, boolean otherwise) {
         return object.getBoolean(name, otherwise);
     }
 
-    public static JsonObject decode(String json) {
-        return JsonObject.decode(json);
-    }
-
     public JsonObject putLong(String name, long number) {
-        return object.putLong(name, number);
+        return object.putLong(checkKey(name), number);
     }
 
-    public boolean contains(String name) {
-        return object.contains(name);
-    }
-
-    public boolean isArray() {
-        return object.isArray();
-    }
-
-    public JsonArray asArray() {
-        return object.asArray();
-    }
-
-    public boolean isObject() {
-        return object.isObject();
-    }
-
-    public JsonObject merge(JsonObject other) {
-        return object.merge(other);
-    }
-
-    public int size() {
-        return object.size();
-    }
-
-    public JsonObject putBoolean(String name, boolean bool) {
-        return object.putBoolean(name, bool);
-    }
-
-    public boolean isNull(String name) {
-        return object.isNull(name);
-    }
-
-    public <T> T get(String name) {
-        return object.get(name);
-    }
-
-    public JsonObject putDouble(String name, double number) {
-        return object.putDouble(name, number);
-    }
-
-    public Set<String> getFieldNames() {
-        return object.getFieldNames();
-    }
-
-    public int getInt(String name, int otherwise) {
-        return object.getInt(name, otherwise);
+    public Long getLong(String name) {
+        return object.getLong(name);
     }
 
     public long getLong(String name, long otherwise) {
         return object.getLong(name, otherwise);
     }
 
-    public float getFloat(String name, float otherwise) {
-        return object.getFloat(name, otherwise);
+    public JsonObject putDouble(String name, double number) {
+        return object.putDouble(checkKey(name), number);
     }
 
     public double getDouble(String name, double otherwise) {
         return object.getDouble(name, otherwise);
+    }
+
+    public Double getDouble(String name) {
+        return object.getDouble(name);
+    }
+
+    public int getInt(String name, int otherwise) {
+        return object.getInt(name, otherwise);
+    }
+
+    public Integer getInt(String name) {
+        return object.getInt(name);
+    }
+
+    public float getFloat(String name, float otherwise) {
+        return object.getFloat(name, otherwise);
+    }
+
+    public Float getFloat(String name) {
+        return object.getFloat(name);
+    }
+
+    public JsonObject putNull(String name) {
+        return object.putNull(checkKey(name));
+    }
+
+    public boolean isNull(String name) {
+        return object.isNull(name);
+    }
+
+    public JsonObject putArray(String name, JsonArray value) {
+        return object.putArray(checkKey(name), value);
+    }
+
+    public JsonArray getArray(String name) {
+        return object.getArray(name);
+    }
+
+    public JsonArray getArray(String name, JsonArray otherwise) {
+        return object.getArray(name, otherwise);
+    }
+
+    public JsonObject putObject(String name, JsonObject value) {
+        return object.putObject(checkKey(name), value);
+    }
+
+    public JsonObject getObject(String name) {
+        return object.getObject(name);
+    }
+
+    public JsonObject getObject(String name, JsonObject otherwise) {
+        return object.getObject(name, otherwise);
+    }
+
+    public JsonObject putStructure(String name, JsonStructure value) {
+        return object.putStructure(checkKey(name), value);
+    }
+
+    public JsonStructure getStructure(String name) {
+        return object.getStructure(name);
+    }
+
+    public JsonStructure getStructure(String name, JsonStructure otherwise) {
+        return object.getStructure(name, otherwise);
+    }
+
+    public JsonObject putBinary(String name, byte[] value) {
+        return object.putBinary(checkKey(name), value);
+    }
+
+    public byte[] getBinary(String name) {
+        return object.getBinary(name);
     }
 
     public byte[] getBinary(String name, byte[] otherwise) {
@@ -228,9 +222,26 @@ public class BaasDocument extends BAASObject<BaasDocument> {
         return object.remove(name);
     }
 
+    public boolean contains(String name) {
+        return object.contains(name);
+    }
+
+    public Set<String> getFieldNames() {
+        return object.getFieldNames();
+    }
+
+    public int size() {
+        return object.size();
+    }
+
+    public JsonObject merge(JsonObject other) {
+        return object.merge(checkObject(other));
+    }
+
     /// methods
 
     // counting
+
     public static <T> RequestToken count(String collection, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
         if (handler == null) throw new NullPointerException("handler cannot be null");
         BAASBox client = BAASBox.getDefaultChecked();
@@ -355,6 +366,20 @@ public class BaasDocument extends BAASObject<BaasDocument> {
         return new ListRequest<T>(get, priority, tag, handler);
     }
 
+    public <T> RequestToken save(T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        return save(box, tag, priority, handler);
+    }
+
+    public RequestToken save(BAASBox.BAASHandler<BaasDocument, ?> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        return save(box, null, Priority.NORMAL, handler);
+    }
+
+    public BaasResult<BaasDocument> saveSync() {
+        return saveSync(BAASBox.getDefaultChecked());
+    }
+
     private final static class ListRequest<T> extends BaseRequest<List<BaasDocument>, T> {
 
         ListRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
@@ -442,17 +467,16 @@ public class BaasDocument extends BAASObject<BaasDocument> {
         return save(client, null, Priority.NORMAL, handler);
     }
 
-    @Override
     public BaasResult<BaasDocument> saveSync(BAASBox client) {
         RequestFactory factory = client.requestFactory;
         String id = getId();
         final HttpRequest req;
         if (id == null) {
             String endpoint = factory.getEndpoint("document/?", collection);
-            req = factory.post(endpoint, toJson().copy());
+            req = factory.post(endpoint, object.copy());
         } else {
             String endpoint = factory.getEndpoint("document/?/?", collection, id);
-            req = factory.put(endpoint, toJson().copy());
+            req = factory.put(endpoint, object.copy());
         }
         BaasRequest<BaasDocument, Void> breq = new DocumentRequest<Void>(this, req, null, null, null);
         return client.submitRequestSync(breq);
@@ -468,17 +492,16 @@ public class BaasDocument extends BAASObject<BaasDocument> {
      * @param <T>
      * @return a disposer that can be used to control the request
      */
-    @Override
     public <T> RequestToken save(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
         RequestFactory factory = client.requestFactory;
         String id = getId();
         final HttpRequest req;
         if (id == null) {
             String endpoint = factory.getEndpoint("document/?", collection);
-            req = factory.post(endpoint, toJson().copy());
+            req = factory.post(endpoint, object.copy());
         } else {
             String endpoint = factory.getEndpoint("document/?/?", collection, id);
-            req = factory.put(endpoint, toJson().copy());
+            req = factory.put(endpoint, object.copy());
         }
         BaasRequest<BaasDocument, T> breq = new DocumentRequest<T>(this, req, priority, tag, handler);
         return client.submitRequest(breq);
