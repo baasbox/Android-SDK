@@ -89,6 +89,9 @@ class RequestFactory {
     }
 
 
+    public HttpRequest post(String uri) {
+        return post(uri, (JsonObject) null);
+    }
 
     public HttpRequest post(String uri,Map<String,String> form_params){
         InputStream body = null;
