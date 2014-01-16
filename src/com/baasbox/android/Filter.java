@@ -5,12 +5,19 @@ import java.util.ArrayList;
 /**
  * Created by Andrea Tortorella on 15/01/14.
  */
-public final class Filter {
+public class Filter {
 
     StringBuilder where = null;
     ArrayList<CharSequence> params = null;
     String orderBy;
     Paging paging;
+
+    public final static Filter ANY = new Filter() {
+        @Override
+        RequestFactory.Param[] toParams() {
+            return null;
+        }
+    };
 
     private static class Paging {
         int page;
