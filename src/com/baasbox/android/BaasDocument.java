@@ -1019,6 +1019,84 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         return doc.saveSync(SaveMode.IGNORE_VERSION);
     }
 
+    public <T> RequestToken revoke(Grant grant, String user, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (grant == null) throw new NullPointerException("grant cannot be null");
+        if (user == null) throw new NullPointerException("user cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        GrantRequest<T> request = GrantRequest.grant(box, false, grant, false, collection, id, user, tag, priority, handler);
+        return box.submitRequest(request);
+    }
+
+    public RequestToken revoke(Grant grant, String user, BAASBox.BAASHandler<Void, ?> handler) {
+        return revoke(grant, user, null, Priority.NORMAL, handler);
+    }
+
+    public <T> RequestToken revoke(Grant grant, BaasUser user, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        String username = user.getName();
+        if (username == null) throw new IllegalStateException("missing username");
+        return revoke(grant, username, tag, priority, handler);
+    }
+
+    public RequestToken revoke(Grant grant, BaasUser user, BAASBox.BAASHandler<Void, ?> handler) {
+        String username = user.getName();
+        if (username == null) throw new IllegalStateException("missing username");
+        return revoke(grant, username, null, Priority.NORMAL, handler);
+    }
+
+
+    public <T> RequestToken grant(Grant grant, String user, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (grant == null) throw new NullPointerException("grant cannot be null");
+        if (user == null) throw new NullPointerException("user cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        GrantRequest<T> request = GrantRequest.grant(box, true, grant, false, collection, id, user, tag, priority, handler);
+        return box.submitRequest(request);
+    }
+
+    public RequestToken grant(Grant grant, String user, BAASBox.BAASHandler<Void, ?> handler) {
+        return grant(grant, user, null, Priority.NORMAL, handler);
+    }
+
+
+    public <T> RequestToken grant(Grant grant, BaasUser user, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        String username = user.getName();
+        if (username == null) throw new IllegalStateException("missing username");
+        return grant(grant, username, tag, priority, handler);
+    }
+
+    public RequestToken grant(Grant grant, BaasUser user, BAASBox.BAASHandler<Void, ?> handler) {
+        String username = user.getName();
+        if (username == null) throw new IllegalStateException("missing username");
+        return grant(grant, username, null, Priority.NORMAL, handler);
+    }
+
+    private static final class GrantRequest<T> extends BaseRequest<Void, T> {
+        static <T> GrantRequest<T> grant(BAASBox box, boolean add, Grant grant, boolean role, String collection, String docId, String userOrRole, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+            String type = role ? "role" : "user";
+            String endpoint = box.requestFactory.getEndpoint("document/?/?/?/?/?", collection, docId, grant.action, type, userOrRole);
+            HttpRequest request;
+            if (add) {
+                request = box.requestFactory.put(endpoint, null);
+            } else {
+                request = box.requestFactory.delete(endpoint);
+            }
+            return new GrantRequest<T>(request, priority, tag, handler);
+        }
+
+        private GrantRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<Void, T> handler) {
+            super(request, priority, t, handler);
+
+        }
+
+        @Override
+        protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            return null;
+        }
+    }
+
     private static final class SaveRequest<T> extends BaseRequest<BaasDocument, T> {
 
         static <T> SaveRequest<T> create(BAASBox client, BaasDocument document, SaveMode mode, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
