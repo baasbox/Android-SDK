@@ -3,18 +3,14 @@ package com.baasbox.android;
 import android.webkit.MimeTypeMap;
 
 import com.baasbox.android.exceptions.BAASBoxException;
-import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.HttpRequest;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -352,7 +348,7 @@ public class BaasFile extends BaasObject<BaasFile> {
         return stream(id, tag, priority, contentHandler, handler);
     }
 
-    public static BaasResult<BaasStrem> streamSync(String id, int sizeId) {
+    public static BaasResult<BaasStream> streamSync(String id, int sizeId) {
         BAASBox box = BAASBox.getDefaultChecked();
         if (id == null) throw new NullPointerException("id cannot be null");
         RequestFactory factory = box.requestFactory;
@@ -369,12 +365,12 @@ public class BaasFile extends BaasObject<BaasFile> {
         return box.submitRequestSync(synReq);
     }
 
-    public BaasResult<BaasStrem> streamSync(int sizeId) {
+    public BaasResult<BaasStream> streamSync(int sizeId) {
         if (id == null) throw new NullPointerException("this is not bound to a remote entity");
         return streamSync(id, sizeId);
     }
 
-    public BaasResult<BaasStrem> streamSync() {
+    public BaasResult<BaasStream> streamSync() {
         if (id == null) throw new NullPointerException("this is not bound to a remote entity");
         return streamSync(id, -1);
     }
@@ -491,99 +487,5 @@ public class BaasFile extends BaasObject<BaasFile> {
         }
     }
 
-    public static interface DataStreamHandler<R> {
-        public R onData(byte[] data, int read, long contentLength, String id, String contentType) throws Exception;
-    }
-
-    private static class SyncDataRequest extends BaasRequest<BaasStrem, Void> {
-        private final String id;
-
-        SyncDataRequest(String id, HttpRequest request) {
-            super(request, null, null, null, true);
-            this.id = id;
-        }
-
-        @Override
-        public BaasStrem parseResponse(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            boolean close = true;
-            HttpEntity entity = null;
-            try {
-                entity = response.getEntity();
-                BaasStrem stream = new BaasStrem(id, entity);
-                close = false;
-                return stream;
-            } catch (IOException e) {
-                throw new BAASBoxException(e);
-            } finally {
-                if (close) {
-                    try {
-                        if (entity != null) {
-                            entity.consumeContent();
-                        }
-                    } catch (IOException ex) {
-                    }
-                }
-            }
-        }
-
-    }
-
-
-    private static class DataRequest<T, R> extends BaseRequest<R, T> {
-        private final String id;
-        private final DataStreamHandler<R> dataHandler;
-
-        DataRequest(String id, HttpRequest request, Priority priority, T t, DataStreamHandler<R> dataHandler, BAASBox.BAASHandler<R, T> endHandler) {
-            super(request, priority, t, endHandler);
-            this.id = id;
-            this.dataHandler = dataHandler;
-        }
-
-        @Override
-        protected R handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            HttpEntity entity = null;
-            BufferedInputStream in = null;
-            R result = null;
-            try {
-                entity = response.getEntity();
-                Header contentTypeHeader = entity.getContentType();
-                String contentType = "application/octet-stream";
-                if (contentTypeHeader != null) contentType = contentTypeHeader.getValue();
-                long contentLength = entity.getContentLength();
-                byte[] data = new byte[Math.min((int) contentLength, 4096)];
-
-                in = BaasStrem.getInput(entity);
-                int read = 0;
-
-                long available = contentLength;
-
-                while ((read = in.read(data, 0, Math.min((int) available, data.length))) > 0) {
-                    available -= read;
-
-                    result = dataHandler.onData(data, read, contentLength, id, contentType);
-
-                }
-                result = dataHandler.onData(null, 0, contentLength, id, contentType);
-            } catch (IOException e) {
-                throw new BAASBoxException(e);
-            } catch (Exception e) {
-                throw new BAASBoxException(e);
-            } finally {
-                try {
-                    if (in != null) {
-                        in.close();
-                    }
-                    if (entity != null) {
-                        entity.consumeContent();
-                    }
-                } catch (IOException e) {
-                    BAASLogging.debug("Error while parsing data " + e.getMessage());
-                }
-            }
-            return result;
-        }
-
-
-    }
 
 }

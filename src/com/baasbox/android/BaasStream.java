@@ -11,13 +11,13 @@ import java.io.InputStream;
 /**
  * Created by eto on 16/01/14.
  */
-public final class BaasStrem extends FilterInputStream {
+public final class BaasStream extends FilterInputStream {
     private final HttpEntity entity;
     public final String contentType;
     public final long contentLength;
     public final String id;
 
-    BaasStrem(String id, HttpEntity entity) throws IOException {
+    BaasStream(String id, HttpEntity entity) throws IOException {
         super(getInput(entity));
         this.entity = entity;
         this.id = id;
