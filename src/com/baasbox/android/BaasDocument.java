@@ -6,7 +6,6 @@ import android.os.Parcelable;
 
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxIOException;
-import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
@@ -982,67 +981,86 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         return client.submitRequestSync(req);
     }
 
+    public static <T> RequestToken create(String collection, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
+        if (collection == null) throw new NullPointerException("collection cannot be null");
+        BaasDocument doc = new BaasDocument(collection);
+        return doc.save(SaveMode.IGNORE_VERSION, tag, priority, handler);
+    }
 
-    public <T> RequestToken save(T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
+    public static RequestToken create(String collection, BAASBox.BAASHandler<BaasDocument, ?> handler) {
+        if (collection == null) throw new NullPointerException("collection cannot be null");
+        BaasDocument doc = new BaasDocument(collection);
+        return doc.save(SaveMode.IGNORE_VERSION, null, Priority.NORMAL, handler);
+    }
+
+
+    public RequestToken save(SaveMode mode, BAASBox.BAASHandler<BaasDocument, ?> handler) {
+        return save(mode, null, Priority.NORMAL, handler);
+    }
+
+    public <T> RequestToken save(SaveMode mode, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
         BAASBox box = BAASBox.getDefaultChecked();
-        return save(box, tag, priority, handler);
+        if (mode == null) throw new NullPointerException("mode cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        SaveRequest<T> req = SaveRequest.create(box, this, mode, tag, priority, handler);
+        return box.submitRequest(req);
     }
 
-    public RequestToken save(BAASBox.BAASHandler<BaasDocument, ?> handler) {
+    public BaasResult<BaasDocument> saveSync(SaveMode mode) {
         BAASBox box = BAASBox.getDefaultChecked();
-        return save(box, null, Priority.NORMAL, handler);
+        if (mode == null) throw new NullPointerException("mode cannot be null");
+        SaveRequest<Void> req = SaveRequest.create(box, this, mode, null, null, null);
+        return box.submitRequestSync(req);
     }
 
-
-    public RequestToken save(BAASBox client, BAASBox.BAASHandler<BaasDocument, ?> handler) {
-        return save(client, null, Priority.NORMAL, handler);
+    public static BaasResult<BaasDocument> createSync(String collection){
+        BaasDocument doc = new BaasDocument(collection);
+        return doc.saveSync(SaveMode.IGNORE_VERSION);
     }
 
+    private static final class SaveRequest<T> extends BaseRequest<BaasDocument, T> {
 
-    /**
-     * Saves this object to the backend using the provided client instance
-     *
-     * @param client   the client
-     * @param tag      an optional tag
-     * @param priority an optional priority defaults to 0
-     * @param handler  the handler for the request
-     * @param <T>
-     * @return a disposer that can be used to control the request
-     */
-    public <T> RequestToken save(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
-        RequestFactory factory = client.requestFactory;
-        String id = getId();
-        final HttpRequest req;
-        if (id == null) {
-            String endpoint = factory.getEndpoint("document/?", collection);
-            req = factory.post(endpoint, object.copy());
-        } else {
-            String endpoint = factory.getEndpoint("document/?/?", collection, id);
-            req = factory.put(endpoint, object.copy());
+        static <T> SaveRequest<T> create(BAASBox client, BaasDocument document, SaveMode mode, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
+            final String collection = document.collection;
+            final String id = document.getId();
+            RequestFactory factory = client.requestFactory;
+            HttpRequest request;
+
+            if (id == null) {
+                String endpoint = factory.getEndpoint("document/?", collection);
+                request = factory.post(endpoint, document.object);
+            } else {
+                String endpoint = factory.getEndpoint("document/?/?", collection, id);
+                JsonObject o = document.object;
+                if (mode == SaveMode.CHECK_VERSION) {
+                    o = o.copy().putLong("@version", document.version);
+                }
+                request = factory.put(endpoint, o);
+            }
+            return new SaveRequest<T>(request, document, priority, tag, handler);
         }
-        BaasRequest<BaasDocument, T> breq = new DocumentRequest<T>(this, req, priority, tag, handler);
-        return client.submitRequest(breq);
-    }
 
-    public BaasResult<BaasDocument> saveSync() {
-        return saveSync(BAASBox.getDefaultChecked());
-    }
+        private final BaasDocument document;
 
-
-    public BaasResult<BaasDocument> saveSync(BAASBox client) {
-        RequestFactory factory = client.requestFactory;
-        String id = getId();
-        final HttpRequest req;
-        if (id == null) {
-            String endpoint = factory.getEndpoint("document/?", collection);
-            req = factory.post(endpoint, object.copy());
-        } else {
-            String endpoint = factory.getEndpoint("document/?/?", collection, id);
-            req = factory.put(endpoint, object.copy());
+        private SaveRequest(HttpRequest request, BaasDocument document, Priority priority, T t, BAASBox.BAASHandler<BaasDocument, T> handler) {
+            super(request, priority, t, handler);
+            this.document = document;
         }
-        BaasRequest<BaasDocument, Void> breq = new DocumentRequest<Void>(this, req, null, null, null);
-        return client.submitRequestSync(breq);
+
+        @Override
+        protected BaasDocument handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            try {
+                JsonObject data = getJsonEntity(response, config.HTTP_CHARSET);
+                JsonObject toMerge = data.getObject("data");
+                this.document.update(toMerge);
+                return document;
+            } catch (JsonException e) {
+                throw new BAASBoxException(e);
+            }
+        }
     }
+
 
     private final static class RefreshRequest<T> extends BaseRequest<BaasDocument, T> {
         private BaasDocument document;
@@ -1109,34 +1127,6 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
             return count;
         }
     }
-
-    // fetch
-
-
-    private static class DocumentRequest<T> extends BaseRequest<BaasDocument, T> {
-        private final BaasDocument obj;
-
-        DocumentRequest(BaasDocument document, HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<BaasDocument, T> handler) {
-            super(request, priority, t, handler);
-            this.obj = document;
-        }
-
-
-        @Override
-        protected BaasDocument handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
-            JsonObject data = content.getObject("data");
-            BAASLogging.debug("RECEIVED " + data.toString());
-            if (this.obj != null) {
-                data.remove("@class");
-                this.obj.object.merge(data);
-                return this.obj;
-            } else {
-                return new BaasDocument(data);
-            }
-        }
-    }
-
 
     @Override
     public int describeContents() {
