@@ -19,8 +19,12 @@ class DataRequest<T, R> extends BaseRequest<R, T> {
     private final String id;
     private final DataStreamHandler<R> dataHandler;
 
-    DataRequest(String id, HttpRequest request, Priority priority, T t, DataStreamHandler<R> dataHandler, BAASBox.BAASHandler<R, T> endHandler) {
-        super(request, priority, t, endHandler);
+    DataRequest(String id, HttpRequest request, Priority priority, T tag, DataStreamHandler<R> dataHandler, BAASBox.BAASHandler<R, T> handler) {
+        this(id, request, priority, tag, dataHandler, handler, true);
+    }
+
+    DataRequest(String id, HttpRequest request, Priority priority, T t, DataStreamHandler<R> dataHandler, BAASBox.BAASHandler<R, T> endHandler, boolean needsAuth) {
+        super(request, priority, t, endHandler, needsAuth);
         this.id = id;
         this.dataHandler = dataHandler;
     }
