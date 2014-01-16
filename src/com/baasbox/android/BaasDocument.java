@@ -613,45 +613,203 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         return version;
     }
 
-    // counting
-    public static <T> RequestToken count(String collection, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
-        if (handler == null) throw new NullPointerException("handler cannot be null");
-        BAASBox client = BAASBox.getDefaultChecked();
-        priority = priority == null ? Priority.NORMAL : priority;
-        BaasRequest<Long, T> request = countRequest(client.requestFactory, collection, tag, priority, handler);
-        return client.submitRequest(request);
+    ///--------------------- REQUESTS ------------------------------
+
+    /**
+     * Asynchronously retrieves the list of documents readable to the user in <code>collection</code>.
+     * This method uses default {@link com.baasbox.android.Priority#NORMAL} and not tag.
+     *
+     * @param collection the collection to retrieve not <code>null</code>
+     * @param handler    a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     */
+    public static RequestToken getAll(String collection, BAASBox.BAASHandler<List<BaasDocument>, ?> handler) {
+        return getAll(BAASBox.getDefaultChecked(), collection, null, null, Priority.NORMAL, handler);
     }
 
-    public static <T> RequestToken count(BAASBox client, String collection, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
-        if (handler == null) throw new NullPointerException("handler cannot be null");
+    /**
+     * Asynchronously retrieves the list of documents readable to the user that match <code>filter</code>
+     * in <code>collection</code>
+     * This method uses default {@link com.baasbox.android.Priority#NORMAL} and no tag.
+     *
+     * @param collection the collection to retrieve not <code>null</code>
+     * @param filter     a filter to apply to the request
+     * @param handler    a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     */
+    public static RequestToken getAll(String collection, Filter filter, BAASBox.BAASHandler<List<BaasDocument>, ?> handler) {
+        return getAll(BAASBox.getDefaultChecked(), collection, filter, null, Priority.NORMAL, handler);
+    }
+
+
+    /**
+     * Asynchronously retrieves the list of documents readable to the user that match <code>filter</code>
+     * in <code>collection</code>
+     *
+     * @param collection the collection to retrieve not <code>null</code>
+     * @param filter     a filter to apply to the request
+     * @param tag        a tag that will be paassed to the handler
+     * @param priority   at which this request will be executed
+     * @param handler    a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     */
+    public static <T> RequestToken getAll(String collection, Filter filter, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
+        return getAll(BAASBox.getDefaultChecked(), collection, filter, tag, priority, handler);
+    }
+
+
+    /**
+     * Asynchronously retrieves the list of documents readable to the user
+     * in <code>collection</code>
+     *
+     * @param collection the collection to retrieve not <code>null</code>
+     * @param tag        a tag that will be paassed to the handler
+     * @param priority   at which this request will be executed
+     * @param handler    a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     */
+    public static <T> RequestToken getAll(String collection, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
+        return getAll(BAASBox.getDefaultChecked(), collection, null, tag, priority, handler);
+    }
+
+
+    private static <T> RequestToken getAll(BAASBox client, String collection, Filter filter, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
         if (client == null) throw new NullPointerException("client cannot be null");
+        if (collection == null) throw new NullPointerException("collection cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
         priority = priority == null ? Priority.NORMAL : priority;
-        BaasRequest<Long, T> req = countRequest(client.requestFactory, collection, tag, priority, handler);
+        filter = filter == null ? Filter.ANY : filter;
+        ListRequest<T> req = new ListRequest<T>(client.requestFactory, collection, filter, priority, tag, handler);
         return client.submitRequest(req);
     }
 
-    public static BaasResult<Long> counSync(String collection) {
-        BAASBox client = BAASBox.getDefaultChecked();
-        BaasRequest<Long, Void> req = countRequest(client.requestFactory, collection, null, null, null);
-        return client.submitRequestSync(req);
+    /**
+     * Synchronously retrieves the list of documents readable to the user that match <code>filter</code>
+     * in <code>collection</code>
+     *
+     * @param collection the collection to retrieve not <code>null</code>
+     * @param filter     a {@link com.baasbox.android.Filter} to apply to the request. May be <code>null</code>
+     * @return the result of the request
+     */
+    public static BaasResult<List<BaasDocument>> getAllSync(String collection, Filter filter) {
+        return getAllSync(BAASBox.getDefaultChecked(), collection, filter);
     }
 
-    public static BaasResult<Long> countSync(BAASBox client, String collection) {
+
+    /**
+     * Synchronously retrieves the list of documents readable to the user
+     * in <code>collection</code>
+     *
+     * @param collection the collection to retrieve not <code>null</code>
+     * @return the result of the request
+     */
+    public static BaasResult<List<BaasDocument>> getAllSync(String collection) {
+        return getAllSync(BAASBox.getDefaultChecked(), collection, null);
+    }
+
+    private static BaasResult<List<BaasDocument>> getAllSync(BAASBox client, String collection,Filter filter) {
         if (client == null) throw new NullPointerException("client cannot be null");
-        BaasRequest<Long, Void> req = countRequest(client.requestFactory, collection, null, null, null);
-        return client.submitRequestSync(req);
-    }
-
-    private static <T> BaasRequest<Long, T> countRequest(RequestFactory factory, String collection, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
-        String endpoint = factory.getEndpoint("document/?/count", collection);
-        HttpRequest req = factory.get(endpoint);
-        return new CountRequest<T>(req, priority, tag, handler);
+        filter = filter == null ? Filter.ANY : filter;
+        ListRequest<Void> request = new ListRequest<Void>(client.requestFactory, collection, filter, null, null, null);
+        return client.submitRequestSync(request);
     }
 
+    /**
+     * Asynchronously retrieves the number of documents readable to the user in <code>collection</code>.
+     * This method use default {@link com.baasbox.android.Priority#NORMAL} and no <code>tag</code>.
+     *
+     * @param collection the collection to count not <code>null</code>
+     * @param handler    a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     */
+    public static RequestToken count(String collection, BAASBox.BAASHandler<Long, ?> handler) {
+        return count(BAASBox.getDefaultChecked(), collection, null, null, Priority.NORMAL, handler);
+    }
+
+    /**
+     * Asynchronously retrieves the number of documents readable to the user that match the <code>filter</code>
+     * in <code>collection</code>.
+     * This method use default {@link com.baasbox.android.Priority#NORMAL} and no <code>tag</code>.
+     *
+     * @param collection the collection to count not <code>null</code>
+     * @param filter     a {@link com.baasbox.android.Filter} to apply to the request. May be <code>null</code>
+     * @param handler    a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     */
+    public static RequestToken count(String collection, Filter filter, BAASBox.BAASHandler<Long, ?> handler) {
+        return count(BAASBox.getDefaultChecked(), collection, null, null, Priority.NORMAL, handler);
+    }
+
+
+    /**
+     * Asynchronously retrieves the number of documents readable to the user in <code>collection</code>
+     *
+     * @param collection the collection to count not <code>null</code>
+     * @param tag        a tag that will be paassed to the handler
+     * @param priority   at which this request will be executed
+     * @param handler    a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     */
+    public static <T> RequestToken count(String collection, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
+        return count(BAASBox.getDefaultChecked(), collection, null, tag, priority, handler);
+    }
+
+
+    /**
+     * Asynchronously retrieves the number of documents readable to the user that match the <code>filter</code>
+     * in <code>collection</code>
+     *
+     * @param collection the collection to count not <code>null</code>
+     * @param filter     a {@link com.baasbox.android.Filter} to apply to the request. May be <code>null</code>
+     * @param tag        a tag that will be paassed to the handler
+     * @param priority   at which this request will be executed
+     * @param handler    a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     */
+    public static <T> RequestToken count(String collection, Filter filter, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
+        return count(BAASBox.getDefaultChecked(), collection, filter, tag, priority, handler);
+    }
+
+    private static <T> RequestToken count(BAASBox client, String collection, Filter filter, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
+        if (collection == null) throw new NullPointerException("collection cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        if (client == null) throw new NullPointerException("client cannot be null");
+        CountRequest<T> request = new CountRequest<T>(client.requestFactory,collection, filter, priority, tag, handler);
+        return client.submitRequest(request);
+    }
+
+
+    /**
+     * Synchronously retrieves the number of document readable to the user in <code>collection</code>
+     *
+     * @param collection the collection to count not <code>null</code>
+     * @return the result of the request
+     */
+    public static BaasResult<Long> counSync(String collection) {
+        return countSync(BAASBox.getDefaultChecked(), collection, null);
+    }
+
+    /**
+     * Synchronously retrieves the number of document readable to the user that match <code>filter</code>
+     * in <code>collection</code>
+     *
+     * @param collection the collection to count not <code>null</code>
+     * @param filter     a filter to apply to the request
+     * @return the result of the request
+     */
+    public static BaasResult<Long> countSync(String collection, Filter filter) {
+        return countSync(BAASBox.getDefaultChecked(), collection, filter);
+    }
+
+    private static BaasResult<Long> countSync(BAASBox client, String collection, Filter filter) {
+        if (client == null) throw new NullPointerException("client cannot be null");
+        if (collection == null) throw new NullPointerException("collection cannot be null");
+        CountRequest<Void> request = new CountRequest<Void>(client.requestFactory, collection, filter,null,null,null);
+        return client.submitRequestSync(request);
+    }
 
     // delete
-
     public RequestToken delete(BAASBox.BAASHandler<Void, ?> handler) {
         return delete(BAASBox.getDefaultChecked(), null, Priority.NORMAL, handler);
     }
@@ -695,49 +853,6 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     }
 
 
-    // getall
-    public static RequestToken getAll(String collection, BAASBox.BAASHandler<List<BaasDocument>, ?> handler) {
-        return getAll(BAASBox.getDefaultChecked(), collection, null, Priority.NORMAL, handler);
-    }
-
-    public static <T> RequestToken getAll(String collection, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
-        BAASBox client = BAASBox.getDefaultChecked();
-        return getAll(client, collection, tag, priority, handler);
-    }
-
-
-    public static RequestToken getAll(BAASBox client, String collection, BAASBox.BAASHandler<List<BaasDocument>, ?> handler) {
-        return getAll(client, collection, null, Priority.NORMAL, handler);
-    }
-
-    public static <T> RequestToken getAll(BAASBox client, String collection, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
-        if (client == null) throw new NullPointerException("client cannot be null");
-        if (collection == null) throw new NullPointerException("collection cannot be null");
-        if (handler == null) throw new NullPointerException("handler cannot be null");
-        priority = priority == null ? Priority.NORMAL : priority;
-        BaasRequest<List<BaasDocument>, T> breq = listRequest(client, collection, tag, priority, handler);
-        return client.submitRequest(breq);
-    }
-
-    public static BaasResult<List<BaasDocument>> getAllSync(String collection) {
-        BAASBox client = BAASBox.getDefaultChecked();
-        return getAllSync(client, collection);
-    }
-
-    public static BaasResult<List<BaasDocument>> getAllSync(BAASBox client, String collection) {
-        if (client == null) throw new NullPointerException("client cannot be null");
-        if (collection == null) throw new NullPointerException("collection cannot be null");
-        BaasRequest<List<BaasDocument>, Void> req = listRequest(client, collection, null, null, null);
-        return client.submitRequestSync(req);
-    }
-
-    private static <T> BaasRequest<List<BaasDocument>, T> listRequest(BAASBox client, String collection, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
-        final RequestFactory factory = client.requestFactory;
-        String endpoint = factory.getEndpoint("document/?", collection);
-        HttpRequest get = factory.get(endpoint);
-        return new ListRequest<T>(get, priority, tag, handler);
-    }
-
     public <T> RequestToken save(T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
         BAASBox box = BAASBox.getDefaultChecked();
         return save(box, tag, priority, handler);
@@ -755,8 +870,8 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
     private final static class ListRequest<T> extends BaseRequest<List<BaasDocument>, T> {
 
-        ListRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
-            super(request, priority, t, handler);
+        ListRequest(RequestFactory factory, String collection, Filter filter, Priority priority, T t, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
+            super(factory.get(factory.getEndpoint("document/?", collection),filter.toParams()), priority, t, handler);
         }
 
         @Override
@@ -777,8 +892,9 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
     private final static class CountRequest<T> extends BaseRequest<Long, T> {
 
-        CountRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<Long, T> handler) {
-            super(request, priority, t, handler);
+        CountRequest(RequestFactory factory, String collection, Filter filter, Priority priority, T t, BAASBox.BAASHandler<Long, T> handler) {
+            super(factory.get(factory.getEndpoint("docuement/?/count",collection),filter==null?null:filter.toParams()), priority, t, handler);
+
         }
 
         @Override
