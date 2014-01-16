@@ -29,7 +29,7 @@ import java.util.Set;
  */
 public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<Map.Entry<String, Object>>, Parcelable {
 
-    private final JsonObject object;
+    private final JsonObject data;
     private final String collection;
     private String id;
     private String author;
@@ -50,7 +50,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         this.version = data.getLong("@version");
         data.remove("@version");
         data.remove("@rid");
-        object = data;
+        this.data = data;
     }
 
 
@@ -69,7 +69,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         this.version = data.getLong("@version");
         data.remove("@version");
         data.remove("@rid");
-        object.merge(data);
+        this.data.merge(data);
     }
 
     /**
@@ -95,7 +95,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         this.collection = collection;
         data = checkObject(data);
         //fixme we copy the data to avoid insertion of forbidden fields, but this is a costly operation
-        this.object = data == null ? new JsonObject() : data.copy();
+        this.data = data == null ? new JsonObject() : data.copy();
     }
 
     private static JsonObject cleanObject(JsonObject data) {
@@ -147,7 +147,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return this document with the new mapping created
      */
     public BaasDocument putString(String name, String value) {
-        object.putString(checkKey(name), value);
+        data.putString(checkKey(name), value);
         return this;
     }
 
@@ -160,7 +160,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public String getString(String name, String otherwise) {
-        return object.getString(name, otherwise);
+        return data.getString(name, otherwise);
     }
 
 
@@ -172,7 +172,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>null</code>
      */
     public String getString(String name) {
-        return object.getString(name);
+        return data.getString(name);
     }
 
     /**
@@ -184,7 +184,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return this document with the new mapping created
      */
     public BaasDocument putBoolean(String name, boolean value) {
-        object.putBoolean(checkKey(name), value);
+        data.putBoolean(checkKey(name), value);
         return this;
     }
 
@@ -196,7 +196,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>null</code>
      */
     public Boolean getBoolean(String name) {
-        return object.getBoolean(name);
+        return data.getBoolean(name);
     }
 
 
@@ -210,7 +210,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public boolean getBoolean(String name, boolean otherwise) {
-        return object.getBoolean(name, otherwise);
+        return data.getBoolean(name, otherwise);
     }
 
     /**
@@ -222,7 +222,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return this document with the new mapping created
      */
     public BaasDocument putLong(String name, long value) {
-        object.putLong(checkKey(name), value);
+        data.putLong(checkKey(name), value);
         return this;
     }
 
@@ -234,7 +234,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>null</code>
      */
     public Long getLong(String name) {
-        return object.getLong(name);
+        return data.getLong(name);
     }
 
     /**
@@ -247,7 +247,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public long getLong(String name, long otherwise) {
-        return object.getLong(name, otherwise);
+        return data.getLong(name, otherwise);
     }
 
     /**
@@ -259,7 +259,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return this document with the new mapping created
      */
     public BaasDocument putDouble(String name, double value) {
-        object.putDouble(checkKey(name), value);
+        data.putDouble(checkKey(name), value);
         return this;
     }
 
@@ -273,7 +273,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public double getDouble(String name, double otherwise) {
-        return object.getDouble(name, otherwise);
+        return data.getDouble(name, otherwise);
     }
 
     /**
@@ -284,7 +284,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>null</code>
      */
     public Double getDouble(String name) {
-        return object.getDouble(name);
+        return data.getDouble(name);
     }
 
     /**
@@ -297,7 +297,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public int getInt(String name, int otherwise) {
-        return object.getInt(name, otherwise);
+        return data.getInt(name, otherwise);
     }
 
 
@@ -309,7 +309,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>null</code>
      */
     public Integer getInt(String name) {
-        return object.getInt(name);
+        return data.getInt(name);
     }
 
     /**
@@ -322,7 +322,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public float getFloat(String name, float otherwise) {
-        return object.getFloat(name, otherwise);
+        return data.getFloat(name, otherwise);
     }
 
 
@@ -334,7 +334,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>null</code>
      */
     public Float getFloat(String name) {
-        return object.getFloat(name);
+        return data.getFloat(name);
     }
 
     /**
@@ -349,7 +349,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @see com.baasbox.android.BaasDocument#remove(String)
      */
     public BaasDocument putNull(String name) {
-        object.putNull(checkKey(name));
+        data.putNull(checkKey(name));
         return this;
     }
 
@@ -361,7 +361,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      *         <code>false</code> otherwise
      */
     public boolean isNull(String name) {
-        return object.isNull(name);
+        return data.isNull(name);
     }
 
     /**
@@ -373,7 +373,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return this document with the new mapping created
      */
     public BaasDocument putArray(String name, JsonArray value) {
-        object.putArray(checkKey(name), value);
+        data.putArray(checkKey(name), value);
         return this;
     }
 
@@ -386,7 +386,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>null</code>
      */
     public JsonArray getArray(String name) {
-        return object.getArray(name);
+        return data.getArray(name);
     }
 
 
@@ -399,7 +399,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public JsonArray getArray(String name, JsonArray otherwise) {
-        return object.getArray(name, otherwise);
+        return data.getArray(name, otherwise);
     }
 
 
@@ -412,7 +412,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return this document with the new mapping created
      */
     public BaasDocument putObject(String name, JsonObject value) {
-        object.putObject(checkKey(name), value);
+        data.putObject(checkKey(name), value);
         return this;
     }
 
@@ -424,7 +424,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>null</code>
      */
     public JsonObject getObject(String name) {
-        return object.getObject(name);
+        return data.getObject(name);
     }
 
 
@@ -437,7 +437,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public JsonObject getObject(String name, JsonObject otherwise) {
-        return object.getObject(name, otherwise);
+        return data.getObject(name, otherwise);
     }
 
     /**
@@ -451,7 +451,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @see com.baasbox.android.BaasDocument#putObject(String, com.baasbox.android.json.JsonObject)
      */
     public BaasDocument putStructure(String name, JsonStructure value) {
-        object.putStructure(checkKey(name), value);
+        data.putStructure(checkKey(name), value);
         return this;
     }
 
@@ -463,7 +463,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>null</code>
      */
     public JsonStructure getStructure(String name) {
-        return object.getStructure(name);
+        return data.getStructure(name);
     }
 
 
@@ -476,7 +476,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public JsonStructure getStructure(String name, JsonStructure otherwise) {
-        return object.getStructure(name, otherwise);
+        return data.getStructure(name, otherwise);
     }
 
     /**
@@ -489,7 +489,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return this document with the new mapping created
      */
     public BaasDocument putBinary(String name, byte[] value) {
-        object.putBinary(checkKey(name), value);
+        data.putBinary(checkKey(name), value);
         return this;
     }
 
@@ -501,7 +501,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>null</code>
      */
     public byte[] getBinary(String name) {
-        return object.getBinary(name);
+        return data.getBinary(name);
     }
 
 
@@ -514,7 +514,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public byte[] getBinary(String name, byte[] otherwise) {
-        return object.getBinary(name, otherwise);
+        return data.getBinary(name, otherwise);
     }
 
     /**
@@ -524,7 +524,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the value that was mapped to <code>name</code> if present or <code>null</code>
      */
     public Object remove(String name) {
-        return object.remove(name);
+        return data.remove(name);
     }
 
     /**
@@ -533,7 +533,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return <code>true</code> if the document contains the mapping <code>false</code> otherwise
      */
     public boolean contains(String name) {
-        return object.contains(name);
+        return data.contains(name);
     }
 
     /**
@@ -542,7 +542,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return a set of the keys contained in this document
      */
     public Set<String> getFieldNames() {
-        return object.getFieldNames();
+        return data.getFieldNames();
     }
 
     /**
@@ -551,7 +551,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the number of mappings contained in this document.
      */
     public int size() {
-        return object.size();
+        return data.size();
     }
 
     /**
@@ -560,7 +560,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return this document with no mappings
      */
     public BaasDocument clear() {
-        object.clear();
+        data.clear();
         return this;
     }
 
@@ -572,7 +572,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * of the values
      */
     public JsonArray values() {
-        return object.values();
+        return data.values();
     }
 
     /**
@@ -585,7 +585,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      */
     public BaasDocument merge(JsonObject other) {
         JsonObject o = checkObject(other);
-        object.merge(o == null ? o : o.copy());
+        data.merge(o == null ? o : o.copy());
         return this;
     }
 
@@ -596,7 +596,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      */
     @Override
     public Iterator<Map.Entry<String, Object>> iterator() {
-        return object.iterator();
+        return data.iterator();
     }
 
     /**
@@ -604,6 +604,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      *
      * @return
      */
+    @Override
     public final String getId() {
         return id;
     }
@@ -612,6 +613,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * Returns the author of this document
      * @return
      */
+    @Override
     public final String getAuthor() {
         return author;
     }
@@ -620,6 +622,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * The creation date of this document as a {@link java.lang.String}
      * @return
      */
+    @Override
     public final String getCreationDate() {
         return creation_date;
     }
@@ -627,8 +630,9 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
     /**
      * Returns the version number of this document
-     * @return a <code>long</code> representing the version of this object
+     * @return a <code>long</code> representing the version of this data
      */
+    @Override
     public final long getVersion() {
         return version;
     }
@@ -1107,10 +1111,10 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
             if (id == null) {
                 String endpoint = factory.getEndpoint("document/?", collection);
-                request = factory.post(endpoint, document.object);
+                request = factory.post(endpoint, document.data);
             } else {
                 String endpoint = factory.getEndpoint("document/?/?", collection, id);
-                JsonObject o = document.object;
+                JsonObject o = document.data;
                 if (mode == SaveMode.CHECK_VERSION) {
                     o = o.copy().putLong("@version", document.version);
                 }
@@ -1218,7 +1222,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         dest.writeLong(version);
         writeOptString(dest, author);
         writeOptString(dest, creation_date);
-        dest.writeParcelable(object, 0);
+        dest.writeParcelable(data, 0);
     }
 
     BaasDocument(Parcel source) {
@@ -1227,7 +1231,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         this.version = source.readLong();
         this.author = readOptString(source);
         this.creation_date = readOptString(source);
-        this.object = source.readParcelable(JsonObject.class.getClassLoader());
+        this.data = source.readParcelable(JsonObject.class.getClassLoader());
     }
 
     public static Creator<BaasDocument> CREATOR = new Creator<BaasDocument>() {

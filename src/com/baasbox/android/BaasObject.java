@@ -17,9 +17,14 @@ public abstract class BaasObject<E extends BaasObject<E>> {
     // todo this should provide common interface among remote objects
     //      such as dirty tracking timestamps ecc
 
-    BaasObject() {
-    }
 
+    public abstract String getId();
+
+    public abstract long getVersion();
+
+    public abstract String getAuthor();
+
+    public abstract String getCreationDate();
 
     final static class DebugRequest<R, T> extends BaseRequest<R, T> {
 

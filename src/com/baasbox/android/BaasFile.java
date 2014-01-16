@@ -1,8 +1,11 @@
 package com.baasbox.android;
 
+import android.webkit.MimeTypeMap;
+
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonArray;
+import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.HttpRequest;
@@ -12,6 +15,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,217 +25,189 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by eto on 09/01/14.
  */
-public class BaasFile {
+public class BaasFile extends BaasObject<BaasFile> {
 
     private JsonObject attachedData;
     private String mimeType;
     private String name;
 
+    private String creationDate;
     private String id;
     private String author;
     private long contentLength;
+    private long version;
+    private final AtomicBoolean isBound = new AtomicBoolean();
 
     public BaasFile() {
-        this(null, null, null);
+        this(new JsonObject(), false);
     }
 
     public BaasFile(JsonObject attachedData) {
-        this(null, null, attachedData);
+        this(attachedData, false);
     }
 
-    public BaasFile(String id) {
-        this(id, null, null);
-    }
-
-    public BaasFile(String id, JsonObject attachedData) {
-        this(id, null, attachedData);
-    }
-
-    public BaasFile(String id, String name, JsonObject attachedData) {
-        this.id = id;
-        this.attachedData = attachedData;
-        this.name = name == null ? "file_" + UUID.randomUUID().toString() : name;
-    }
-
-    public static <T> RequestToken get(BAASBox box, String id, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
-        RequestFactory factory = box.requestFactory;
-        String endpoint = factory.getEndpoint("file/details/?", id);
-        HttpRequest req = factory.get(endpoint);
-        BaasRequest<BaasFile, T> breq = new DetailsRequest<T>(req, priority, tag, handler);
-        return box.submitRequest(breq);
-    }
-
-    public static <T> RequestToken getAll(BAASBox box, T tag, Priority priority, BAASBox.BAASHandler<List<BaasFile>, T> handler) {
-        RequestFactory factory = box.requestFactory;
-        String endpoint = factory.getEndpoint("file/details");
-        HttpRequest req = factory.get(endpoint);
-        BaasRequest<List<BaasFile>, T> breq = new ListRequest<T>(req, priority, tag, handler);
-        return box.submitRequest(breq);
-    }
-
-    private final static class ListRequest<T> extends BaseRequest<List<BaasFile>, T> {
-
-        ListRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<List<BaasFile>, T> handler) {
-            super(request, priority, t, handler);
-        }
-
-        @Override
-        protected List<BaasFile> handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            JsonObject details = getJsonEntity(response, config.HTTP_CHARSET);
-            JsonArray data = details.getArray("data");
-            ArrayList<BaasFile> files = new ArrayList<BaasFile>();
-            for (Object o : data) {
-                JsonObject obj = (JsonObject) o;
-                String id = obj.getString("id");
-                String fileName = obj.getString("fileName");
-                String contentType = obj.getString("contentType");
-                long contentLength = obj.getLong("contentLength", -1);
-                String author = obj.getString("_author");
-                JsonObject attachedData = obj.getObject("attachedData");
-                BaasFile f = new BaasFile(id, fileName, attachedData);
-                f.mimeType = contentType;
-                f.contentLength = contentLength;
-                f.author = author;
-                files.add(f);
-            }
-            return files;
+    BaasFile(JsonObject data, boolean fromServer) {
+        super();
+        if (fromServer) {
+            this.attachedData = new JsonObject();
+            update(data);
+        } else {
+            this.attachedData = data;
         }
     }
 
-    private final static class DetailsRequest<T> extends BaseRequest<BaasFile, T> {
 
-        DetailsRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<BaasFile, T> handler) {
-            super(request, priority, t, handler);
-        }
-
-        @Override
-        protected BaasFile handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            JsonObject details = getJsonEntity(response, config.HTTP_CHARSET);
-            BAASLogging.debug(details.toString());
-            return null;
-        }
+    void update(JsonObject fromServer) {
+        isBound.set(true);
+        this.attachedData.merge(fromServer.getObject("attachedData"));
+        this.id = fromServer.getString("id");
+        this.creationDate = fromServer.getString("_creation_date");
+        this.author = fromServer.getString("_author");
+        this.name = fromServer.getString("fileName");
+        this.contentLength = fromServer.getLong("contentLength");
+        this.version = fromServer.getLong("@version");
     }
 
-    public static <T> RequestToken save(BAASBox box, JsonObject attachedData, InputStream in, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
-        BaasFile file = new BaasFile(attachedData);
-        return file.save(box, in, tag, priority, handler);
+    @Override
+    public String getAuthor() {
+        return author;
     }
 
-    public static BaasResult<BaasFile> saveSync(BAASBox box, JsonObject attachedData, InputStream in) {
-        BaasFile f = new BaasFile(attachedData);
-        return f.saveSync(box, in);
+    @Override
+    public long getVersion() {
+        return version;
     }
 
-    public static BaasResult<BaasFile> saveSync(BAASBox box, JsonObject attachedData, File file) {
-        BaasFile f = new BaasFile(attachedData);
-        return f.saveSync(box, file);
+    @Override
+    public String getCreationDate() {
+        return creationDate;
     }
 
-    public static <T> RequestToken save(BAASBox box, JsonObject attachedData, File in, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
-        BaasFile file = new BaasFile(attachedData);
-        return file.save(box, in, tag, priority, handler);
-    }
-
-    public <T> RequestToken save(BAASBox box, File file, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
-        try {
-            FileInputStream in = new FileInputStream(file);
-            this.name = file.getName();
-            return save(box, attachedData, in, tag, priority, handler);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("File does not exists");
-        }
-    }
-
-    public BaasResult<BaasFile> saveSync(BAASBox box, File file) {
-        try {
-            FileInputStream in = new FileInputStream(file);
-            this.name = file.getName();
-            return saveSync(box, in);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("File does not exists");
-        }
-    }
-
-    public BaasResult<BaasFile> saveSync(BAASBox box, InputStream in) {
-        RequestFactory factory = box.requestFactory;
-        String endpoint = factory.getEndpoint("file");
-        try {
-            this.mimeType = URLConnection.guessContentTypeFromStream(in);
-        } catch (IOException e) {
-        }
-        HttpRequest upload = factory.uploadFile(endpoint, true, in, name, mimeType, attachedData);
-        BaasRequest<BaasFile, Void> breq = new UploadRequest<Void>(this, upload, null, null, null);
-        return box.submitRequestSync(breq);
-    }
-
-    public <T> RequestToken save(BAASBox box, InputStream stream, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
-        RequestFactory factory = box.requestFactory;
-        String endpoint = factory.getEndpoint("file");
-        try {
-            this.mimeType = URLConnection.guessContentTypeFromStream(stream);
-        } catch (IOException e) {
-
-        }
-        HttpRequest upload = factory.uploadFile(endpoint, true, stream, name, mimeType, attachedData);
-        BaasRequest<BaasFile, T> breq = new UploadRequest<T>(this, upload, priority, tag, handler);
-        return box.submitRequest(breq);
-    }
-
-    void setId(String id) {
-        this.id = id;
-    }
-
+    @Override
     public String getId() {
         return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    void setContentType(String contentType) {
-        this.mimeType = contentType;
     }
 
     public String getContentType() {
         return mimeType;
     }
 
-    void setContentLength(long length) {
-        this.contentLength = length;
-    }
-
     public long getContentLength() {
         return this.contentLength;
     }
 
-
-    private final static class UploadRequest<T> extends BaseRequest<BaasFile, T> {
-        private final BaasFile initial;
-
-        UploadRequest(BaasFile file, HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<BaasFile, T> handler) {
-            super(request, priority, t, handler);
-            this.initial = file;
-        }
-
-        @Override
-        protected BaasFile handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            JsonObject o = getJsonEntity(response, config.HTTP_CHARSET).getObject("data");
-            BAASLogging.debug(o.toString());
-            initial.setId(o.getString("id"));
-            return initial;
-        }
+    public static <T> RequestToken getAll(T tag, Priority priority, BAASBox.BAASHandler<List<BaasFile>, T> handler) {
+        return getAll(Filter.ANY, tag, priority, handler);
     }
 
-    public static <T> RequestToken delete(BAASBox box, String id, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+    public static <T> RequestToken getAll(Filter filter, T tag, Priority priority, BAASBox.BAASHandler<List<BaasFile>, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        filter = filter == null ? Filter.ANY : filter;
+        priority = priority == null ? Priority.NORMAL : priority;
+        ListRequest<T> breq = new ListRequest<T>(box.requestFactory, filter, priority, tag, handler);
+        return box.submitRequest(breq);
+    }
+
+    public static RequestToken getAll(Filter filter, BAASBox.BAASHandler<List<BaasFile>, ?> handler) {
+        return getAll(filter, null, null, handler);
+    }
+
+    public static RequestToken getAll(BAASBox.BAASHandler<List<BaasFile>, ?> handler) {
+        return getAll(null, null, Priority.NORMAL, handler);
+    }
+
+    public static BaasResult<List<BaasFile>> getAllSync() {
+        BAASBox box = BAASBox.getDefaultChecked();
+        ListRequest<Void> req = new ListRequest<Void>(box.requestFactory, Filter.ANY, null, null, null);
+        return box.submitRequestSync(req);
+    }
+
+    public static BaasResult<List<BaasFile>> getAllSync(Filter filter) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        filter = filter == null ? Filter.ANY : filter;
+        ListRequest<Void> req = new ListRequest<Void>(box.requestFactory, filter, null, null, null);
+        return box.submitRequestSync(req);
+    }
+
+    public static RequestToken fetch(String id, BAASBox.BAASHandler<BaasFile, ?> handler) {
+        return fetch(id, null, Priority.NORMAL, handler);
+    }
+
+    public static <T> RequestToken fetch(String id, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (id == null) throw new NullPointerException("id cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        DetailsRequest<T> details = new DetailsRequest<T>(box.requestFactory, id, priority, tag, handler);
+        return box.submitRequest(details);
+    }
+
+    public static BaasResult<BaasFile> fetchSync(String id) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (id == null) throw new NullPointerException("id cannot be null");
+        DetailsRequest<Void> details = new DetailsRequest<Void>(box.requestFactory, id, null, null, null);
+        return box.submitRequestSync(details);
+    }
+
+    public BaasResult<BaasFile> refreshSync() {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (id == null)
+            throw new NullPointerException("this file is not bound to an entity on the server");
+        DetailsRequest<Void> details = new DetailsRequest<Void>(box.requestFactory, this, null, null, null);
+        return box.submitRequestSync(details);
+    }
+
+    public RequestToken refresh(BAASBox.BAASHandler<BaasFile, ?> handler) {
+        return refresh(null, Priority.NORMAL, handler);
+    }
+
+    public <T> RequestToken refresh(T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (id == null)
+            throw new IllegalStateException("this file is not bound to an entity on the server");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        DetailsRequest<T> details = new DetailsRequest<T>(box.requestFactory, this, priority, tag, handler);
+        return box.submitRequest(details);
+    }
+
+    public BaasResult<Void> deleteSync() {
+        if (id == null)
+            throw new IllegalStateException("this file is not bound to an object on the server");
+        return BaasFile.deleteSync(id);
+    }
+
+    public static BaasResult<Void> deleteSync(String id) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (id == null) throw new NullPointerException("id cannot be null");
+        RequestFactory f = box.requestFactory;
+        String endpoint = f.getEndpoint("file/?", id);
+        HttpRequest delete = f.delete(endpoint);
+        DeleteRequest<Void> req = new DeleteRequest<Void>(delete, null, null, null);
+        return box.submitRequestSync(req);
+    }
+
+    public static RequestToken delete(String id, BAASBox.BAASHandler<Void, ?> handler) {
+        return delete(id, null, Priority.NORMAL, handler);
+    }
+
+    public RequestToken delete(BAASBox.BAASHandler<Void, ?> handler) {
+        if (id == null)
+            throw new IllegalStateException("this file is not bound to an entity on the server");
+        return BaasFile.delete(id, null, Priority.NORMAL, handler);
+    }
+
+    public static <T> RequestToken delete(String id, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        if (id == null) throw new NullPointerException("id cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
         RequestFactory f = box.requestFactory;
         String endpoint = f.getEndpoint("file/?", id);
         HttpRequest delete = f.delete(endpoint);
@@ -239,44 +215,335 @@ public class BaasFile {
         return box.submitRequest(breq);
     }
 
-    public <T> RequestToken delete(BAASBox box, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
-        return BaasFile.delete(box, id, tag, priority, handler);
+    public <T> RequestToken delete(T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        if (id == null)
+            throw new IllegalStateException("this file is not bound to an entity on the server");
+        return BaasFile.delete(id, tag, priority, handler);
     }
 
-    public static <T> RequestToken download(BAASBox box, String id, T tag, Priority priority, DataHandler<T> contentHandler, BAASBox.BAASHandler<Void, T> handler) {
+    public <T> RequestToken upload(InputStream stream, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
         RequestFactory factory = box.requestFactory;
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        UploadRequest<T> req = uploadRequest(factory, stream, tag, priority == null ? Priority.NORMAL : priority, handler);
+        return box.submitRequest(req);
+    }
+
+    public BaasResult<BaasFile> uploadSync(InputStream stream) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        UploadRequest<Void> req = uploadRequest(box.requestFactory, stream, null, null, null);
+        return box.submitRequestSync(req);
+    }
+
+
+    public RequestToken upload(InputStream stream, BAASBox.BAASHandler<BaasFile, ?> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        RequestFactory factory = box.requestFactory;
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        UploadRequest<?> req = uploadRequest(factory, stream, null, Priority.NORMAL, handler);
+        return box.submitRequest(req);
+    }
+
+    public <T> RequestToken upload(File file, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
+        if (file == null) throw new NullPointerException("file cannot be null");
+        try {
+
+            FileInputStream fin = new FileInputStream(file);
+            return upload(fin, tag, priority, handler);
+        } catch (FileNotFoundException e) {
+            throw new IllegalArgumentException("file does not exists", e);
+        }
+    }
+
+    public BaasResult<BaasFile> uploadSync(File file) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (file == null) throw new NullPointerException("file cannot be null");
+        try {
+            FileInputStream in = new FileInputStream(file);
+            UploadRequest<Void> req = uploadRequest(box.requestFactory, in, null, null, null);
+            return box.submitRequestSync(req);
+        } catch (FileNotFoundException e) {
+            throw new IllegalArgumentException("file does not exists", e);
+        }
+    }
+
+
+    public RequestToken upload(File file, BAASBox.BAASHandler<BaasFile, ?> handler) {
+        return upload(file, null, null, handler);
+    }
+
+
+    public <T> RequestToken upload(byte[] bytes, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
+        if (bytes == null) throw new NullPointerException("bytes cannot be null");
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        return upload(in, tag, priority, handler);
+    }
+
+    public BaasResult<BaasFile> uploadSync(byte[] bytes) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (bytes == null) throw new NullPointerException("bytes cannot be null");
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        UploadRequest<Void> req = uploadRequest(box.requestFactory, in, null, null, null);
+        return box.submitRequestSync(req);
+    }
+
+    public <T> RequestToken upload(byte[] bytes, BAASBox.BAASHandler<BaasFile, T> handler) {
+        if (bytes == null) throw new NullPointerException("bytes cannot be null");
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        return upload(in, null, Priority.NORMAL, handler);
+    }
+
+    public static <R, T> RequestToken stream(String id, int size, T tag, Priority priority, DataStreamHandler<R> data, BAASBox.BAASHandler<R, T> handler) {
+        return stream(id, null, size, tag, priority, data, handler);
+    }
+
+    public static <R> RequestToken stream(String id, int size, DataStreamHandler<R> data, BAASBox.BAASHandler<R, ?> handler) {
+        return stream(id, null, size, null, null, data, handler);
+    }
+
+    public static <R> RequestToken stream(String id, DataStreamHandler<R> data, BAASBox.BAASHandler<R, Object> handler) {
+        return stream(id, null, -1, null, Priority.NORMAL, data, handler);
+    }
+
+
+    public static <R, T> RequestToken stream(String id, T tag, Priority priority, DataStreamHandler<R> contentHandler, BAASBox.BAASHandler<R, T> handler) {
+        return stream(id, null, -1, tag, priority, contentHandler, handler);
+    }
+
+    private static <R, T> RequestToken stream(String id, String sizeSpec, int sizeIdx, T tag, Priority priority, DataStreamHandler<R> contentHandler, BAASBox.BAASHandler<R, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        if (id == null) throw new NullPointerException("id cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        RequestFactory factory = box.requestFactory;
+        RequestFactory.Param param = null;
+        if (sizeSpec != null) {
+            param = new RequestFactory.Param("resize", sizeSpec);
+
+        } else if (sizeIdx >= 0) {
+            param = new RequestFactory.Param("sizeId", Integer.toString(sizeIdx));
+        }
         String endpoint = factory.getEndpoint("file/?", id);
-        HttpRequest request = factory.get(endpoint);
-        BaasRequest<Void, T> breq = new DataRequest<T>(id, request, priority, tag, contentHandler, handler);
-        ;
+        HttpRequest request;
+        if (param != null) {
+            request = factory.get(endpoint, param);
+        } else {
+            request = factory.get(endpoint);
+        }
+        DataRequest<T,R> breq = new DataRequest<T,R>(id, request, priority, tag, contentHandler, handler);
         return box.submitRequest(breq);
     }
 
-    public <T> RequestToken download(BAASBox box, T tag, Priority priority, DataHandler<T> contentHandler, BAASBox.BAASHandler<Void, T> handler) {
+    public <R> RequestToken stream(DataStreamHandler<R> contentHandler, BAASBox.BAASHandler<R, ?> handler) {
+        return stream(null, Priority.NORMAL, contentHandler, handler);
+    }
+
+    public <R, T> RequestToken stream(int sizeId, T tag, Priority priority, DataStreamHandler<R> contentHandler, BAASBox.BAASHandler<R, T> handler) {
         String id = getId();
-        if (id == null) throw new IllegalStateException("Unknown file id");
-        return download(box, id, tag, priority, contentHandler, handler);
+        if (id == null)
+            throw new IllegalStateException("this file is not bound to any remote entity");
+        return stream(id, null, sizeId, tag, priority, contentHandler, handler);
     }
 
-    //todo determine if data handler should return an object to the end handler.
-    public static interface DataHandler<T> {
-        public boolean onData(byte[] data, String id, String contentType, T tag, boolean more) throws Exception;
+    public <R, T> RequestToken stream(T tag, Priority priority, DataStreamHandler<R> contentHandler, BAASBox.BAASHandler<R, T> handler) {
+        String id = getId();
+        if (id == null)
+            throw new IllegalStateException("this file is not bound to any remote entity");
+        return stream(id, tag, priority, contentHandler, handler);
     }
 
-    private static class DataRequest<T> extends BaseRequest<Void, T> {
-        private final String id;
-        private final DataHandler<T> dataHandler;
+    public static BaasResult<BaasStrem> streamSync(String id, int sizeId) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (id == null) throw new NullPointerException("id cannot be null");
+        RequestFactory factory = box.requestFactory;
+        String endpoint = factory.getEndpoint("file/?", id);
+        RequestFactory.Param p;
+        HttpRequest request;
+        if (sizeId >= 0) {
+            p = new RequestFactory.Param("sizeId", Integer.toString(sizeId));
+            request = factory.get(endpoint, p);
+        } else {
+            request = factory.get(endpoint);
+        }
+        SyncDataRequest synReq = new SyncDataRequest(id, request);
+        return box.submitRequestSync(synReq);
+    }
 
-        DataRequest(String id, HttpRequest request, Priority priority, T t, DataHandler<T> dataHandler, BAASBox.BAASHandler<Void, T> handler) {
+    public BaasResult<BaasStrem> streamSync(int sizeId) {
+        if (id == null) throw new NullPointerException("this is not bound to a remote entity");
+        return streamSync(id, sizeId);
+    }
+
+    public BaasResult<BaasStrem> streamSync() {
+        if (id == null) throw new NullPointerException("this is not bound to a remote entity");
+        return streamSync(id, -1);
+    }
+
+
+    private <T> UploadRequest<T> uploadRequest(RequestFactory factory, InputStream stream, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
+        if (!isBound.compareAndSet(false, true)) {
+            throw new IllegalArgumentException("you cannot upload new content for this file");
+        }
+        if (stream == null) throw new NullPointerException("stream cannot be null");
+        boolean tryGuessExtension = false;
+        if (this.mimeType == null) {
+            try {
+                this.mimeType = URLConnection.guessContentTypeFromStream(stream);
+                tryGuessExtension = true;
+            } catch (IOException e) {
+                this.mimeType = "application/octet-stream";
+            }
+        }
+        if (this.name == null) {
+            this.name = UUID.randomUUID().toString();
+            if (tryGuessExtension) {
+                String ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+
+                if (ext != null) {
+                    this.name = name + "." + ext;
+                }
+            }
+        }
+        String endpoint = factory.getEndpoint("file");
+        HttpRequest req = factory.uploadFile(endpoint, true, stream, name, mimeType, attachedData);
+        UploadRequest<T> breq = new UploadRequest<T>(this, req, priority, tag, handler);
+        return breq;
+    }
+
+    private final static class DetailsRequest<T> extends BaseRequest<BaasFile, T> {
+        private BaasFile file;
+
+        DetailsRequest(RequestFactory factory, BaasFile file, Priority priority, T tag, BAASBox.BAASHandler<BaasFile, T> handler) {
+            this(factory, file.id, priority, tag, handler);
+            this.file = file;
+        }
+
+        DetailsRequest(RequestFactory factory, String id, Priority priority, T tag, BAASBox.BAASHandler<BaasFile, T> handler) {
+            super(factory.get(factory.getEndpoint("file/details/?", id)), priority, tag, handler);
+        }
+
+
+        @Override
+        protected BaasFile handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            try {
+                JsonObject details = getJsonEntity(response, config.HTTP_CHARSET).getObject("data");
+                if (this.file == null) {
+                    return new BaasFile(details, true);
+                } else {
+                    this.file.update(details);
+                    return this.file;
+                }
+
+            } catch (JsonException e) {
+                throw new BAASBoxException(e);
+            }
+        }
+    }
+
+
+    private final static class ListRequest<T> extends BaseRequest<List<BaasFile>, T> {
+
+        ListRequest(RequestFactory factory, Filter filter, Priority priority, T t, BAASBox.BAASHandler<List<BaasFile>, T> handler) {
+            super(factory.get(factory.getEndpoint("file/details"), filter.toParams()), priority, t, handler);
+        }
+
+        @Override
+        protected List<BaasFile> handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            try {
+                JsonObject details = getJsonEntity(response, config.HTTP_CHARSET);
+                JsonArray data = details.getArray("data");
+                ArrayList<BaasFile> files = new ArrayList<BaasFile>();
+                for (Object o : data) {
+                    JsonObject obj = (JsonObject) o;
+                    BaasFile f = new BaasFile(obj, true);
+                    files.add(f);
+                }
+                return files;
+            } catch (JsonException e) {
+                throw new BAASBoxException(e);
+            }
+        }
+    }
+
+
+    private final static class UploadRequest<T> extends BaseRequest<BaasFile, T> {
+        BaasFile file;
+
+        UploadRequest(BaasFile file, HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<BaasFile, T> handler) {
             super(request, priority, t, handler);
+            this.file = file;
+        }
+
+        @Override
+        protected BaasFile handleFail(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            return super.handleFail(response, config, credentialStore);
+        }
+
+        @Override
+        protected BaasFile handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            try {
+                JsonObject o = getJsonEntity(response, config.HTTP_CHARSET).getObject("data");
+                file.update(o);
+                return file;
+            } catch (JsonException e) {
+                throw new BAASBoxException(e);
+            }
+        }
+    }
+
+    public static interface DataStreamHandler<R> {
+        public R onData(byte[] data, int read, long contentLength, String id, String contentType) throws Exception;
+    }
+
+    private static class SyncDataRequest extends BaasRequest<BaasStrem, Void> {
+        private final String id;
+
+        SyncDataRequest(String id, HttpRequest request) {
+            super(request, null, null, null, true);
+            this.id = id;
+        }
+
+        @Override
+        public BaasStrem parseResponse(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            boolean close = true;
+            HttpEntity entity = null;
+            try {
+                entity = response.getEntity();
+                BaasStrem stream = new BaasStrem(id, entity);
+                close = false;
+                return stream;
+            } catch (IOException e) {
+                throw new BAASBoxException(e);
+            } finally {
+                if (close) {
+                    try {
+                        if (entity != null) {
+                            entity.consumeContent();
+                        }
+                    } catch (IOException ex) {
+                    }
+                }
+            }
+        }
+
+    }
+
+
+    private static class DataRequest<T, R> extends BaseRequest<R, T> {
+        private final String id;
+        private final DataStreamHandler<R> dataHandler;
+
+        DataRequest(String id, HttpRequest request, Priority priority, T t, DataStreamHandler<R> dataHandler, BAASBox.BAASHandler<R, T> endHandler) {
+            super(request, priority, t, endHandler);
             this.id = id;
             this.dataHandler = dataHandler;
         }
 
         @Override
-        protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+        protected R handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             HttpEntity entity = null;
             BufferedInputStream in = null;
+            R result = null;
             try {
                 entity = response.getEntity();
                 Header contentTypeHeader = entity.getContentType();
@@ -284,13 +551,19 @@ public class BaasFile {
                 if (contentTypeHeader != null) contentType = contentTypeHeader.getValue();
                 long contentLength = entity.getContentLength();
                 byte[] data = new byte[Math.min((int) contentLength, 4096)];
-                in = getInput(entity);
+
+                in = BaasStrem.getInput(entity);
                 int read = 0;
+
                 long available = contentLength;
-                while ((read = in.read(data, 0, Math.min((int) available, data.length))) != -1) {
+
+                while ((read = in.read(data, 0, Math.min((int) available, data.length))) > 0) {
                     available -= read;
-                    if (!dataHandler.onData(data, id, contentType, tag, available > 0)) break;
+
+                    result = dataHandler.onData(data, read, contentLength, id, contentType);
+
                 }
+                result = dataHandler.onData(null, 0, contentLength, id, contentType);
             } catch (IOException e) {
                 throw new BAASBoxException(e);
             } catch (Exception e) {
@@ -307,15 +580,10 @@ public class BaasFile {
                     BAASLogging.debug("Error while parsing data " + e.getMessage());
                 }
             }
-            return null;
+            return result;
         }
 
-        private BufferedInputStream getInput(HttpEntity entity) throws IOException {
-            InputStream in = entity.getContent();
-            if (in instanceof BufferedInputStream) {
-                return (BufferedInputStream) in;
-            }
-            return new BufferedInputStream(in);
-        }
+
     }
+
 }

@@ -23,7 +23,7 @@ import java.util.Set;
 /**
  * Created by eto on 02/01/14.
  */
-public class BaasUser extends BaasObject<BaasUser> implements Parcelable {
+public class BaasUser implements Parcelable {
 
     protected String username;
     protected JsonObject privateData;
@@ -40,6 +40,7 @@ public class BaasUser extends BaasObject<BaasUser> implements Parcelable {
         REGISTERED("visibleByRegisteredUsers"),
         PUBLIC("visibleByAnonymousUsers");
         final String visibilityName;
+
         Scope(String visibilityName) {
             this.visibilityName = visibilityName;
         }
