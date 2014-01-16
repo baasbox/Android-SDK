@@ -283,6 +283,24 @@ public class BAASBox {
         return submitRequest(req);
     }
 
+    public <T> RequestToken registerPush(String registrationId, T tag, Priority priority, BAASHandler<Void, T> handler) {
+        if (registrationId == null) throw new NullPointerException("registrationId cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        PushRegisterRequest<T> req = new PushRegisterRequest<T>(requestFactory, registrationId, priority, tag, handler);
+        return submitRequest(req);
+    }
+
+    public RequestToken registerPush(String registrationId, BAASHandler<Void, ?> handler) {
+        return registerPush(registrationId, handler);
+    }
+
+    public BaasResult<Void> registerPushSync(String registrationId) {
+        if (registrationId == null) throw new NullPointerException("registrationId cannot be null");
+        PushRegisterRequest<Void> req = new PushRegisterRequest<Void>(requestFactory, registrationId, null, null, null);
+        return submitRequestSync(req);
+    }
+
 
     /**
      * Asynchronously sends a raw rest request to the server that is specified by
@@ -315,5 +333,19 @@ public class BAASBox {
             }
         }
     }
+
+    private static final class PushRegisterRequest<T> extends BaseRequest<Void, T> {
+
+        PushRegisterRequest(RequestFactory factory, String registrationId, Priority priority, T t, BAASHandler<Void, T> handler) {
+            super(factory.put(factory.getEndpoint("push/device/android/?", registrationId)), priority, t, handler);
+        }
+
+        @Override
+        protected Void handleOk(HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
+            return null;
+        }
+    }
+
+
 }
 

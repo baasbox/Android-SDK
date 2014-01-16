@@ -98,6 +98,61 @@ public class BaasUser implements Parcelable {
         init(user);
     }
 
+    public <T> RequestToken send(JsonObject message, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (username == null)
+            throw new NullPointerException("this user is not bound to any one on the server");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        PushRequest<T> request = new PushRequest<T>(box.requestFactory, username, message == null ? new JsonObject() : null, priority, tag, handler);
+        return box.submitRequest(request);
+    }
+
+    public RequestToken send(JsonObject message, BAASBox.BAASHandler<Void, ?> handler) {
+        return send(message, null, Priority.NORMAL, handler);
+    }
+
+    public <T> RequestToken ping(T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (username == null)
+            throw new NullPointerException("this user is not bound to any one on the server");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        PushRequest<T> request = new PushRequest<T>(box.requestFactory, username, null, priority, null, handler);
+        return box.submitRequest(request);
+    }
+
+    public RequestToken ping(BAASBox.BAASHandler<Void, ?> handler) {
+        return ping(null, Priority.NORMAL, handler);
+    }
+
+    public BaasResult<Void> sendSync(JsonObject message) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (username == null)
+            throw new NullPointerException("this user is not bound to any one on the server");
+        PushRequest<Void> request = new PushRequest<Void>(box.requestFactory, username, message == null ? new JsonObject() : message, null, null, null);
+        return box.submitRequestSync(request);
+    }
+
+    public BaasResult<Void> pingSync() {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (username == null)
+            throw new NullPointerException("this user is not bound to any one on the server");
+        PushRequest<Void> request = new PushRequest<Void>(box.requestFactory, username, null, null, null, null);
+        return box.submitRequestSync(request);
+    }
+
+    private final static class PushRequest<T> extends BaseRequest<Void, T> {
+        PushRequest(RequestFactory factory, String user, JsonObject message, Priority priority, T t, BAASBox.BAASHandler<Void, T> handler) {
+            super(factory.post(factory.getEndpoint("push/message/?", user), message), priority, t, handler);
+        }
+
+        @Override
+        protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            return null;
+        }
+    }
+
     /**
      * Returns data associate to this user for the specific
      * scope as a {@link com.baasbox.android.json.JsonObject}.
