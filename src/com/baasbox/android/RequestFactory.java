@@ -172,6 +172,10 @@ class RequestFactory {
         return post(uri, headers, body);
     }
 
+    public HttpRequest put(String uri) {
+        return put(uri, null);
+    }
+
     public HttpRequest put(String uri, JsonObject object) {
         InputStream body = null;
         Map<String, String> headers = null;
