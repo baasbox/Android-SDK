@@ -1163,7 +1163,7 @@ final class JsonReader implements Closeable {
      * with this reader's content.
      */
     private IOException syntaxError(String message) throws IOException {
-        throw new MalformedJsonException(message
+        throw new JsonException(message
                 + " at line " + getLineNumber() + " column " + getColumnNumber());
     }
 
