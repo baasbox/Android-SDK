@@ -15,22 +15,22 @@ import java.io.IOException;
 /**
  * Created by eto on 17/01/14.
  */
-class DataRequest<T, R> extends BaseRequest<R, T> {
+class AsyncStreamRequest<T, R> extends BaseRequest<R, T> {
     private final String id;
     private final DataStreamHandler<R> dataHandler;
 
-    DataRequest(String id, HttpRequest request, Priority priority, T tag, DataStreamHandler<R> dataHandler, BAASBox.BAASHandler<R, T> handler) {
+    AsyncStreamRequest(String id, HttpRequest request, Priority priority, T tag, DataStreamHandler<R> dataHandler, BAASBox.BAASHandler<R, T> handler) {
         this(id, request, priority, tag, dataHandler, handler, true);
     }
 
-    DataRequest(String id, HttpRequest request, Priority priority, T t, DataStreamHandler<R> dataHandler, BAASBox.BAASHandler<R, T> endHandler, boolean needsAuth) {
+    AsyncStreamRequest(String id, HttpRequest request, Priority priority, T t, DataStreamHandler<R> dataHandler, BAASBox.BAASHandler<R, T> endHandler, boolean needsAuth) {
         super(request, priority, t, endHandler, needsAuth);
         this.id = id;
         this.dataHandler = dataHandler;
     }
 
 
-    static <R, T> DataRequest<T, R> buildAsyncFileDataRequest(RequestFactory factory, String id, String sizeSpec, int sizeIdx, T tag, Priority priority, DataStreamHandler<R> contentHandler, BAASBox.BAASHandler<R, T> handler) {
+    static <R, T> AsyncStreamRequest<T, R> buildAsyncFileDataRequest(RequestFactory factory, String id, String sizeSpec, int sizeIdx, T tag, Priority priority, DataStreamHandler<R> contentHandler, BAASBox.BAASHandler<R, T> handler) {
         RequestFactory.Param param = null;
         if (sizeSpec != null) {
             param = new RequestFactory.Param("resize", sizeSpec);
@@ -45,7 +45,7 @@ class DataRequest<T, R> extends BaseRequest<R, T> {
         } else {
             request = factory.get(endpoint);
         }
-        return new DataRequest<T, R>(id, request, priority, tag, contentHandler, handler);
+        return new AsyncStreamRequest<T, R>(id, request, priority, tag, contentHandler, handler);
     }
 
     @Override

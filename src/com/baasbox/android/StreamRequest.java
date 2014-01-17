@@ -12,19 +12,19 @@ import java.io.IOException;
 /**
  * Created by Andrea Tortorella on 17/01/14.
  */
-class SyncDataRequest extends BaasRequest<BaasStream, Void> {
+class StreamRequest extends BaasRequest<BaasStream, Void> {
     private final String id;
 
-    SyncDataRequest(String id, HttpRequest request) {
+    StreamRequest(String id, HttpRequest request) {
         this(id, request, true);
     }
 
-    SyncDataRequest(String id, HttpRequest request, boolean needsAuth) {
+    StreamRequest(String id, HttpRequest request, boolean needsAuth) {
         super(request, null, null, null, needsAuth);
         this.id = id;
     }
 
-    public static SyncDataRequest buildSyncDataRequest(BAASBox box, String id, int sizeId) {
+    public static StreamRequest buildSyncDataRequest(BAASBox box, String id, int sizeId) {
         RequestFactory factory = box.requestFactory;
         String endpoint = factory.getEndpoint("file/?", id);
         RequestFactory.Param p;
@@ -35,7 +35,7 @@ class SyncDataRequest extends BaasRequest<BaasStream, Void> {
         } else {
             request = factory.get(endpoint);
         }
-        return new SyncDataRequest(id, request);
+        return new StreamRequest(id, request);
     }
 
     @Override

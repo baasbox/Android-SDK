@@ -312,7 +312,7 @@ public class BaasFile extends BaasObject<BaasFile> {
         if (id == null) throw new NullPointerException("id cannot be null");
         priority = priority == null ? Priority.NORMAL : priority;
         RequestFactory factory = box.requestFactory;
-        DataRequest<T, R> breq = DataRequest.buildAsyncFileDataRequest(factory, id, sizeSpec, sizeIdx, tag, priority, contentHandler, handler);
+        AsyncStreamRequest<T, R> breq = AsyncStreamRequest.buildAsyncFileDataRequest(factory, id, sizeSpec, sizeIdx, tag, priority, contentHandler, handler);
         return box.submitRequest(breq);
     }
 
@@ -337,7 +337,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     public static BaasResult<BaasStream> streamSync(String id, int sizeId) {
         BAASBox box = BAASBox.getDefaultChecked();
         if (id == null) throw new NullPointerException("id cannot be null");
-        SyncDataRequest synReq = SyncDataRequest.buildSyncDataRequest(box, id, sizeId);
+        StreamRequest synReq = StreamRequest.buildSyncDataRequest(box, id, sizeId);
         return box.submitRequestSync(synReq);
     }
 
