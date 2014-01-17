@@ -5,16 +5,11 @@ import android.content.Context;
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
-import com.baasbox.android.spi.AsyncRequestDispatcher;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.HttpRequest;
-import com.baasbox.android.spi.RequestDispatcher;
 import com.baasbox.android.spi.RestClient;
 
 import org.apache.http.HttpResponse;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * This class represents the main context of BAASBox SDK.
@@ -115,13 +110,12 @@ public class BAASBox {
     }
 
     private final Context context;
-    private final AsyncRequestDispatcher asyncDispatcher;
-    private RequestDispatcher syncDispatcher;
+    private final AsyncDefaultDispatcher asyncDispatcher;
+    private SameThreadDispatcher syncDispatcher;
 
     final CredentialStore credentialStore;
     final RequestFactory requestFactory;
     final Config config;
-    final Map<String, RequestToken> suspended = new HashMap<String, RequestToken>();
 
     private BAASBox(Context context, Config config) {
         if (context == null) {
@@ -133,7 +127,7 @@ public class BAASBox {
         final RestClient client = new HttpUrlConnectionClient(this.config);
         this.requestFactory = new RequestFactory(this.config, credentialStore);
         this.syncDispatcher = new SameThreadDispatcher(this, client);
-        this.asyncDispatcher = new DefaultDispatcher(this, client);
+        this.asyncDispatcher = new AsyncDefaultDispatcher(this, client);
     }
 
     /**
@@ -222,22 +216,35 @@ public class BAASBox {
     }
 
     public void suspend(String name, RequestToken token) {
-        if (token != null) {
-            suspend(token);
-            suspended.put(name, token);
-        }
+        asyncDispatcher.suspend(name, token);
+
     }
 
     public <T> RequestToken resume(String name, T tag, BAASHandler<?, T> handler) {
-        RequestToken token = suspended.remove(name);
-        if (token != null) {
-            asyncDispatcher.resume(token, tag, handler);
-        }
-        return token;
+        return asyncDispatcher.resume(name, tag, handler);
     }
 
     public <T> void resume(RequestToken token, T tag, BAASHandler<?, T> handler) {
         asyncDispatcher.resume(token, tag, handler);
+    }
+
+    public <R> RequestToken streamAsset(String name, DataStreamHandler<R> dataStreamHandler, BAASHandler<R, ?> handler) {
+        return streamAsset(name, null, Priority.NORMAL, dataStreamHandler, handler);
+    }
+
+    public <R, T> RequestToken streamAsset(String name, T tag, Priority priority, DataStreamHandler<R> streamHandler, BAASHandler<R, T> endHandler) {
+        if (streamHandler == null) throw new NullPointerException("streamhandler cannot be null");
+        if (endHandler == null) throw new NullPointerException("handler cannot be null");
+        if (name == null) throw new NullPointerException("name cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        AsyncStreamRequest<T, R> breq = AsyncStreamRequest.buildAsyncAssetRequest(requestFactory, name, tag, priority, streamHandler, endHandler);
+        return submitRequest(breq);
+    }
+
+    public BaasResult<BaasStream> streamAssetSync(String name) {
+        if (name == null) throw new NullPointerException("id cannot be null");
+        StreamRequest synReq = StreamRequest.buildSyncAssetRequest(this, name);
+        return submitRequestSync(synReq);
     }
 
     /**
@@ -344,25 +351,6 @@ public class BAASBox {
         protected Void handleOk(HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
             return null;
         }
-    }
-
-    public <R> RequestToken streamAsset(String name, DataStreamHandler<R> dataStreamHandler, BAASHandler<R, ?> handler) {
-        return streamAsset(name, null, Priority.NORMAL, dataStreamHandler, handler);
-    }
-
-    public <R, T> RequestToken streamAsset(String name, T tag, Priority priority, DataStreamHandler<R> streamHandler, BAASHandler<R, T> endHandler) {
-        if (streamHandler == null) throw new NullPointerException("streamhandler cannot be null");
-        if (endHandler == null) throw new NullPointerException("handler cannot be null");
-        if (name == null) throw new NullPointerException("name cannot be null");
-        priority = priority == null ? Priority.NORMAL : priority;
-        AsyncStreamRequest<T, R> breq = AsyncStreamRequest.buildAsyncAssetRequest(requestFactory, name, tag, priority, streamHandler, endHandler);
-        return submitRequest(breq);
-    }
-
-    public BaasResult<BaasStream> streamAssetSync(String name) {
-        if (name == null) throw new NullPointerException("id cannot be null");
-        StreamRequest synReq = StreamRequest.buildSyncAssetRequest(this, name);
-        return submitRequestSync(synReq);
     }
 
 }

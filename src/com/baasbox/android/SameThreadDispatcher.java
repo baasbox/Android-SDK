@@ -3,7 +3,6 @@ package com.baasbox.android;
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxInvalidSessionException;
 import com.baasbox.android.spi.CredentialStore;
-import com.baasbox.android.spi.RequestDispatcher;
 import com.baasbox.android.spi.RestClient;
 
 import org.apache.http.HttpResponse;
@@ -11,7 +10,7 @@ import org.apache.http.HttpResponse;
 /**
  * Created by eto on 23/12/13.
  */
-final class SameThreadDispatcher implements RequestDispatcher {
+final class SameThreadDispatcher {
     private final BAASBox box;
 
     private final BAASBox.Config config;
@@ -25,7 +24,6 @@ final class SameThreadDispatcher implements RequestDispatcher {
         this.credentialStore = box.credentialStore;
     }
 
-    @Override
     public <T> BaasResult<T> post(BaasRequest<T, ?> request) {
         executeRequest(request);
         return request.result;

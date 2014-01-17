@@ -229,7 +229,6 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return getArray(index, null);
     }
 
-
     public JsonArray getArray(int index, JsonArray otherwise) {
         Object a = list.get(index);
         if (a == null) return otherwise;
@@ -248,7 +247,6 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         list.add(o);
         return this;
     }
-
 
     public JsonObject getObject(int index) {
         return getObject(index, null);

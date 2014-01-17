@@ -7,20 +7,20 @@ import android.os.Message;
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxInvalidSessionException;
 import com.baasbox.android.impl.BAASLogging;
-import com.baasbox.android.spi.AsyncRequestDispatcher;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.RestClient;
 
 import org.apache.http.HttpResponse;
 
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by eto on 23/12/13.
+ * Created by Andrea Tortorella on 23/12/13.
  */
-final class DefaultDispatcher implements AsyncRequestDispatcher {
+final class AsyncDefaultDispatcher {
     private final static AtomicInteger REQUEST_COUNTER = new AtomicInteger(Integer.MIN_VALUE);
     private final RestClient client;
     private final BAASBox box;
@@ -32,11 +32,16 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
     private final CredentialStore credentialStore;
 
     private final PriorityBlockingQueue<BaasRequest<?, ?>> requests;
+
     final ConcurrentHashMap<Integer, BaasRequest<?, ?>> submittedRequests;
+
     final ConcurrentHashMap<Integer, BAASBox.BAASHandler<?, ?>> handlersMap;
     final ConcurrentHashMap<Integer, Object> tagsMap;
 
-    DefaultDispatcher(BAASBox box, RestClient client) {
+    final ConcurrentHashMap<String, RequestToken> suspended;
+    final HashMap<Integer, String> idToTokenName;
+
+    AsyncDefaultDispatcher(BAASBox box, RestClient client) {
         this.box = box;
         this.client = client;
         this.config = box.config;
@@ -44,7 +49,8 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         this.requests = new PriorityBlockingQueue<BaasRequest<?, ?>>();
         this.dispatcher = new ResponseHandler(this);
         this.workers = createWorkers(config.NUM_THREADS);
-
+        this.suspended = new ConcurrentHashMap<String, RequestToken>();
+        this.idToTokenName = new HashMap<Integer, String>();
         this.submittedRequests = new ConcurrentHashMap<Integer, BaasRequest<?, ?>>();
         this.handlersMap = new ConcurrentHashMap<Integer, BAASBox.BAASHandler<?, ?>>();
         this.tagsMap = new ConcurrentHashMap<Integer, Object>();
@@ -55,7 +61,6 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         return workers;
     }
 
-    @Override
     public void start() {
         stop();
         for (int i = 0; i < workers.length; i++) {
@@ -64,7 +69,6 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         }
     }
 
-    @Override
     public void stop() {
         for (int i = 0; i < workers.length; i++) {
             if (workers[i] != null) {
@@ -75,7 +79,6 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
     }
 
 
-    @Override
     public void cancel(RequestToken tag) {
         BaasRequest<?, ?> req = submittedRequests.get(tag.requestId);
         if (req != null && req.cancel()) {
@@ -86,7 +89,6 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
     }
 
 
-    @Override
     public RequestToken post(BaasRequest<?, ?> request) {
         request.requestNumber = REQUEST_COUNTER.getAndIncrement();
         BAASBox.BAASHandler<?, ?> handler = request.handler;
@@ -104,7 +106,17 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         return token;
     }
 
-    @Override
+
+    public <T> RequestToken resume(String token, T tag, BAASBox.BAASHandler<?, T> handler) {
+        RequestToken t = suspended.remove(token);
+        if (t != null) {
+            idToTokenName.remove(t.requestId);
+
+            resume(t, tag, handler);
+        }
+        return t;
+    }
+
     public <T> void resume(RequestToken token, T tag, BAASBox.BAASHandler<?, T> handler) {
         BaasRequest<?, ?> req = submittedRequests.get(token.requestId);
         BAASLogging.debug("Resuming: " + (req != null) + (req != null ? (req.status() + " " + req.suspended.get()) : "---"));
@@ -123,6 +135,10 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
     private <R, T> void finishDispatch(BaasRequest<R, T> req) {
         BAASLogging.debug("Dispatching: " + (req != null) + (req.suspended.get()) + "" + (req.status()));
         if (req.advanceIfNotCanceled(BaasRequest.State.EXECUTED, BaasRequest.State.DELIVERED) && !req.suspended.get()) {
+            String name = idToTokenName.remove(req.requestNumber);
+            if (name != null) {
+                suspended.remove(name);
+            }
             BAASBox.BAASHandler<R, T> h = (BAASBox.BAASHandler<R, T>) handlersMap.remove(req.requestNumber);
             T t = (T) tagsMap.remove(req.requestNumber);
             h.handle(req.result, t);
@@ -130,7 +146,13 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         }
     }
 
-    @Override
+    public void suspend(String name, RequestToken token) {
+        if ((token != null) && (suspended.putIfAbsent(name, token) == null)) {
+            idToTokenName.remove(token.requestId);
+            suspend(token);
+        }
+    }
+
     public void suspend(RequestToken token) {
         BaasRequest<?, ?> req = submittedRequests.get(token.requestId);
         BAASLogging.debug("request status: " + (req != null) + " " + (req != null ? req.status.get() : "---"));
@@ -141,9 +163,9 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
     }
 
     private static class ResponseHandler extends Handler {
-        private final DefaultDispatcher dispatcher;
+        private final AsyncDefaultDispatcher dispatcher;
 
-        ResponseHandler(DefaultDispatcher dispatcher) {
+        ResponseHandler(AsyncDefaultDispatcher dispatcher) {
             super(Looper.getMainLooper());
             this.dispatcher = dispatcher;
         }
@@ -166,10 +188,10 @@ final class DefaultDispatcher implements AsyncRequestDispatcher {
         private final RestClient client;
         private final BAASBox.Config config;
         private final CredentialStore credentialStore;
-        private final DefaultDispatcher dispatcher;
+        private final AsyncDefaultDispatcher dispatcher;
         private volatile boolean quit;
 
-        Worker(DefaultDispatcher dispatcher) {
+        Worker(AsyncDefaultDispatcher dispatcher) {
             this.dispatcher = dispatcher;
             this.requests = dispatcher.requests;
             this.client = dispatcher.client;
