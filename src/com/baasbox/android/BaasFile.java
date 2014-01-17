@@ -312,21 +312,7 @@ public class BaasFile extends BaasObject<BaasFile> {
         if (id == null) throw new NullPointerException("id cannot be null");
         priority = priority == null ? Priority.NORMAL : priority;
         RequestFactory factory = box.requestFactory;
-        RequestFactory.Param param = null;
-        if (sizeSpec != null) {
-            param = new RequestFactory.Param("resize", sizeSpec);
-
-        } else if (sizeIdx >= 0) {
-            param = new RequestFactory.Param("sizeId", Integer.toString(sizeIdx));
-        }
-        String endpoint = factory.getEndpoint("file/?", id);
-        HttpRequest request;
-        if (param != null) {
-            request = factory.get(endpoint, param);
-        } else {
-            request = factory.get(endpoint);
-        }
-        DataRequest<T,R> breq = new DataRequest<T,R>(id, request, priority, tag, contentHandler, handler);
+        DataRequest<T, R> breq = DataRequest.buildAsyncFileDataRequest(factory, id, sizeSpec, sizeIdx, tag, priority, contentHandler, handler);
         return box.submitRequest(breq);
     }
 
@@ -351,17 +337,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     public static BaasResult<BaasStream> streamSync(String id, int sizeId) {
         BAASBox box = BAASBox.getDefaultChecked();
         if (id == null) throw new NullPointerException("id cannot be null");
-        RequestFactory factory = box.requestFactory;
-        String endpoint = factory.getEndpoint("file/?", id);
-        RequestFactory.Param p;
-        HttpRequest request;
-        if (sizeId >= 0) {
-            p = new RequestFactory.Param("sizeId", Integer.toString(sizeId));
-            request = factory.get(endpoint, p);
-        } else {
-            request = factory.get(endpoint);
-        }
-        SyncDataRequest synReq = new SyncDataRequest(id, request);
+        SyncDataRequest synReq = SyncDataRequest.buildSyncDataRequest(box, id, sizeId);
         return box.submitRequestSync(synReq);
     }
 

@@ -29,6 +29,25 @@ class DataRequest<T, R> extends BaseRequest<R, T> {
         this.dataHandler = dataHandler;
     }
 
+
+    static <R, T> DataRequest<T, R> buildAsyncFileDataRequest(RequestFactory factory, String id, String sizeSpec, int sizeIdx, T tag, Priority priority, DataStreamHandler<R> contentHandler, BAASBox.BAASHandler<R, T> handler) {
+        RequestFactory.Param param = null;
+        if (sizeSpec != null) {
+            param = new RequestFactory.Param("resize", sizeSpec);
+
+        } else if (sizeIdx >= 0) {
+            param = new RequestFactory.Param("sizeId", Integer.toString(sizeIdx));
+        }
+        String endpoint = factory.getEndpoint("file/?", id);
+        HttpRequest request;
+        if (param != null) {
+            request = factory.get(endpoint, param);
+        } else {
+            request = factory.get(endpoint);
+        }
+        return new DataRequest<T, R>(id, request, priority, tag, contentHandler, handler);
+    }
+
     @Override
     protected R handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
         HttpEntity entity = null;

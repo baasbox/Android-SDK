@@ -24,6 +24,20 @@ class SyncDataRequest extends BaasRequest<BaasStream, Void> {
         this.id = id;
     }
 
+    public static SyncDataRequest buildSyncDataRequest(BAASBox box, String id, int sizeId) {
+        RequestFactory factory = box.requestFactory;
+        String endpoint = factory.getEndpoint("file/?", id);
+        RequestFactory.Param p;
+        HttpRequest request;
+        if (sizeId >= 0) {
+            p = new RequestFactory.Param("sizeId", Integer.toString(sizeId));
+            request = factory.get(endpoint, p);
+        } else {
+            request = factory.get(endpoint);
+        }
+        return new SyncDataRequest(id, request);
+    }
+
     @Override
     public BaasStream parseResponse(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
         boolean close = true;
