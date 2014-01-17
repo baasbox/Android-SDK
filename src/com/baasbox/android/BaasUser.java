@@ -25,20 +25,45 @@ import java.util.Set;
  */
 public class BaasUser implements Parcelable {
 
-    protected String username;
-    protected JsonObject privateData;
-    protected JsonObject friendVisibleData;
-    protected JsonObject registeredVisibleData;
-    protected JsonObject publicVisibleData;
+    String username;
+    JsonObject privateData;
+    JsonObject friendVisibleData;
+    JsonObject registeredVisibleData;
+    JsonObject publicVisibleData;
     private String signupDate;
     private String status;
     private final Set<String> roles = new HashSet<String>();
 
+    /**
+     * Scopes of user related data
+     *
+     * @see com.baasbox.android.BaasUser#getScope(com.baasbox.android.BaasUser.Scope)
+     */
     public enum Scope {
+        /**
+         * Scope used to access a {@link com.baasbox.android.json.JsonObject}
+         * of user private data
+         */
         PRIVATE("visibleByTheUser"),
+
+        /**
+         * Scope used to access a {@link com.baasbox.android.json.JsonObject}
+         * whose fields are accessible by the friends of the user
+         */
         FRIEND("visibleByFriends"),
+
+        /**
+         * Scope used to access a {@link com.baasbox.android.json.JsonObject}
+         * whose fields are accessible by any registered user.
+         */
         REGISTERED("visibleByRegisteredUsers"),
+
+        /**
+         * Scope used to access a {@link com.baasbox.android.json.JsonObject}
+         * whose fields are accessible by anyone without authentication
+         */
         PUBLIC("visibleByAnonymousUsers");
+
         final String visibilityName;
 
         Scope(String visibilityName) {
@@ -46,7 +71,7 @@ public class BaasUser implements Parcelable {
         }
     }
 
-    protected BaasUser(String username, JsonObject data) {
+    BaasUser(String username, JsonObject data) {
         super();
         this.username = username;
         this.privateData = data.getObject(Scope.PRIVATE.visibilityName, new JsonObject());
