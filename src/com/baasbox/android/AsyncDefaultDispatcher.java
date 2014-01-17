@@ -242,6 +242,10 @@ final class AsyncDefaultDispatcher {
             boolean handle = true;
             try {
                 BAASLogging.debug("REQUEST: " + req.httpRequest);
+                if (req.httpRequest == null) {
+                    //no request to execute really a fake one
+                    return true;
+                }
                 HttpResponse response = client.execute(req.httpRequest);
                 T t = req.parseResponse(response, config, credentialStore);
                 req.result = BaasResult.success(t);

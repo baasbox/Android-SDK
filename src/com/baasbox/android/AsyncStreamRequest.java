@@ -13,7 +13,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 
 /**
- * Created by eto on 17/01/14.
+ * Created by Andrea Tortorella on 17/01/14.
  */
 class AsyncStreamRequest<T, R> extends BaseRequest<R, T> {
     private final String id;
