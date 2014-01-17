@@ -53,7 +53,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
 
     public JsonObject putString(String name, String value) {
         if (name == null) throw new NullPointerException("name cannot be null");
-        if (value == null) throw new NullPointerException("value cannot be null");
         map.put(name, value);
         return this;
     }
@@ -188,7 +187,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
 
     public JsonObject putArray(String name, JsonArray value) {
         if (name == null) throw new NullPointerException("name cannot be null");
-        if (value == null) throw new NullPointerException("value cannot be null");
         map.put(name, value);
         return this;
     }
@@ -212,7 +210,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
 
     public JsonObject putObject(String name, JsonObject value) {
         if (name == null) throw new NullPointerException("name cannot be null");
-        if (value == null) throw new NullPointerException("value cannot be null");
+//        if (value == null) throw new NullPointerException("value cannot be null");
         map.put(name, value);
         return this;
     }
@@ -232,7 +230,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
 
     public JsonObject putStructure(String name, JsonStructure value) {
         if (name == null) throw new NullPointerException("name cannot be null");
-        if (value == null) throw new NullPointerException("value cannot be null");
         map.put(name, value);
         return this;
     }
@@ -252,7 +249,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
 
     public JsonObject putBinary(String name, byte[] value) {
         if (name == null) throw new NullPointerException("name cannot be null");
-        if (value == null) throw new NullPointerException("value cannot be null");
         map.put(name, value);
         return this;
     }

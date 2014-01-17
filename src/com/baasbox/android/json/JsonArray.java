@@ -74,7 +74,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     }
 
     public JsonArray addString(String str) {
-        if (str == null) throw new NullPointerException("str cannot be null");
+//        if (str == null) throw new NullPointerException("str cannot be null");
         list.add(str);
         return this;
     }
@@ -220,7 +220,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     ///---
 
     public JsonArray addArray(JsonArray a) {
-        if (a == null) throw new NullPointerException("a cannot be null");
+//        if (a == null) throw new NullPointerException("a cannot be null");
         list.add(a);
         return this;
     }
@@ -243,7 +243,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     }
 
     public JsonArray addObject(JsonObject o) {
-        if (o == null) throw new NullPointerException("o cannot be null");
+//        if (o == null) throw new NullPointerException("o cannot be null");
         list.add(o);
         return this;
     }
@@ -267,7 +267,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     }
 
     public JsonArray addStructure(JsonStructure s) {
-        if (s == null) throw new NullPointerException("s cannot be null");
+//        if (s == null) throw new NullPointerException("s cannot be null");
         if (s instanceof JsonArray) addArray((JsonArray) s);
         if (s instanceof JsonObject) addObject((JsonObject) s);
         return this;
@@ -293,7 +293,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
 
     public JsonArray addBinary(byte[] v) {
-        if (v == null) throw new NullPointerException("v cannot be null");
+//        if (v == null) throw new NullPointerException("v cannot be null");
         list.add(v);
         return this;
     }
