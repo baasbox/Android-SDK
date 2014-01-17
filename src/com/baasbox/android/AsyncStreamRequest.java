@@ -29,6 +29,13 @@ class AsyncStreamRequest<T, R> extends BaseRequest<R, T> {
         this.dataHandler = dataHandler;
     }
 
+    static <R, T> AsyncStreamRequest<T, R> buildAsyncAssetRequest(RequestFactory factory, String name, T tag, Priority priority, DataStreamHandler<R> dataStreamHandler, BAASBox.BAASHandler<R, T> endHandler) {
+        String endpoint = factory.getEndpoint("asset/?", name);
+        HttpRequest request = factory.get(endpoint);
+        //fixme add request params
+        return new AsyncStreamRequest<T, R>(name, request, priority, tag, dataStreamHandler, endHandler);
+    }
+
 
     static <R, T> AsyncStreamRequest<T, R> buildAsyncFileDataRequest(RequestFactory factory, String id, String sizeSpec, int sizeIdx, T tag, Priority priority, DataStreamHandler<R> contentHandler, BAASBox.BAASHandler<R, T> handler) {
         RequestFactory.Param param = null;

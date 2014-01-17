@@ -346,6 +346,24 @@ public class BAASBox {
         }
     }
 
+    public <R> RequestToken streamAsset(String name, DataStreamHandler<R> dataStreamHandler, BAASHandler<R, ?> handler) {
+        return streamAsset(name, null, Priority.NORMAL, dataStreamHandler, handler);
+    }
+
+    public <R, T> RequestToken streamAsset(String name, T tag, Priority priority, DataStreamHandler<R> streamHandler, BAASHandler<R, T> endHandler) {
+        if (streamHandler == null) throw new NullPointerException("streamhandler cannot be null");
+        if (endHandler == null) throw new NullPointerException("handler cannot be null");
+        if (name == null) throw new NullPointerException("name cannot be null");
+        priority = priority == null ? Priority.NORMAL : priority;
+        AsyncStreamRequest<T, R> breq = AsyncStreamRequest.buildAsyncAssetRequest(requestFactory, name, tag, priority, streamHandler, endHandler);
+        return submitRequest(breq);
+    }
+
+    public BaasResult<BaasStream> streamAssetSync(String name) {
+        if (name == null) throw new NullPointerException("id cannot be null");
+        StreamRequest synReq = StreamRequest.buildSyncAssetRequest(this, name);
+        return submitRequestSync(synReq);
+    }
 
 }
 

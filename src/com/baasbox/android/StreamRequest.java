@@ -24,7 +24,14 @@ class StreamRequest extends BaasRequest<BaasStream, Void> {
         this.id = id;
     }
 
-    public static StreamRequest buildSyncDataRequest(BAASBox box, String id, int sizeId) {
+    static StreamRequest buildSyncAssetRequest(BAASBox box, String assetName) {
+        RequestFactory factory = box.requestFactory;
+        String endpoint = factory.getEndpoint("asset/?", assetName);
+        HttpRequest get = factory.get(endpoint);
+        return new StreamRequest(assetName, get);
+    }
+
+    static StreamRequest buildSyncDataRequest(BAASBox box, String id, int sizeId) {
         RequestFactory factory = box.requestFactory;
         String endpoint = factory.getEndpoint("file/?", id);
         RequestFactory.Param p;
