@@ -125,8 +125,9 @@ abstract class BaseRequest<Resp, Tag> extends BaasRequest<Resp, Tag> {
                 case 5:
                     throw new BAASBoxServerException(bbCode, statusCode, resource, method, headers, apiVersion, message);
                 case 4:
-
+                    onClientError(credentialStore);
                     if (statusCode == 401 && bbCode == BAASBoxInvalidSessionException.INVALID_SESSION_TOKEN_CODE) {
+
                         throw new BAASBoxInvalidSessionException(resource, method, headers, apiVersion, message);
                     } else {
                         throw new BAASBoxClientException(bbCode, statusCode, resource, method, headers, apiVersion, message);
@@ -142,4 +143,7 @@ abstract class BaseRequest<Resp, Tag> extends BaasRequest<Resp, Tag> {
         }
     }
 
+    protected void onClientError(CredentialStore credentialStore) {
+
+    }
 }
