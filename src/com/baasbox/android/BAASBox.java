@@ -121,6 +121,7 @@ public class BAASBox {
         if (context == null) {
             throw new NullPointerException("context cannot be null");
         }
+
         this.context = context.getApplicationContext();
         this.config = config == null ? new Config() : config;
         this.credentialStore = new PreferenceCredentialStore(this.context);
@@ -156,6 +157,7 @@ public class BAASBox {
         BAASBox box = new BAASBox(context, config);
         if (sessionToken != null) box.credentialStore.updateToken(sessionToken);
         box.asyncDispatcher.start();
+
         return box;
     }
 
@@ -173,6 +175,7 @@ public class BAASBox {
             synchronized (LOCK) {
                 if (sDefaultClient == null) {
                     sDefaultClient = createClient(context, config, session);
+                    BaasUser.loadSaved(sDefaultClient);
                 }
             }
         }

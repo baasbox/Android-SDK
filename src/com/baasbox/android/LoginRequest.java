@@ -20,18 +20,21 @@ final class LoginRequest<T> extends BaseRequest<Void, T> {
 
     private final String userName;
     private final String password;
+    private final boolean createCurrent;
 
     LoginRequest(BAASBox box, Priority priority, T tag, BAASBox.BAASHandler<Void, T> handler) {
         super(makeRequest(box), priority, tag, handler, false);
         Credentials c = box.credentialStore.get(true);
         userName = c.username;
         password = c.password;
+        createCurrent = false;
     }
 
     LoginRequest(BAASBox box, String username, String password, Priority priority, T tag, BAASBox.BAASHandler<Void, T> handler) {
         super(makeRequest(box, username, password), priority, tag, handler, false);
         this.userName = username;
         this.password = password;
+        createCurrent = true;
     }
 
     private static HttpRequest makeRequest(BAASBox client) {
@@ -66,6 +69,11 @@ final class LoginRequest<T> extends BaseRequest<Void, T> {
             c.password = password;
             c.sessionToken = token;
             credentialStore.set(c);
+//            BaasUser user = BaasUser.withUserName(c.username);
+            if (createCurrent) {
+                BaasUser.setCurrent(credentialStore, BaasUser.withUserName(c.username));
+                BaasUser.saveUserProfile(credentialStore);
+            }
             return null;
         } catch (JsonException e) {
             throw new BAASBoxException("Could not parse response");

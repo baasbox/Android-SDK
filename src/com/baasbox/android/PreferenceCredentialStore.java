@@ -2,7 +2,9 @@ package com.baasbox.android;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
+import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.Credentials;
 
@@ -14,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 class PreferenceCredentialStore implements CredentialStore {
 
+    private static final String BAASBOX_USER_PROFILE = "BaasBox_profile_";
     private static final String BAASBOX_PERSISTENCE_PREFIX = "BAASBox_pref_";
     private static final String BB_SESSION_PERSISTENCE_KEY = "BAASBox_BB_Session";
     private static final String USERNAME_PERSISTENCE_KEY = "BAASBox_username";
@@ -26,6 +29,11 @@ class PreferenceCredentialStore implements CredentialStore {
 
     PreferenceCredentialStore(Context context) {
         preferences = context.getSharedPreferences(BAASBOX_PERSISTENCE_PREFIX + context.getPackageName(), Context.MODE_PRIVATE);
+    }
+
+    @Override
+    public void updateProfile(JsonObject profile) {
+        preferences.edit().putString(BAASBOX_USER_PROFILE, profile.encode()).commit();
     }
 
     @Override
@@ -87,6 +95,15 @@ class PreferenceCredentialStore implements CredentialStore {
 //                        .commit();
 //            }
 //        }
+    }
+
+    public JsonObject readProfile() {
+        String p = preferences.getString(BAASBOX_USER_PROFILE, null);
+        Log.d("TOOOOOO", "READ " + (p != null ? p : ""));
+        if (p != null) {
+            return JsonObject.decode(p);
+        }
+        return null;
     }
 
     public Credentials updateToken(String token) {

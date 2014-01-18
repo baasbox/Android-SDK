@@ -32,6 +32,7 @@ class RequestFactory {
 
     static final String CONTENT_LENGTH = "Content-Length";
 
+    //baasbox Android SDK @version
 
     private final BAASBox.Config config;
     private final CredentialStore credentials;
