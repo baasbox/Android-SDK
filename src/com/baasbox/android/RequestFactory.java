@@ -22,13 +22,15 @@ import java.util.Map;
  * Created by eto on 24/12/13.
  */
 class RequestFactory {
-
     static final String BASIC_AUTH_HEADER_NAME = "Authorization";
     static final String BB_SESSION_HEADER_NAME = "X-BB-SESSION";
     static final String APPCODE_HEADER_NAME = "X-BAASBOX-APPCODE";
     static final String CONTENT_HEADER = "Content-Type";
     static final String JSON_CONTENT = "application/json;charset=";
     static final String FORM_ENCODED_CONTENT = "application/x-www-form-urlencoded;charset=";
+
+    static final String USER_AGENT_HEADER_NAME = "User-Agent";
+    private final static String USER_AGENT_HEADER = "BaasBox AndroidSDK/" + BAASBox.SDK_VERSION;
 
     static final String CONTENT_LENGTH = "Content-Length";
 
@@ -41,6 +43,7 @@ class RequestFactory {
     RequestFactory(BAASBox.Config config, CredentialStore credential) {
         this.config = config;
         this.credentials = credential;
+
         apiRoot = initApiRoot(config);
     }
 
@@ -253,7 +256,7 @@ class RequestFactory {
     private static Map<String, String> fillHeaders(Map<String, String> headers, BAASBox.Config config, Credentials credentials) {
         headers = headers == null ? new HashMap<String, String>() : headers;
         headers.put(APPCODE_HEADER_NAME, config.APP_CODE);
-
+        headers.put(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER);
         if (credentials != null) {
             BAASLogging.debug("updating credentials " + credentials.password + " " + credentials.username + " " + credentials.sessionToken);
             switch (config.AUTHENTICATION_TYPE) {

@@ -20,6 +20,11 @@ public class BAASBox {
     //todo thinking about removing singleton to enable multiple clients on the same device
     //     for now without having different storage for credentials this is not possible
 
+    /**
+     * Version of the baasbox api.
+     */
+    public final static String SDK_VERSION = "0.7.3-SNAPSHOT";
+
     private static volatile BAASBox sDefaultClient;
     private static final Object LOCK = new Object();
 
