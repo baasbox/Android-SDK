@@ -619,6 +619,14 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     }
 
     /**
+     * Returns the collection to which this document belongs
+     * @return
+     */
+    public final String getCollection() {
+        return collection;
+    }
+
+    /**
      * The creation date of this document as a {@link java.lang.String}
      * @return
      */
