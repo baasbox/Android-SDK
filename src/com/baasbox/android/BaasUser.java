@@ -83,20 +83,23 @@ public class BaasUser implements Parcelable {
          */
         PUBLIC("visibleByAnonymousUsers");
 
-        final String visibilityName;
+        /**
+         * The actual name of the scope
+         */
+        public final String visibility;
 
-        Scope(String visibilityName) {
-            this.visibilityName = visibilityName;
+        Scope(String visibility) {
+            this.visibility = visibility;
         }
     }
 
     BaasUser(String username, JsonObject data) {
         super();
         this.username = username;
-        this.privateData = data.getObject(Scope.PRIVATE.visibilityName, new JsonObject());
-        this.friendVisibleData = data.getObject(Scope.FRIEND.visibilityName, new JsonObject());
-        this.registeredVisibleData = data.getObject(Scope.REGISTERED.visibilityName, new JsonObject());
-        this.publicVisibleData = data.getObject(Scope.PUBLIC.visibilityName, new JsonObject());
+        this.privateData = data.getObject(Scope.PRIVATE.visibility, new JsonObject());
+        this.friendVisibleData = data.getObject(Scope.FRIEND.visibility, new JsonObject());
+        this.registeredVisibleData = data.getObject(Scope.REGISTERED.visibility, new JsonObject());
+        this.publicVisibleData = data.getObject(Scope.PUBLIC.visibility, new JsonObject());
     }
 
     /**
@@ -174,10 +177,10 @@ public class BaasUser implements Parcelable {
             roles.add(r);
         }
         o.putObject("user", user);
-        o.putObject(Scope.PRIVATE.visibilityName, privateData.copy());
-        o.putObject(Scope.FRIEND.visibilityName, friendVisibleData.copy());
-        o.putObject(Scope.REGISTERED.visibilityName, registeredVisibleData.copy());
-        o.putObject(Scope.PUBLIC.visibilityName, publicVisibleData.copy());
+        o.putObject(Scope.PRIVATE.visibility, privateData.copy());
+        o.putObject(Scope.FRIEND.visibility, friendVisibleData.copy());
+        o.putObject(Scope.REGISTERED.visibility, registeredVisibleData.copy());
+        o.putObject(Scope.PUBLIC.visibility, publicVisibleData.copy());
         o.putString("signUpDate", signupDate);
         Log.d("TOOOOO", o.toString());
         return o;
@@ -195,10 +198,10 @@ public class BaasUser implements Parcelable {
         this.roles.clear();
         addRoles(this.roles, accountData.getArray("roles"));
         this.status = accountData.getString("status");
-        this.privateData = fetchOptionalData(user, Scope.PRIVATE.visibilityName);
-        this.friendVisibleData = fetchOptionalData(user, Scope.FRIEND.visibilityName);
-        this.registeredVisibleData = fetchOptionalData(user, Scope.REGISTERED.visibilityName);
-        this.publicVisibleData = fetchOptionalData(user, Scope.PUBLIC.visibilityName);
+        this.privateData = fetchOptionalData(user, Scope.PRIVATE.visibility);
+        this.friendVisibleData = fetchOptionalData(user, Scope.FRIEND.visibility);
+        this.registeredVisibleData = fetchOptionalData(user, Scope.REGISTERED.visibility);
+        this.publicVisibleData = fetchOptionalData(user, Scope.PUBLIC.visibility);
         this.signupDate = user.getString("signUpDate");
     }
 
@@ -1060,10 +1063,10 @@ public class BaasUser implements Parcelable {
             object.put("username", username)
                     .put("password", password);
         }
-        object.put(Scope.PRIVATE.visibilityName, privateData)
-                .put(Scope.FRIEND.visibilityName, friendVisibleData)
-                .put(Scope.REGISTERED.visibilityName, registeredVisibleData)
-                .put(Scope.PUBLIC.visibilityName, publicVisibleData);
+        object.put(Scope.PRIVATE.visibility, privateData)
+                .put(Scope.FRIEND.visibility, friendVisibleData)
+                .put(Scope.REGISTERED.visibility, registeredVisibleData)
+                .put(Scope.PUBLIC.visibility, publicVisibleData);
         return object;
     }
 
@@ -1072,10 +1075,10 @@ public class BaasUser implements Parcelable {
         if (credentials) {
             object.putString("username", username);
         }
-        object.putObject(Scope.PRIVATE.visibilityName, privateData)
-                .putObject(Scope.FRIEND.visibilityName, friendVisibleData)
-                .putObject(Scope.REGISTERED.visibilityName, registeredVisibleData)
-                .putObject(Scope.PUBLIC.visibilityName, publicVisibleData);
+        object.putObject(Scope.PRIVATE.visibility, privateData)
+                .putObject(Scope.FRIEND.visibility, friendVisibleData)
+                .putObject(Scope.REGISTERED.visibility, registeredVisibleData)
+                .putObject(Scope.PUBLIC.visibility, publicVisibleData);
         return object;
     }
 
