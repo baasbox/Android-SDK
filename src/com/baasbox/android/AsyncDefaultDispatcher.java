@@ -7,12 +7,10 @@ import android.os.Message;
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxInvalidSessionException;
 import com.baasbox.android.impl.BAASLogging;
-import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.RestClient;
 
 import org.apache.http.HttpResponse;
 
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,36 +19,32 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by Andrea Tortorella on 23/12/13.
  */
 final class AsyncDefaultDispatcher {
+    /**
+     * Increasing Counter of the requests
+     */
     private final static AtomicInteger REQUEST_COUNTER = new AtomicInteger(Integer.MIN_VALUE);
+
+
     private final RestClient client;
     private final BAASBox box;
 
-
-    private final BAASBox.Config config;
-    private final ResponseHandler dispatcher;
+    private final ResponseHandler responsePoster;
     private final Worker[] workers;
-    private final CredentialStore credentialStore;
 
+    //todo clean up this code!!!
     private final PriorityBlockingQueue<BaasRequest<?, ?>> requests;
-
     final ConcurrentHashMap<Integer, BaasRequest<?, ?>> submittedRequests;
-
     final ConcurrentHashMap<Integer, BAASBox.BAASHandler<?, ?>> handlersMap;
     final ConcurrentHashMap<Integer, Object> tagsMap;
-
-    final ConcurrentHashMap<String, RequestToken> suspended;
-    final HashMap<Integer, String> idToTokenName;
+    final ConcurrentHashMap<RequestToken, RequestToken> suspended;
 
     AsyncDefaultDispatcher(BAASBox box, RestClient client) {
         this.box = box;
         this.client = client;
-        this.config = box.config;
-        this.credentialStore = box.credentialStore;
         this.requests = new PriorityBlockingQueue<BaasRequest<?, ?>>();
-        this.dispatcher = new ResponseHandler(this);
-        this.workers = createWorkers(config.NUM_THREADS);
-        this.suspended = new ConcurrentHashMap<String, RequestToken>();
-        this.idToTokenName = new HashMap<Integer, String>();
+        this.responsePoster = new ResponseHandler(this);
+        this.workers = createWorkers(box.config.NUM_THREADS);
+        this.suspended = new ConcurrentHashMap<RequestToken, RequestToken>();
         this.submittedRequests = new ConcurrentHashMap<Integer, BaasRequest<?, ?>>();
         this.handlersMap = new ConcurrentHashMap<Integer, BAASBox.BAASHandler<?, ?>>();
         this.tagsMap = new ConcurrentHashMap<Integer, Object>();
@@ -79,13 +73,15 @@ final class AsyncDefaultDispatcher {
     }
 
 
-    public void cancel(RequestToken tag) {
+    public boolean cancel(RequestToken tag) {
         BaasRequest<?, ?> req = submittedRequests.get(tag.requestId);
         if (req != null && req.cancel()) {
             submittedRequests.remove(tag.requestId);
             handlersMap.remove(tag.requestId);
             tagsMap.remove(tag.requestId);
+            return true;
         }
+        return false;
     }
 
 
@@ -107,17 +103,15 @@ final class AsyncDefaultDispatcher {
     }
 
 
-    public <T> RequestToken resume(String token, T tag, BAASBox.BAASHandler<?, T> handler) {
-        RequestToken t = suspended.remove(token);
-        if (t != null) {
-            idToTokenName.remove(t.requestId);
-
-            resume(t, tag, handler);
+    public <T> RequestToken resume(RequestToken token, T tag, BAASBox.BAASHandler<?, T> handler) {
+        RequestToken t = null;
+        if (token != null && token.equals((t = suspended.remove(token)))) {
+            doResume(t, tag, handler);
         }
         return t;
     }
 
-    public <T> void resume(RequestToken token, T tag, BAASBox.BAASHandler<?, T> handler) {
+    public <T> void doResume(RequestToken token, T tag, BAASBox.BAASHandler<?, T> handler) {
         BaasRequest<?, ?> req = submittedRequests.get(token.requestId);
         BAASLogging.debug("Resuming: " + (req != null) + (req != null ? (req.status() + " " + req.suspended.get()) : "---"));
         if (req != null && req.suspended.compareAndSet(true, false)) {
@@ -125,20 +119,17 @@ final class AsyncDefaultDispatcher {
             if (tag != null) tagsMap.put(req.requestNumber, tag);
             handlersMap.put(req.requestNumber, handler);
             if (req.status.get() == BaasRequest.State.EXECUTED) {
-                dispatcher.post(req);
+                responsePoster.post(req);
             }
         }
 
     }
 
-
     private <R, T> void finishDispatch(BaasRequest<R, T> req) {
         BAASLogging.debug("Dispatching: " + (req != null) + (req.suspended.get()) + "" + (req.status()));
         if (req.advanceIfNotCanceled(BaasRequest.State.EXECUTED, BaasRequest.State.DELIVERED) && !req.suspended.get()) {
-            String name = idToTokenName.remove(req.requestNumber);
-            if (name != null) {
-                suspended.remove(name);
-            }
+            suspended.remove(new RequestToken(req.requestNumber));
+
             BAASBox.BAASHandler<R, T> h = (BAASBox.BAASHandler<R, T>) handlersMap.remove(req.requestNumber);
             T t = (T) tagsMap.remove(req.requestNumber);
             h.handle(req.result, t);
@@ -146,14 +137,13 @@ final class AsyncDefaultDispatcher {
         }
     }
 
-    public void suspend(String name, RequestToken token) {
-        if ((token != null) && (suspended.putIfAbsent(name, token) == null)) {
-            idToTokenName.remove(token.requestId);
-            suspend(token);
+    public void suspend(RequestToken token) {
+        if ((token != null) && suspended.putIfAbsent(token, token) == null) {
+            doSuspend(token);
         }
     }
 
-    public void suspend(RequestToken token) {
+    public void doSuspend(RequestToken token) {
         BaasRequest<?, ?> req = submittedRequests.get(token.requestId);
         BAASLogging.debug("request status: " + (req != null) + " " + (req != null ? req.status.get() : "---"));
         if (req != null && req.status.get() != BaasRequest.State.DELIVERED && req.suspended.compareAndSet(false, true)) {
@@ -186,8 +176,6 @@ final class AsyncDefaultDispatcher {
         private final PriorityBlockingQueue<BaasRequest<?, ?>> requests;
         private final ResponseHandler poster;
         private final RestClient client;
-        private final BAASBox.Config config;
-        private final CredentialStore credentialStore;
         private final AsyncDefaultDispatcher dispatcher;
         private volatile boolean quit;
 
@@ -195,9 +183,7 @@ final class AsyncDefaultDispatcher {
             this.dispatcher = dispatcher;
             this.requests = dispatcher.requests;
             this.client = dispatcher.client;
-            this.poster = dispatcher.dispatcher;
-            this.config = dispatcher.config;
-            this.credentialStore = dispatcher.credentialStore;
+            this.poster = dispatcher.responsePoster;
             this.quit = false;
         }
 
@@ -247,7 +233,7 @@ final class AsyncDefaultDispatcher {
                     return true;
                 }
                 HttpResponse response = client.execute(req.httpRequest);
-                T t = req.parseResponse(response, config, credentialStore);
+                T t = req.parseResponse(response, dispatcher.box.config, dispatcher.box.credentialStore);
                 req.result = BaasResult.success(t);
             } catch (BAASBoxInvalidSessionException ex) {
                 BAASLogging.debug("invalid session");

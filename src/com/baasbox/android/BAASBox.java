@@ -161,10 +161,8 @@ public class BAASBox {
         BAASBox box = new BAASBox(context, config);
         if (sessionToken != null) box.credentialStore.updateToken(sessionToken);
         box.asyncDispatcher.start();
-
         return box;
     }
-
 
     /**
      * Initialize BaasBox client with default configuration
@@ -217,9 +215,6 @@ public class BAASBox {
         return sDefaultClient;
     }
 
-    /**
-     * @return
-     */
     static BAASBox getDefaultChecked() {
         if (sDefaultClient == null)
             throw new IllegalStateException("Trying to use implicit client, but no default initialized");
@@ -234,13 +229,13 @@ public class BAASBox {
         return syncDispatcher.post(request);
     }
 
-    public void cancel(RequestToken token) {
-        asyncDispatcher.cancel(token);
+    public boolean cancel(RequestToken token) {
+        return asyncDispatcher.cancel(token);
     }
 
-    public void suspend(RequestToken token) {
-        asyncDispatcher.suspend(token);
-    }
+//    public void suspend(RequestToken token) {
+//        asyncDispatcher.suspend(token);
+//    }
 
     /**
      * Suspends a background request to the server.
@@ -249,12 +244,10 @@ public class BAASBox {
      * is called.
      *
      * Suspend assign a <code>name</code> to the request for future resumption
-     * through {@link com.baasbox.android.BAASBox#resume(String, Object, com.baasbox.android.BAASBox.BAASHandler)}
-     * @param name a string used to find the request
      * @param token the token that indentifies a pending request.
      */
-    public void suspend(String name, RequestToken token) {
-        asyncDispatcher.suspend(name, token);
+    void suspend(RequestToken token) {
+        asyncDispatcher.suspend(token);
 
     }
 
@@ -263,18 +256,13 @@ public class BAASBox {
      * Suspended requests are executed in background but no
      * handler is invoked until resumption.
      *
-     * @param name
      * @param tag
      * @param handler
      * @param <T>
      * @return
      */
-    public <T> RequestToken resume(String name, T tag, BAASHandler<?, T> handler) {
-        return asyncDispatcher.resume(name, tag, handler);
-    }
-
-    public <T> void resume(RequestToken token, T tag, BAASHandler<?, T> handler) {
-        asyncDispatcher.resume(token, tag, handler);
+    <T> RequestToken resume(RequestToken token, T tag, BAASHandler<?, T> handler) {
+        return asyncDispatcher.resume(token, tag, handler);
     }
 
     public <R> RequestToken streamAsset(String name, DataStreamHandler<R> dataStreamHandler, BAASHandler<R, ?> handler) {
@@ -348,7 +336,7 @@ public class BAASBox {
     }
 
     public RequestToken registerPush(String registrationId, BAASHandler<Void, ?> handler) {
-        return registerPush(registrationId, handler);
+        return registerPush(registrationId, null, Priority.NORMAL, handler);
     }
 
     public BaasResult<Void> registerPushSync(String registrationId) {

@@ -14,6 +14,19 @@ public class RequestToken implements Parcelable, Comparable<RequestToken> {
         this.requestId = requestId;
     }
 
+    public void suspend() {
+        BAASBox.getDefaultChecked().suspend(this);
+    }
+
+    public <T> boolean resume(T tag, BAASBox.BAASHandler<?, T> handler) {
+        RequestToken t = BAASBox.getDefaultChecked().resume(this, tag, handler);
+        return this.equals(t);
+    }
+
+    public boolean cancel() {
+        return BAASBox.getDefaultChecked().cancel(this);
+    }
+
     @Override
     public int hashCode() {
         return requestId;
