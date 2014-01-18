@@ -77,11 +77,10 @@ public abstract class BaasObject<E extends BaasObject<E>> {
 
             String type = role ? "role" : "user";
             String endpoint;
-            if (collection == null) {
+            if (collection != null) {
                 endpoint = box.requestFactory.getEndpoint("document/?/?/?/?/?", collection, docId, grant.action, type, userOrRole);
-
             } else {
-                endpoint = box.requestFactory.getEndpoint("/file/?/?/?/?", docId, grant.action, type, userOrRole);
+                endpoint = box.requestFactory.getEndpoint("file/?/?/?/?", docId, grant.action, type, userOrRole);
             }
             HttpRequest request;
             if (add) {
