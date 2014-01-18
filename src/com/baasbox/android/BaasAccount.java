@@ -1,6 +1,7 @@
 package com.baasbox.android;
 
 import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
@@ -13,7 +14,7 @@ import org.apache.http.HttpResponse;
  * This class represents the account of the user on BAASBox.
  * Created by Andrea Tortorella on 02/01/14.
  */
-public class BaasAccount extends BaasUser {
+class BaasAccount extends BaasUser {
 
     public final String password;
 
@@ -191,6 +192,7 @@ public class BaasAccount extends BaasUser {
             try {
                 JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
                 JsonObject data = content.getObject("data");
+                BAASLogging.debug("TES_API" + data.toString());
                 String token = data.getString("X-BB-SESSION");
                 Credentials c = new Credentials();
                 c.username = username;
