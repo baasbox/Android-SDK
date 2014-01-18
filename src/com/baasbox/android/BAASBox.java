@@ -44,7 +44,6 @@ public class BAASBox {
      */
     public final static class Config {
 
-
         /**
          * The supported authentication types.
          */
@@ -162,14 +161,34 @@ public class BAASBox {
     }
 
 
+    /**
+     * Initialize BaasBox client with default configuration
+     *
+     * @param context
+     * @return
+     */
     public static BAASBox initDefault(Context context) {
         return initDefault(context, null, null);
     }
 
+    /**
+     * Initialize BaasBox client with the configuration <code>config</code>
+     * @param context
+     * @param config
+     * @return
+     */
     public static BAASBox initDefault(Context context, Config config) {
         return initDefault(context, config, null);
     }
 
+    /**
+     * Initialize BaasBox client with the configuration <code>config</code>
+     * and a new <code>session</code>
+     * @param context
+     * @param config
+     * @param session
+     * @return
+     */
     public static BAASBox initDefault(Context context, Config config, String session) {
         if (sDefaultClient == null) {
             synchronized (LOCK) {
@@ -218,11 +237,33 @@ public class BAASBox {
         asyncDispatcher.suspend(token);
     }
 
+    /**
+     * Suspends a background request to the server.
+     * Suspended requests are executed in background,
+     * but no handler is invoked until {@link com.baasbox.android.BAASBox#resume(RequestToken, Object, com.baasbox.android.BAASBox.BAASHandler)}
+     * is called.
+     *
+     * Suspend assign a <code>name</code> to the request for future resumption
+     * through {@link com.baasbox.android.BAASBox#resume(String, Object, com.baasbox.android.BAASBox.BAASHandler)}
+     * @param name a string used to find the request
+     * @param token the token that indentifies a pending request.
+     */
     public void suspend(String name, RequestToken token) {
         asyncDispatcher.suspend(name, token);
 
     }
 
+    /**
+     * Resumes a suspended background request to the server.
+     * Suspended requests are executed in background but no
+     * handler is invoked until resumption.
+     *
+     * @param name
+     * @param tag
+     * @param handler
+     * @param <T>
+     * @return
+     */
     public <T> RequestToken resume(String name, T tag, BAASHandler<?, T> handler) {
         return asyncDispatcher.resume(name, tag, handler);
     }
