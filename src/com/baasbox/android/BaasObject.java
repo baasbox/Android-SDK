@@ -1,7 +1,6 @@
 package com.baasbox.android;
 
 import com.baasbox.android.exceptions.BAASBoxException;
-import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.HttpRequest;
@@ -116,7 +115,7 @@ public abstract class BaasObject<E extends BaasObject<E>> {
         @Override
         protected R handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
-            BAASLogging.debug(o.toString());
+//            BAASLogging.debug(o.toString());
             return null;
         }
     }

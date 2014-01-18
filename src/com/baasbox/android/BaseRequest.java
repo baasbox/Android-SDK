@@ -5,7 +5,6 @@ import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxIOException;
 import com.baasbox.android.exceptions.BAASBoxInvalidSessionException;
 import com.baasbox.android.exceptions.BAASBoxServerException;
-import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
@@ -71,10 +70,10 @@ abstract class BaseRequest<Resp, Tag> extends BaasRequest<Resp, Tag> {
                 }
                 return decoded;
             } catch (IOException e) {
-                BAASLogging.debug(e.getMessage());
+//                BAASLogging.debug(e.getMessage());
                 throw new BAASBoxIOException("Could not parse server response", e);
             } catch (JsonException e) {
-                BAASLogging.debug(e.getMessage());
+//                BAASLogging.debug(e.getMessage());
                 throw new BAASBoxIOException("Could not parse server response", e);
             }
         }
@@ -100,7 +99,7 @@ abstract class BaseRequest<Resp, Tag> extends BaasRequest<Resp, Tag> {
             } else {
                 json = new JsonObject();
             }
-            BAASLogging.debug(json.toString());
+//            BAASLogging.debug(json.toString());
             String message = json.getString("message", null);
             String resource = json.getString("resource", null);
             String method = json.getString("method", null);
@@ -111,7 +110,7 @@ abstract class BaseRequest<Resp, Tag> extends BaasRequest<Resp, Tag> {
             if (!"".equals(bbCodeStr)) {
                 bbCode = Integer.parseInt(bbCodeStr);
             }
-            BAASLogging.debug(json.toString());
+//            BAASLogging.debug(json.toString());
             HashMap<String, String> headers = new HashMap<String, String>();
             if (header != null) {
                 Iterator<String> it = header.getFieldNames().iterator();

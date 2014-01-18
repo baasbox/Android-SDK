@@ -6,7 +6,6 @@ import android.os.Message;
 
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxInvalidSessionException;
-import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.spi.RestClient;
 
 import org.apache.http.HttpResponse;
@@ -113,7 +112,7 @@ final class AsyncDefaultDispatcher {
 
     public <T> void doResume(RequestToken token, T tag, BAASBox.BAASHandler<?, T> handler) {
         BaasRequest<?, ?> req = submittedRequests.get(token.requestId);
-        BAASLogging.debug("Resuming: " + (req != null) + (req != null ? (req.status() + " " + req.suspended.get()) : "---"));
+//        BAASLogging.debug("Resuming: " + (req != null) + (req != null ? (req.status() + " " + req.suspended.get()) : "---"));
         if (req != null && req.suspended.compareAndSet(true, false)) {
 
             if (tag != null) tagsMap.put(req.requestNumber, tag);
@@ -126,7 +125,7 @@ final class AsyncDefaultDispatcher {
     }
 
     private <R, T> void finishDispatch(BaasRequest<R, T> req) {
-        BAASLogging.debug("Dispatching: " + (req != null) + (req.suspended.get()) + "" + (req.status()));
+//        BAASLogging.debug("Dispatching: " + (req != null) + (req.suspended.get()) + "" + (req.status()));
         if (req.advanceIfNotCanceled(BaasRequest.State.EXECUTED, BaasRequest.State.DELIVERED) && !req.suspended.get()) {
             suspended.remove(new RequestToken(req.requestNumber));
 
@@ -145,7 +144,7 @@ final class AsyncDefaultDispatcher {
 
     public void doSuspend(RequestToken token) {
         BaasRequest<?, ?> req = submittedRequests.get(token.requestId);
-        BAASLogging.debug("request status: " + (req != null) + " " + (req != null ? req.status.get() : "---"));
+//        BAASLogging.debug("request status: " + (req != null) + " " + (req != null ? req.status.get() : "---"));
         if (req != null && req.status.get() != BaasRequest.State.DELIVERED && req.suspended.compareAndSet(false, true)) {
             handlersMap.remove(token.requestId);
             tagsMap.remove(token.requestId);
@@ -227,7 +226,7 @@ final class AsyncDefaultDispatcher {
         private <T> boolean executeRequest(final BaasRequest<T, ?> req, RestClient client) throws InterruptedException {
             boolean handle = true;
             try {
-                BAASLogging.debug("REQUEST: " + req.httpRequest);
+//                BAASLogging.debug("REQUEST: " + req.httpRequest);
                 if (req.httpRequest == null) {
                     //no request to execute really a fake one
                     return true;
@@ -236,9 +235,9 @@ final class AsyncDefaultDispatcher {
                 T t = req.parseResponse(response, dispatcher.box.config, dispatcher.box.credentialStore);
                 req.result = BaasResult.success(t);
             } catch (BAASBoxInvalidSessionException ex) {
-                BAASLogging.debug("invalid session");
+//                BAASLogging.debug("invalid session");
                 if (req.takeRetry()) {
-                    BAASLogging.debug("retry");
+//                    BAASLogging.debug("retry");
                     LoginRequest<Void> refresh = new LoginRequest<Void>(dispatcher.box, null, null, new BAASBox.BAASHandler<Void, Void>() {
                         @Override
                         public void handle(BaasResult<Void> result, Void tag) {
@@ -251,7 +250,7 @@ final class AsyncDefaultDispatcher {
                     req.result = BaasResult.failure(ex);
                 }
             } catch (BAASBoxException e) {
-                BAASLogging.debug("error with " + e.getMessage());
+//                BAASLogging.debug("error with " + e.getMessage());
                 req.result = BaasResult.failure(e);
             }
             return handle;

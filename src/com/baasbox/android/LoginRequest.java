@@ -1,7 +1,6 @@
 package com.baasbox.android;
 
 import com.baasbox.android.exceptions.BAASBoxException;
-import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
@@ -39,7 +38,7 @@ final class LoginRequest<T> extends BaseRequest<Void, T> {
 
     private static HttpRequest makeRequest(BAASBox client) {
         Credentials credentials = client.credentialStore.get(true);
-        BAASLogging.debug("Credentials loaded: " + credentials);
+//        BAASLogging.debug("Credentials loaded: " + credentials);
         return makeRequest(client, credentials.username, credentials.password);
     }
 
@@ -58,7 +57,7 @@ final class LoginRequest<T> extends BaseRequest<Void, T> {
     protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
         try {
             JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
-            BAASLogging.debug(content.toString());
+//            BAASLogging.debug(content.toString());
             if (content == null) {
                 throw new BAASBoxException("error reading json");
             }

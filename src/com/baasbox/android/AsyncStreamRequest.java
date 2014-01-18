@@ -1,7 +1,6 @@
 package com.baasbox.android;
 
 import com.baasbox.android.exceptions.BAASBoxException;
-import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.HttpRequest;
 
@@ -93,7 +92,7 @@ class AsyncStreamRequest<T, R> extends BaseRequest<R, T> {
                     entity.consumeContent();
                 }
             } catch (IOException e) {
-                BAASLogging.debug("Error while parsing data " + e.getMessage());
+//                BAASLogging.debug("Error while parsing data " + e.getMessage());
             }
         }
         return result;

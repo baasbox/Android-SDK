@@ -1,6 +1,5 @@
 package com.baasbox.android;
 
-import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.impl.Base64;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
@@ -149,7 +148,7 @@ class RequestFactory {
             byte[] bytes = null;
             try {
                 String params = encodeParams(form_params, config.HTTP_CHARSET);
-                BAASLogging.debug("PARAMS: " + params);
+//                BAASLogging.debug("PARAMS: " + params);
                 bytes = params.getBytes(config.HTTP_CHARSET);
             } catch (UnsupportedEncodingException e) {
                 throw new Error(e);
@@ -258,7 +257,7 @@ class RequestFactory {
         headers.put(APPCODE_HEADER_NAME, config.APP_CODE);
         headers.put(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER);
         if (credentials != null) {
-            BAASLogging.debug("updating credentials " + credentials.password + " " + credentials.username + " " + credentials.sessionToken);
+//            BAASLogging.debug("updating credentials " + credentials.password + " " + credentials.username + " " + credentials.sessionToken);
             switch (config.AUTHENTICATION_TYPE) {
                 case BASIC_AUTHENTICATION:
                     if (credentials.username != null && credentials.password != null) {
@@ -274,7 +273,7 @@ class RequestFactory {
                     break;
             }
         } else {
-            BAASLogging.debug("no credentials");
+//            BAASLogging.debug("no credentials");
         }
         return headers;
     }
@@ -311,7 +310,7 @@ class RequestFactory {
         String header = String.format(Locale.US, "--%s\r\n" +
                 "Content-Disposition: form-data; name=\"file\"\r\n" +
                 "Content-Type: %s\r\n%s\r\n", boundary, contentType, binary ? "Content-Transfer-Encoding: binary\r\n" : "");
-        BAASLogging.debug("Streamin\n" + header);
+//        BAASLogging.debug("Streamin\n" + header);
         try {
             return new ByteArrayInputStream(header.getBytes(config.HTTP_CHARSET));
         } catch (UnsupportedEncodingException e) {

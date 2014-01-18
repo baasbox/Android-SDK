@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxIOException;
-import com.baasbox.android.impl.BAASLogging;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
@@ -1059,9 +1058,9 @@ public class BaasUser implements Parcelable {
         protected BaasUser handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             try {
                 JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
-            JsonObject data = o.getObject("data");
-            user.update(data);
-            BAASLogging.debug(o.toString());
+                JsonObject data = o.getObject("data");
+                user.update(data);
+//            BAASLogging.debug(o.toString());
                 return user;
             } catch (JsonException e) {
                 throw new BAASBoxException(e);
