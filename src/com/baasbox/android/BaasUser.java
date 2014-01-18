@@ -192,7 +192,6 @@ public class BaasUser implements Parcelable {
     }
 
     private void init(JsonObject user) {
-        Log.d("DATA", user.toString());
         JsonObject accountData = user.getObject("user");
         this.username = accountData.getString("name");
         this.roles.clear();
@@ -334,6 +333,37 @@ public class BaasUser implements Parcelable {
      */
     public String getName() {
         return username;
+    }
+
+    public static BaasResult<Void> requestPasswordResetSync(String username) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (username == null) throw new NullPointerException("username cannot be null");
+        ResetPasswordRequest<Void> reset = new ResetPasswordRequest<Void>(box.requestFactory, username, null, null, null);
+        return box.submitRequestSync(reset);
+    }
+
+    public static RequestToken requestPaswordReset(String username, BAASBox.BAASHandler<Void, ?> handler) {
+        return requestPasswordReset(username, null, Priority.NORMAL, handler);
+    }
+
+    public static <T> RequestToken requestPasswordReset(String username, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (username == null) throw new NullPointerException("username cannot be null");
+        if (handler == null) throw new NullPointerException("handler cannot be null");
+        ResetPasswordRequest<T> reset = new ResetPasswordRequest<T>(box.requestFactory, username, priority, tag, handler);
+        return box.submitRequest(reset);
+    }
+
+    private final static class ResetPasswordRequest<T> extends BaseRequest<Void, T> {
+
+        ResetPasswordRequest(RequestFactory factory, String username, Priority priority, T t, BAASBox.BAASHandler<Void, T> handler) {
+            super(factory.get(factory.getEndpoint("user/?/password/reset", username)), priority, t, handler, false);
+        }
+
+        @Override
+        protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+            return null;
+        }
     }
 
     public RequestToken signup(String password, BAASBox.BAASHandler<BaasUser, ?> handler) {
