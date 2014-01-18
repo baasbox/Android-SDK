@@ -217,6 +217,63 @@ public class BaasFile extends BaasObject<BaasFile> {
         return BaasFile.delete(id, tag, priority, handler);
     }
 
+    @Override
+    public <T> RequestToken revokeAll(Grant grant, String role, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        GrantRequest<T> req = GrantRequest.grantAsync(box, false, grant, true, null, id, role, tag, priority, handler);
+        return box.submitRequest(req);
+    }
+
+    @Override
+    public BaasResult<Void> revokeAllSync(Grant grant, String role) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        GrantRequest<Void> req = GrantRequest.grant(box, false, grant, true, null, id, role, null, null, null);
+        return box.submitRequestSync(req);
+    }
+
+    @Override
+    public <T> RequestToken revoke(Grant grant, String username, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        GrantRequest<T> req = GrantRequest.grant(box, false, grant, false, null, id, username, tag, priority, handler);
+        return box.submitRequest(req);
+    }
+
+    @Override
+    public BaasResult<Void> revokeSync(Grant grant, String user) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        GrantRequest<Void> req = GrantRequest.grant(box, false, grant, false, null, id, user, null, null, null);
+        return box.submitRequestSync(req);
+    }
+
+    @Override
+    public <T> RequestToken grantAll(Grant grant, String role, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        GrantRequest<T> req = GrantRequest.grantAsync(box, true, grant, true, null, id, role, tag, priority, handler);
+        return box.submitRequest(req);
+    }
+
+
+    @Override
+    public BaasResult<Void> grantAllSync(Grant grant, String role) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        GrantRequest<Void> req = GrantRequest.grant(box, true, grant, true, null, id, role, null, null, null);
+        return box.submitRequestSync(req);
+    }
+
+    @Override
+    public <T> RequestToken grant(Grant grant, String username, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        GrantRequest<T> req = GrantRequest.grant(box, false, grant, true, null, id, username, tag, priority, handler);
+        return box.submitRequest(req);
+    }
+
+    @Override
+    public BaasResult<Void> grantSync(Grant grant, String user) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        GrantRequest<Void> req = GrantRequest.grant(box, true, grant, false, null, id, user, null, null, null);
+        return box.submitRequestSync(req);
+    }
+
     public <T> RequestToken upload(InputStream stream, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
         BAASBox box = BAASBox.getDefaultChecked();
         RequestFactory factory = box.requestFactory;
