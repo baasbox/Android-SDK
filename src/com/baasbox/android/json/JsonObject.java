@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2014. BaasBox
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions andlimitations under the License.
+ */
+
 package com.baasbox.android.json;
 
 import android.os.Parcel;
@@ -55,6 +70,24 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         if (name == null) throw new NullPointerException("name cannot be null");
         map.put(name, value);
         return this;
+    }
+
+    public static JsonObject of(Object... keyValues) {
+        JsonObject o = new JsonObject();
+        if (keyValues == null) return o;
+        if (keyValues.length % 2 != 0)
+            throw new IllegalArgumentException("keyValues should be pairs of string to value");
+
+        for (int i = 0; i < keyValues.length; i += 2) {
+            try {
+                String key = (String) keyValues[i];
+                Object v = keyValues[i + 1];
+                o.put(key, v);
+            } catch (ClassCastException e) {
+                throw new IllegalArgumentException("even parameters must be strings");
+            }
+        }
+        return o;
     }
 
     public String getString(String name, String otherwise) {

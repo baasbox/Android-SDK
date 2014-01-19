@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2014. BaasBox
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions andlimitations under the License.
+ */
+
 package com.baasbox.android;
 
 
@@ -155,7 +170,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * Returns the value mapped to <code>name</code> as a {@link java.lang.String}
      * or <code>otherwise</code> if the mapping is absent.
      *
-     * @param name a non <code>null</code> key
+     * @param name      a non <code>null</code> key
      * @param otherwise a default value
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
@@ -205,8 +220,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * or <code>otherwise</code> if the mapping is absent.
      *
      * @param otherwise a <code>boolean</code> default
-     * @param name a non <code>null</code> key
-     *
+     * @param name      a non <code>null</code> key
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public boolean getBoolean(String name, boolean otherwise) {
@@ -242,8 +256,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * or <code>otherwise</code> if the mapping is absent.
      *
      * @param otherwise a <code>long</code> default
-     * @param name a non <code>null</code> key
-     *
+     * @param name      a non <code>null</code> key
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public long getLong(String name, long otherwise) {
@@ -268,8 +281,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * or <code>otherwise</code> if the mapping is absent.
      *
      * @param otherwise a <code>double</code> default
-     * @param name a non <code>null</code> key
-     *
+     * @param name      a non <code>null</code> key
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public double getDouble(String name, double otherwise) {
@@ -292,8 +304,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * or <code>otherwise</code> if the mapping is absent.
      *
      * @param otherwise a <code>int</code> default
-     * @param name a non <code>null</code> key
-     *
+     * @param name      a non <code>null</code> key
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public int getInt(String name, int otherwise) {
@@ -317,8 +328,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * or <code>otherwise</code> if the mapping is absent.
      *
      * @param otherwise a <code>float</code> default
-     * @param name a non <code>null</code> key
-     *
+     * @param name      a non <code>null</code> key
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
     public float getFloat(String name, float otherwise) {
@@ -358,7 +368,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      *
      * @param name a non <code>null</code> key
      * @return <code>true</code> if the document contains a mapping from <code>name</code> to <code>null</code>
-     *         <code>false</code> otherwise
+     * <code>false</code> otherwise
      */
     public boolean isNull(String name) {
         return data.isNull(name);
@@ -394,7 +404,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonArray}
      * or <code>otherwise</code> if the mapping is absent.
      *
-     * @param name a non <code>null</code> key
+     * @param name      a non <code>null</code> key
      * @param otherwise a default value
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
@@ -432,7 +442,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonObject}
      * or <code>otherwise</code> if the mapping is absent.
      *
-     * @param name a non <code>null</code> key
+     * @param name      a non <code>null</code> key
      * @param otherwise a default value
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
@@ -471,7 +481,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonStructure}
      * or <code>otherwise</code> if the mapping is absent.
      *
-     * @param name a non <code>null</code> key
+     * @param name      a non <code>null</code> key
      * @param otherwise a default value
      * @return the value mapped to <code>name</code> or <code>otherwise</code>
      */
@@ -529,6 +539,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
     /**
      * Checks if this document contains a mapping with <code>name</code> key
+     *
      * @param name a non <code>null</code> key
      * @return <code>true</code> if the document contains the mapping <code>false</code> otherwise
      */
@@ -592,6 +603,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
     /**
      * Returns an {@link java.util.Iterator} over the mappings of this document
+     *
      * @return an iterator over the mappings of this document
      */
     @Override
@@ -611,6 +623,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
     /**
      * Returns the author of this document
+     *
      * @return
      */
     @Override
@@ -620,6 +633,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
     /**
      * Returns the collection to which this document belongs
+     *
      * @return
      */
     public final String getCollection() {
@@ -628,6 +642,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
     /**
      * The creation date of this document as a {@link java.lang.String}
+     *
      * @return
      */
     @Override
@@ -638,6 +653,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
     /**
      * Returns the version number of this document
+     *
      * @return a <code>long</code> representing the version of this data
      */
     @Override
@@ -739,7 +755,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         return getAllSync(BAASBox.getDefaultChecked(), collection, null);
     }
 
-    private static BaasResult<List<BaasDocument>> getAllSync(BAASBox client, String collection,Filter filter) {
+    private static BaasResult<List<BaasDocument>> getAllSync(BAASBox client, String collection, Filter filter) {
         if (client == null) throw new NullPointerException("client cannot be null");
         if (collection == null) throw new NullPointerException("collection cannot be null");
         filter = filter == null ? Filter.ANY : filter;
@@ -807,7 +823,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         if (collection == null) throw new NullPointerException("collection cannot be null");
         if (handler == null) throw new NullPointerException("handler cannot be null");
         if (client == null) throw new NullPointerException("client cannot be null");
-        CountRequest<T> request = new CountRequest<T>(client.requestFactory,collection, filter, priority, tag, handler);
+        CountRequest<T> request = new CountRequest<T>(client.requestFactory, collection, filter, priority, tag, handler);
         return client.submitRequest(request);
     }
 
@@ -837,7 +853,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     private static BaasResult<Long> countSync(BAASBox client, String collection, Filter filter) {
         if (client == null) throw new NullPointerException("client cannot be null");
         if (collection == null) throw new NullPointerException("collection cannot be null");
-        CountRequest<Void> request = new CountRequest<Void>(client.requestFactory, collection, filter,null,null,null);
+        CountRequest<Void> request = new CountRequest<Void>(client.requestFactory, collection, filter, null, null, null);
         return client.submitRequestSync(request);
     }
 
@@ -1026,7 +1042,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         return box.submitRequestSync(req);
     }
 
-    public static BaasResult<BaasDocument> createSync(String collection){
+    public static BaasResult<BaasDocument> createSync(String collection) {
         BaasDocument doc = new BaasDocument(collection);
         return doc.saveSync(SaveMode.IGNORE_VERSION);
     }
@@ -1241,7 +1257,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     private final static class ListRequest<T> extends BaseRequest<List<BaasDocument>, T> {
 
         ListRequest(RequestFactory factory, String collection, Filter filter, Priority priority, T t, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
-            super(factory.get(factory.getEndpoint("document/?", collection),filter.toParams()), priority, t, handler);
+            super(factory.get(factory.getEndpoint("document/?", collection), filter.toParams()), priority, t, handler);
         }
 
         @Override
@@ -1263,7 +1279,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     private final static class CountRequest<T> extends BaseRequest<Long, T> {
 
         CountRequest(RequestFactory factory, String collection, Filter filter, Priority priority, T t, BAASBox.BAASHandler<Long, T> handler) {
-            super(factory.get(factory.getEndpoint("docuement/?/count",collection),filter==null?null:filter.toParams()), priority, t, handler);
+            super(factory.get(factory.getEndpoint("docuement/?/count", collection), filter == null ? null : filter.toParams()), priority, t, handler);
 
         }
 
