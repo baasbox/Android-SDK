@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2014. BaasBox
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions andlimitations under the License.
+ */
+
 package com.baasbox.android;
 
 import android.content.Context;
@@ -17,8 +32,6 @@ import org.apache.http.HttpResponse;
  * Created by Andrea Tortorella on 23/12/13.
  */
 public class BAASBox {
-    //todo thinking about removing singleton to enable multiple clients on the same device
-    //     for now without having different storage for credentials this is not possible
 
     /**
      * Version of the baasbox api.
@@ -125,7 +138,6 @@ public class BAASBox {
         if (context == null) {
             throw new NullPointerException("context cannot be null");
         }
-
         this.context = context.getApplicationContext();
         this.config = config == null ? new Config() : config;
         this.credentialStore = new PreferenceCredentialStore(this.context);
@@ -232,10 +244,6 @@ public class BAASBox {
     public boolean cancel(RequestToken token) {
         return asyncDispatcher.cancel(token);
     }
-
-//    public void suspend(RequestToken token) {
-//        asyncDispatcher.suspend(token);
-//    }
 
     /**
      * Suspends a background request to the server.
