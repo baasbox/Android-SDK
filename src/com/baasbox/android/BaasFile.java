@@ -278,13 +278,13 @@ public class BaasFile extends BaasObject<BaasFile> {
         BAASBox box = BAASBox.getDefaultChecked();
         RequestFactory factory = box.requestFactory;
         if (handler == null) throw new NullPointerException("handler cannot be null");
-        UploadRequest<T> req = uploadRequest(factory, stream, tag, priority == null ? Priority.NORMAL : priority, handler);
+        UploadRequest<T> req = uploadRequest(factory, stream, tag, priority == null ? Priority.NORMAL : priority, handler, new JsonObject());
         return box.submitRequest(req);
     }
 
     public BaasResult<BaasFile> uploadSync(InputStream stream) {
         BAASBox box = BAASBox.getDefaultChecked();
-        UploadRequest<Void> req = uploadRequest(box.requestFactory, stream, null, null, null);
+        UploadRequest<Void> req = uploadRequest(box.requestFactory, stream, null, null, null, new JsonObject());
         return box.submitRequestSync(req);
     }
 
@@ -293,7 +293,7 @@ public class BaasFile extends BaasObject<BaasFile> {
         BAASBox box = BAASBox.getDefaultChecked();
         RequestFactory factory = box.requestFactory;
         if (handler == null) throw new NullPointerException("handler cannot be null");
-        UploadRequest<?> req = uploadRequest(factory, stream, null, Priority.NORMAL, handler);
+        UploadRequest<?> req = uploadRequest(factory, stream, null, Priority.NORMAL, handler, new JsonObject());
         return box.submitRequest(req);
     }
 
@@ -308,12 +308,12 @@ public class BaasFile extends BaasObject<BaasFile> {
         }
     }
 
-    public BaasResult<BaasFile> uploadSync(File file) {
+    public BaasResult<BaasFile> uploadSync(BaasACL acl, File file) {
         BAASBox box = BAASBox.getDefaultChecked();
         if (file == null) throw new NullPointerException("file cannot be null");
         try {
             FileInputStream in = new FileInputStream(file);
-            UploadRequest<Void> req = uploadRequest(box.requestFactory, in, null, null, null);
+            UploadRequest<Void> req = uploadRequest(box.requestFactory, in, null, null, null, acl == null ? null : acl.toJson());
             return box.submitRequestSync(req);
         } catch (FileNotFoundException e) {
             throw new IllegalArgumentException("file does not exists", e);
@@ -336,7 +336,7 @@ public class BaasFile extends BaasObject<BaasFile> {
         BAASBox box = BAASBox.getDefaultChecked();
         if (bytes == null) throw new NullPointerException("bytes cannot be null");
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        UploadRequest<Void> req = uploadRequest(box.requestFactory, in, null, null, null);
+        UploadRequest<Void> req = uploadRequest(box.requestFactory, in, null, null, null, new JsonObject());
         return box.submitRequestSync(req);
     }
 
@@ -409,7 +409,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
 
-    private <T> UploadRequest<T> uploadRequest(RequestFactory factory, InputStream stream, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler) {
+    private <T> UploadRequest<T> uploadRequest(RequestFactory factory, InputStream stream, T tag, Priority priority, BAASBox.BAASHandler<BaasFile, T> handler, JsonObject acl) {
         if (!isBound.compareAndSet(false, true)) {
             throw new IllegalArgumentException("you cannot upload new content for this file");
         }
@@ -434,7 +434,7 @@ public class BaasFile extends BaasObject<BaasFile> {
             }
         }
         String endpoint = factory.getEndpoint("file");
-        HttpRequest req = factory.uploadFile(endpoint, true, stream, name, mimeType, attachedData);
+        HttpRequest req = factory.uploadFile(endpoint, true, stream, name, mimeType, acl, attachedData);
         UploadRequest<T> breq = new UploadRequest<T>(this, req, priority, tag, handler);
         return breq;
     }

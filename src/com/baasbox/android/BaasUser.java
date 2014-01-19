@@ -446,7 +446,6 @@ public class BaasUser implements Parcelable {
 
     }
 
-
     static void saveUserProfile(CredentialStore store) {
         store.updateProfile(CURRENT_USER.get().jsonProfile());
     }
@@ -728,7 +727,6 @@ public class BaasUser implements Parcelable {
     public static RequestToken getFollowing(BAASBox.BAASHandler<List<BaasUser>, ?> handler) {
         return getFollowing(BAASBox.getDefaultChecked(), null, null, Priority.NORMAL, handler);
     }
-
 
     /**
      * Asynchronously fetches the list of users that are followed by the current logged in user.
@@ -1060,7 +1058,6 @@ public class BaasUser implements Parcelable {
                 JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
                 JsonObject data = o.getObject("data");
                 user.update(data);
-//            BAASLogging.debug(o.toString());
                 return user;
             } catch (JsonException e) {
                 throw new BAASBoxException(e);
