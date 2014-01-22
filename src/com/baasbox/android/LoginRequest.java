@@ -85,8 +85,8 @@ final class LoginRequest<T> extends BaseRequest<Void, T> {
             credentialStore.set(c);
 //            BaasUser user = BaasUser.withUserName(c.username);
             if (createCurrent) {
-                BaasUser.setCurrent(credentialStore, BaasUser.withUserName(c.username));
-                BaasUser.saveUserProfile(credentialStore);
+//                BaasUser.setCurrent(credentialStore, BaasUser.withUserName(c.username));
+//                BaasUser.saveUserProfile(credentialStore);
             }
             return null;
         } catch (JsonException e) {

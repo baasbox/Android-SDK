@@ -37,7 +37,7 @@ class BaasCredentialManager {
     private final SharedPreferences diskCache;
 
     private AtomicStampedReference<Credentials> credentials;
-    private AtomicReference<BaasUser> cachedCurrentUser;
+    private AtomicReference<BaasUser> cachedCurrentUser = new AtomicReference<BaasUser>();
 
     public BaasCredentialManager(Context context){
         this.diskCache = context.getSharedPreferences(DISK_PREFERENCES_NAME,Context.MODE_PRIVATE);
@@ -62,11 +62,15 @@ class BaasCredentialManager {
 
     }
 
-    public void storeCredentials(int seq,Credentials creds){
-        int[] stampHolder = new int[1];
-        cachedCurrentUser.set(null);
-        for(;;){
 
+    public void storeCredentials(int seq,Credentials creds){
+        storeCredentials(seq, creds,null);
+    }
+
+
+    public void storeCredentials(int seq,Credentials creds,BaasUser user){
+        int[] stampHolder = new int[1];
+        for(;;){
             Credentials current = credentials.get(stampHolder);
             int stamp = stampHolder[0];
             if (stamp>seq){
@@ -78,6 +82,7 @@ class BaasCredentialManager {
                 // if we were able to set the credentials force store
                 // the new one on disk
                 while (!store(creds.sessionToken,creds.password,creds.username,creds.userData));
+                cachedCurrentUser.set(user);
                 return;
             }
         }

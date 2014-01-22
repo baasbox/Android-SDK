@@ -32,11 +32,7 @@ import com.baasbox.android.spi.HttpRequest;
 
 import org.apache.http.HttpResponse;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -409,7 +405,7 @@ public class BaasUser implements Parcelable {
             credentials.username=userSignUp.username;
             credentials.sessionToken=token;
             credentials.userData=content.toString();
-            box.store.storeCredentials(seq(),credentials);
+            box.store.storeCredentials(seq(),credentials,userSignUp);
             return userSignUp;
         }
 
@@ -1072,6 +1068,7 @@ public class BaasUser implements Parcelable {
         }
     }
 
+
     JsonObject toJsonBody(String password) {
         JsonObject object = new JsonObject();
         if (password != null) {
@@ -1097,9 +1094,14 @@ public class BaasUser implements Parcelable {
         return object;
     }
 
+    public String toString(){
+        return String.format(Locale.US,"BaasUser"+toJson(true));
+    }
+
     public JsonObject toJson() {
         return toJson(true);
     }
+
 
 
     private static void addRoles(Set<String> roles, JsonArray jsonRoles) {
