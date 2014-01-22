@@ -25,7 +25,6 @@ import com.baasbox.android.exceptions.BAASBoxServerException;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.HttpRequest;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
@@ -110,9 +109,16 @@ public abstract class NetworkTask<R> extends Task<R> {
 
     protected abstract HttpRequest request(BAASBox box);
 
+    protected R onSkipRequest() throws BAASBoxException {
+        throw new BAASBoxException("no request");
+    }
+
     @Override
     protected final R asyncCall() throws BAASBoxException {
         HttpRequest request = request(box);
+        if (request == null) {
+            return onSkipRequest();
+        }
         Logger.info("requested %s",request);
         HttpResponse response = box.restClient.execute(request);
         return parseResponse(response,box);

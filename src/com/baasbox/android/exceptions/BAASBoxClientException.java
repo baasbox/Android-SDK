@@ -25,22 +25,21 @@ import java.util.HashMap;
  * the request; misspelling the URI or putting a wrong parameter value. <br>
  * <br>
  * More info about the error could be found in the class parameters values.
- * 
+ *
  * @author Davide Caroselli
- * 
  */
 public class BAASBoxClientException extends BAASBoxApiException {
 
-	private static final long serialVersionUID = 7494588625332374406L;
+    private static final long serialVersionUID = 7494588625332374406L;
 
-	public BAASBoxClientException(int code, int httpStatus, String resource, String method,
-			HashMap<String, String> requestHeader, String apiVersion,
-			String detailMessage) {
-		super(code, httpStatus, resource, method, requestHeader, apiVersion,
-				detailMessage);
-	}
+    public BAASBoxClientException(int code, int httpStatus, String resource, String method,
+                                  HashMap<String, String> requestHeader, String apiVersion,
+                                  String detailMessage) {
+        super(code, httpStatus, resource, method, requestHeader, apiVersion,
+                detailMessage);
+    }
 
-    public BAASBoxClientException(int httpStatus,JsonObject json) {
-        super(0,httpStatus,null,null,null,null,null);
+    public BAASBoxClientException(int httpStatus, JsonObject json) {
+        super(httpStatus, json);
     }
 }

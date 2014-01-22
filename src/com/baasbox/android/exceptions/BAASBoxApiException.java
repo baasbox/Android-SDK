@@ -15,6 +15,10 @@
 
 package com.baasbox.android.exceptions;
 
+import com.baasbox.android.json.JsonObject;
+
+import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -53,10 +57,31 @@ public class BAASBoxApiException extends BAASBoxException {
      */
     public final int code;
 
+    private final JsonObject json;
+
+    public BAASBoxApiException(int httpStatus, JsonObject error) {
+        super(error.getString("message", ""));
+        this.json = error;
+        this.httpStatus = httpStatus;
+        this.resource = error.getString("resource", null);
+        this.method = error.getString("method", null);
+        this.apiVersion = error.getString("API_version", "");
+        this.code = error.getInt("bb_code", -1);
+        JsonObject headers = error.getObject("request_header");
+        LinkedHashMap<String, String> headersMap = new LinkedHashMap<String, String>();
+        if (headers != null) {
+            for (Map.Entry<String, Object> h : headers) {
+                headersMap.put(h.getKey(), h.getValue().toString());
+            }
+        }
+        this.requestHeader = headersMap;
+    }
+
     public BAASBoxApiException(int code, int httpStatus, String resource, String method,
                                Map<String, String> requestHeader, String apiVersion,
                                String detailMessage) {
         super(detailMessage);
+        this.json = null;
         this.code = code;
         this.httpStatus = httpStatus;
         this.resource = resource;
@@ -65,4 +90,13 @@ public class BAASBoxApiException extends BAASBoxException {
         this.apiVersion = apiVersion;
     }
 
+    @Override
+    public String toString() {
+        if (json == null) {
+            return super.toString();
+        } else {
+            return String.format(Locale.US, "%s :%s",
+                    this.getClass().toString(), json.toString());
+        }
+    }
 }
