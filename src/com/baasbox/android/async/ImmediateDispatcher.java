@@ -13,11 +13,22 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.spi;
+package com.baasbox.android.async;
 
-public final class Credentials {
-    public String sessionToken;
-    public String username;
-    public String password;
-    public String userData;
+import com.baasbox.android.BaasResult;
+import com.baasbox.android.exceptions.BAASBoxException;
+
+/**
+ * Created by eto on 20/01/14.
+ */
+public final class ImmediateDispatcher {
+
+    public<R> BaasResult<R> execute(Task<R> request){
+        try {
+            R r = request.asyncCall();
+            return BaasResult.success(r);
+        } catch (BAASBoxException e) {
+            return BaasResult.failure(e);
+        }
+    }
 }

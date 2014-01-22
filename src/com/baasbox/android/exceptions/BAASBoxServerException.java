@@ -15,6 +15,8 @@
 
 package com.baasbox.android.exceptions;
 
+import com.baasbox.android.json.JsonObject;
+
 import java.util.HashMap;
 
 /**
@@ -37,4 +39,7 @@ public class BAASBoxServerException extends BAASBoxApiException {
                 detailMessage);
     }
 
+    public BAASBoxServerException(int status,JsonObject jsonResponse) {
+        super(0,status,null,null,null,null,null);
+    }
 }

@@ -41,9 +41,19 @@ public class HttpRequest {
         this.body = body;
     }
 
+    private static String methodToString(int method){
+        switch (method){
+            case GET: return "GET";
+            case POST: return "POST";
+            case PUT: return "PUT";
+            case DELETE: return "DELETE";
+            case PATCH: return "PATCH";
+            default:return "";
+        }
+    }
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{url ->" + url + " method: " + method + ", headers ->{");
+        StringBuilder sb = new StringBuilder("{url ->" + url + " method: " + methodToString(method) + ", headers ->{");
         for (Map.Entry<String, String> header : headers.entrySet()) {
             sb.append(header.getKey() + ":" + header.getValue());
         }

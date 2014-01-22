@@ -17,25 +17,30 @@ package com.baasbox.android;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import com.baasbox.android.async.BaasHandler;
 
 /**
- * Created by eto on 10/01/14.
+ * A handle to an asynchronous request.
+ * Created by Andrea Tortorella on 10/01/14.
  */
 public class RequestToken implements Parcelable, Comparable<RequestToken> {
-    final int requestId;
+    public final int requestId;
 
 
-    RequestToken(int requestId) {
+    public RequestToken(int requestId) {
         this.requestId = requestId;
     }
 
-    public void suspend() {
-        BAASBox.getDefaultChecked().suspend(this);
+    public boolean suspend() {
+        return BAASBox.getDefaultChecked().suspend(this);
     }
 
-    public <T> boolean resume(T tag, BAASBox.BAASHandler<?, T> handler) {
-        RequestToken t = BAASBox.getDefaultChecked().resume(this, tag, handler);
-        return this.equals(t);
+    public boolean resume(BaasHandler<?> handler){
+        return BAASBox.getDefaultChecked().resume(this,handler);
+    }
+
+    public boolean abort(){
+        return BAASBox.getDefaultChecked().abort(this);
     }
 
     public boolean cancel() {

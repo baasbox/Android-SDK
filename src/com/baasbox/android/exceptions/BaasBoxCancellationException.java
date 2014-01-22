@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.spi;
+package com.baasbox.android.exceptions;
 
-public final class Credentials {
-    public String sessionToken;
-    public String username;
-    public String password;
-    public String userData;
+/**
+ * Created by eto on 20/01/14.
+ */
+public class BaasBoxCancellationException extends BAASBoxException {
 }

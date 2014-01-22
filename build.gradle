@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.7.1'
+        classpath 'com.android.tools.build:gradle:0.7.3'
         classpath 'com.github.dcendents:android-maven-plugin:1.0'
     }
 }
@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: '*.jar', excludes: ['gson-2.2.2.jar'])
+//    compile fileTree(dir: 'libs', include: '*.jar', excludes: ['gson-2.2.2.jar'])
 //    compile 'com.google.code.gson:gson:2.2.+'
 //    compile 'com.fasterxml.jackson.core:jackson-core:2.3.1'
 //    compile 'com.fasterxml.jackson.core:jackson-databind:2.3.1'
@@ -62,6 +62,23 @@ android {
     }
 }
 
+task coreLibJar(type : Jar){
+    from fileTree(dir: 'build/classes/release').matching{ 'com/baasbox/android/**'}
+}
+artifacts {
+    archives coreLibJar
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url :"file:///home/eto/baasbox-android")
+            pom.groupId = 'com.baasbox'
+            pom.artifactId = 'baasbox-android'
+            pom.version = '0.7.3-alpha'
+        }
+    }
+}
 install {
     repositories.mavenInstaller {
         pom.version = "0.7.3-SNAPSHOT"

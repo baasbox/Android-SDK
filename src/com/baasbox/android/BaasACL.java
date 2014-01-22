@@ -76,8 +76,9 @@ public class BaasACL {
     }
 
 
-    public BaasACL grantUsers(Grant grant, String... users) {
-        if (users == null) return this;
+    public BaasACL grantUsers(Grant grant, String... usrs) {
+        if (usrs == null) return this;
+        Object[] users = (Object[])usrs;
         switch (grant) {
             case READ:
                 if (userReadGrants == null) {
@@ -101,9 +102,9 @@ public class BaasACL {
                 }
                 break;
             case ALL:
-                grantUsers(Grant.READ, users);
-                grantUsers(Grant.DELETE, users);
-                grantUsers(Grant.UPDATE, users);
+                grantUsers(Grant.READ, usrs);
+                grantUsers(Grant.DELETE, usrs);
+                grantUsers(Grant.UPDATE, usrs);
                 break;
             default:
                 throw new Error("Invalid grant");
@@ -111,12 +112,13 @@ public class BaasACL {
         return this;
     }
 
-    public BaasACL grantRoles(Grant grant, String... users) {
-        if (users == null) return this;
+    public BaasACL grantRoles(Grant grant, String... usrs) {
+        if (usrs == null) return this;
+        Object[] users = (Object[])usrs;
         switch (grant) {
             case READ:
                 if (rolesReadGrants == null) {
-                    rolesReadGrants = JsonArray.of(users);
+                    rolesReadGrants = JsonArray.of((Object[])users);
                 } else {
                     rolesReadGrants.append(JsonArray.of(users));
                 }
@@ -137,9 +139,9 @@ public class BaasACL {
                 }
                 break;
             case ALL:
-                grantRoles(Grant.READ, users);
-                grantRoles(Grant.DELETE, users);
-                grantRoles(Grant.UPDATE, users);
+                grantRoles(Grant.READ, usrs);
+                grantRoles(Grant.DELETE, usrs);
+                grantRoles(Grant.UPDATE, usrs);
                 break;
             default:
                 throw new Error("Invalid grant");

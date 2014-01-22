@@ -16,6 +16,7 @@
 package com.baasbox.android;
 
 import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.exceptions.BaasBoxCancellationException;
 
 /**
  * Created by eto on 23/12/13.
@@ -23,36 +24,89 @@ import com.baasbox.android.exceptions.BAASBoxException;
 public abstract class BaasResult<T> {
 
     public static <T> BaasResult<T> failure(BAASBoxException t) {
-        return new Immediate<T>(null, t);
+        return new Error<T>(t);
+    }
+
+    public static <T> BaasResult<T> cancel(){
+        return new Cancel<T>();
     }
 
     public static <T> BaasResult<T> success(T result) {
-        return new Immediate<T>(result, null);
+        return new Success<T>(result);
     }
 
-    public static class Immediate<T> extends BaasResult<T> {
+    private BaasResult(){}
 
-        private final T value;
+    public static class Cancel<T> extends Error<T>{
+
+        Cancel() {
+            super(new BaasBoxCancellationException());
+        }
+
+        @Override
+        public boolean isCanceled() {
+            return true;
+        }
+    }
+
+    public static class Error<T> extends BaasResult<T>{
         private final BAASBoxException error;
 
-        Immediate(T value, BAASBoxException error) {
+        Error(BAASBoxException e){
+            this.error =e;
+        }
+
+        @Override
+        public final T value() {
+            throw new RuntimeException(error);
+        }
+
+        @Override
+        public final T get() throws BAASBoxException {
+            throw error;
+        }
+
+        @Override
+        public final BAASBoxException error() {
+            return error;
+        }
+
+        @Override
+        public final boolean isSuccess() {
+            return false;
+        }
+
+        @Override
+        public final boolean isFailed() {
+            return true;
+        }
+
+        @Override
+        public boolean isCanceled() {
+            return false;
+        }
+    }
+
+    public static final class Success<T> extends BaasResult<T>{
+        private final T value;
+
+        Success(T value){
             this.value = value;
-            this.error = error;
         }
 
         @Override
         public boolean isFailed() {
-            return error != null;
+            return false;
+        }
+
+        @Override
+        public boolean isCanceled() {
+            return false;
         }
 
         @Override
         public boolean isSuccess() {
-            return error == null;
-        }
-
-        @Override
-        public BAASBoxException error() {
-            return error;
+            return true;
         }
 
         @Override
@@ -61,8 +115,12 @@ public abstract class BaasResult<T> {
         }
 
         @Override
+        public BAASBoxException error() {
+            return null;
+        }
+
+        @Override
         public T get() throws BAASBoxException {
-            if (error != null) throw error;
             return value;
         }
     }
@@ -72,14 +130,7 @@ public abstract class BaasResult<T> {
 
     public abstract boolean isSuccess();
 
-    public boolean isCanceled() {
-        return false;
-    }
-
-    public boolean isPending() {
-        return false;
-    }
-
+    public abstract boolean isCanceled();
 
     public abstract BAASBoxException error();
 

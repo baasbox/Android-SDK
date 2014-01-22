@@ -19,6 +19,8 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.baasbox.android.async.BaasHandler;
+import com.baasbox.android.async.NetworkTask;
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.exceptions.BAASBoxIOException;
 import com.baasbox.android.json.JsonArray;
@@ -41,12 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Created by Andrea Tortorella on 02/01/14.
  */
 public class BaasUser implements Parcelable {
-    private static final AtomicReference<BaasUser> CURRENT_USER = new AtomicReference<BaasUser>();
 
-    static void setCurrent(CredentialStore store, BaasUser user) {
-        store.updateProfile(user.jsonProfile());
-        CURRENT_USER.set(user);
-    }
 
     String username;
     JsonObject privateData;
@@ -56,15 +53,6 @@ public class BaasUser implements Parcelable {
     private String signupDate;
     private String status;
     private final Set<String> roles = new HashSet<String>();
-
-    static void loadSaved(BAASBox box) {
-        JsonObject data = box.credentialStore.readProfile();
-        Log.d("USER", data == null ? "LOAD NULL" : "LOAD " + data.toString());
-        if (data != null) {
-            BaasUser user = new BaasUser(data);
-            CURRENT_USER.set(user);
-        }
-    }
 
     /**
      * Scopes of user related data
@@ -122,7 +110,7 @@ public class BaasUser implements Parcelable {
      * @param username
      */
     public static BaasUser withUserName(String username) {
-        BaasUser current = CURRENT_USER.get();
+        BaasUser current = current();
         if (current != null && current.username.equals(username)) {
             return current;
         }
@@ -136,7 +124,7 @@ public class BaasUser implements Parcelable {
      * @return
      */
     public static BaasUser current() {
-        return CURRENT_USER.get();
+        return BAASBox.getDefaultChecked().store.currentUser();
     }
 
     /**
@@ -145,7 +133,7 @@ public class BaasUser implements Parcelable {
      * @return
      */
     public boolean isCurrent() {
-        BaasUser current = CURRENT_USER.get();
+        BaasUser current = current();
         if (current == null) return false;
         if (current.username.equals(username)) return true;
         return false;
@@ -380,24 +368,55 @@ public class BaasUser implements Parcelable {
         }
     }
 
-    public RequestToken signup(String password, BAASBox.BAASHandler<BaasUser, ?> handler) {
-        return signup(password, null, Priority.NORMAL, handler);
-    }
-
-    public <T> RequestToken signup(String password, T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
-        if (handler == null) throw new NullPointerException("handler cannot be null");
-        if (password == null) throw new NullPointerException("password cannot be null");
-        priority = priority == null ? Priority.NORMAL : priority;
-        SignupRequest<T> signup = new SignupRequest<T>(this, password, box.requestFactory, priority, tag, handler);
-        return box.submitRequest(signup);
-    }
 
     public BaasResult<BaasUser> signupSync(String password) {
         BAASBox box = BAASBox.getDefaultChecked();
         if (password == null) throw new NullPointerException("password cannot be null");
-        SignupRequest<Void> signup = new SignupRequest<Void>(this, password, box.requestFactory, null, null, null);
-        return box.submitRequestSync(signup);
+        SignupRequest signup = new SignupRequest(box,this,null,null,null);
+        return box.submitSync(signup);
+    }
+
+
+    public RequestToken signup(String password, BaasHandler<BaasUser> handler) {
+        return signup(password,null, handler);
+    }
+
+    public <T> RequestToken signup(String password, Priority priority, BaasHandler<BaasUser> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (password == null) throw new NullPointerException("password cannot be null");
+        SignupRequest req = new SignupRequest(box,this,password,priority,handler);
+        return box.submitAsync(req);
+    }
+
+    private static final class SignupRequest extends NetworkTask<BaasUser>{
+        private final BaasUser userSignUp;
+        private final String password;
+
+        protected SignupRequest(BAASBox box,BaasUser user,String password, Priority priority, BaasHandler<BaasUser> handler) {
+            super(box, priority, handler);
+            this.userSignUp= user;
+            this.password =password;
+        }
+
+        @Override
+        protected BaasUser onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+            final JsonObject content = parseJson(response,box).getObject("data");
+            String token = content.getString("X-BB-SESSION");
+            if (token==null) throw new BAASBoxException("Could not parse server response, missing token");
+            userSignUp.update(content);
+            Credentials credentials = new Credentials();
+            credentials.password=password;
+            credentials.username=userSignUp.username;
+            credentials.sessionToken=token;
+            credentials.userData=content.toString();
+            box.store.storeCredentials(seq(),credentials);
+            return userSignUp;
+        }
+
+        @Override
+        protected HttpRequest request(BAASBox box) {
+            return box.requestFactory.post(box.requestFactory.getEndpoint("user"),userSignUp.toJsonBody(password));
+        }
     }
 
     public RequestToken login(String password, BAASBox.BAASHandler<Void, ?> handler) {
@@ -449,7 +468,7 @@ public class BaasUser implements Parcelable {
                     JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
                     JsonObject userData = o.getObject("data");
                     current.update(userData);
-                    saveUserProfile(credentialStore);
+//                    saveUserProfile(credentialStore);
                     return current;
                 } else {
                     throw new BAASBoxException("updated user during save");
@@ -461,9 +480,6 @@ public class BaasUser implements Parcelable {
 
     }
 
-    static void saveUserProfile(CredentialStore store) {
-        store.updateProfile(CURRENT_USER.get().jsonProfile());
-    }
 
     public BaasResult<Void> logoutSync() {
         if (!isCurrent()) {
@@ -505,7 +521,7 @@ public class BaasUser implements Parcelable {
         @Override
         protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             try {
-                CURRENT_USER.set(null);
+//                CURRENT_USER.set(null);
                 credentialStore.set(null);
                 return null;
             } catch (Exception e) {
@@ -515,7 +531,7 @@ public class BaasUser implements Parcelable {
 
         @Override
         protected void onClientError(CredentialStore credentialStore) {
-            CURRENT_USER.set(null);
+//            CURRENT_USER.set(null);
             credentialStore.set(null);
         }
     }
@@ -531,48 +547,6 @@ public class BaasUser implements Parcelable {
         @Override
         public R parseResponse(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
             throw new BAASBoxException(message);
-        }
-    }
-
-    private final static class SignupRequest<T> extends BaseRequest<BaasUser, T> {
-        BaasUser user;
-        String password;
-        String username;
-
-        SignupRequest(BaasUser user, String password, RequestFactory factory, Priority priority, T tag, BAASBox.BAASHandler<BaasUser, T> handler) {
-            super(factory.post(factory.getEndpoint("user"), user.toJsonBody(password)), priority, tag, handler, false);
-            this.user = user;
-            this.password = password;
-            this.username = user.username;
-        }
-
-        @Override
-        protected BaasUser handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            try {
-                JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
-                JsonObject data = content.getObject("data");
-                String token = data.getString("X-BB-SESSION");
-                Credentials credentials = new Credentials();
-                credentials.password = password;
-                credentials.username = username;
-                credentials.sessionToken = token;
-                credentialStore.set(credentials);
-
-                // temporarily faking current user.
-                JsonObject accountData = data.getObject("user");
-                JsonArray userRoles = accountData.getArray("user", new JsonArray());
-                String status = accountData.getString("status", "ACTIVE");
-                String signup = data.getString("signupDate");
-                user.roles.clear();
-                addRoles(user.roles, userRoles);
-                user.status = status;
-                user.signupDate = signup;
-                setCurrent(credentialStore, user);
-
-                return user;
-            } catch (JsonException e) {
-                throw new BAASBoxException("Could not parse server response");
-            }
         }
     }
 
