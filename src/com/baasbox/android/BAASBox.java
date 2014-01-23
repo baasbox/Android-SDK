@@ -297,25 +297,6 @@ public class BAASBox {
         return null;
     }
 
-    public <R> RequestToken streamAsset(String name, DataStreamHandler<R> dataStreamHandler, BAASHandler<R, ?> handler) {
-        return streamAsset(name, null, Priority.NORMAL, dataStreamHandler, handler);
-    }
-
-    public <R, T> RequestToken streamAsset(String name, T tag, Priority priority, DataStreamHandler<R> streamHandler, BAASHandler<R, T> endHandler) {
-        if (streamHandler == null) throw new NullPointerException("streamhandler cannot be null");
-        if (endHandler == null) throw new NullPointerException("handler cannot be null");
-        if (name == null) throw new NullPointerException("name cannot be null");
-        priority = priority == null ? Priority.NORMAL : priority;
-        AsyncStreamRequest<T, R> breq = AsyncStreamRequest.buildAsyncAssetRequest(requestFactory, name, tag, priority, streamHandler, endHandler);
-        return submitRequest(breq);
-    }
-
-    public BaasResult<BaasStream> streamAssetSync(String name) {
-        if (name == null) throw new NullPointerException("id cannot be null");
-        StreamRequest synReq = StreamRequest.buildSyncAssetRequest(this, name);
-        return submitRequestSync(synReq);
-    }
-
     /**
      * Synchronously sends a raw rest request to the server that is specified by
      * the parameters passed in.
@@ -369,22 +350,20 @@ public class BAASBox {
     }
 
 
-    public <T> RequestToken registerPush(String registrationId, T tag, Priority priority, BAASHandler<Void, T> handler) {
+    public RequestToken registerPush(String registrationId, Priority priority, BaasHandler<Void> handler) {
         if (registrationId == null) throw new NullPointerException("registrationId cannot be null");
-        if (handler == null) throw new NullPointerException("handler cannot be null");
-        priority = priority == null ? Priority.NORMAL : priority;
-        PushRegisterRequest<T> req = new PushRegisterRequest<T>(requestFactory, registrationId, priority, tag, handler);
-        return submitRequest(req);
+        RegisterPush rp = new RegisterPush(this, registrationId, priority, handler);
+        return submitAsync(rp);
     }
 
-    public RequestToken registerPush(String registrationId, BAASHandler<Void, ?> handler) {
-        return registerPush(registrationId, null, Priority.NORMAL, handler);
+    public RequestToken registerPush(String registrationId, BaasHandler<Void> handler) {
+        return registerPush(registrationId, null, handler);
     }
 
     public BaasResult<Void> registerPushSync(String registrationId) {
         if (registrationId == null) throw new NullPointerException("registrationId cannot be null");
-        PushRegisterRequest<Void> req = new PushRegisterRequest<Void>(requestFactory, registrationId, null, null, null);
-        return submitRequestSync(req);
+        RegisterPush req = new RegisterPush(this, registrationId, null, null);
+        return submitSync(req);
     }
 
     private static class RawRequest extends NetworkTask<JsonObject> {
@@ -412,32 +391,23 @@ public class BAASBox {
         }
     }
 
+    private static final class RegisterPush extends NetworkTask<Void> {
+        private final String registrationId;
 
-    //    private static class RawRequest<T> extends BaseRequest<JsonObject, T> {
-//
-//        RawRequest(HttpRequest request, Priority priority, T t, BAASHandler<JsonObject, T> handler, boolean retry) {
-//            super(request, priority, t, handler, retry);
-//        }
-//
-//        @Override
-//        protected JsonObject handleOk(HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
-//            try {
-//                return getJsonEntity(response, config.HTTP_CHARSET);
-//            } catch (JsonException e) {
-//                throw new BAASBoxException(e);
-//            }
-//        }
-//    }
-//
-    private static final class PushRegisterRequest<T> extends BaseRequest<Void, T> {
-
-        PushRegisterRequest(RequestFactory factory, String registrationId, Priority priority, T t, BAASHandler<Void, T> handler) {
-            super(factory.put(factory.getEndpoint("push/device/android/?", registrationId)), priority, t, handler);
+        protected RegisterPush(BAASBox box, String registrationId, Priority priority, BaasHandler<Void> handler) {
+            super(box, priority, handler);
+            this.registrationId = registrationId;
         }
 
         @Override
-        protected Void handleOk(HttpResponse response, Config config, CredentialStore credentialStore) throws BAASBoxException {
+        protected Void onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+            Logger.debug("PUSH_ENABLED: %s", parseJson(response, box));
             return null;
+        }
+
+        @Override
+        protected HttpRequest request(BAASBox box) {
+            return box.requestFactory.put(box.requestFactory.getEndpoint("push/device/android/?", registrationId));
         }
     }
 
