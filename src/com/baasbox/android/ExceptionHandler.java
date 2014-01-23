@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.impl;
-
-import com.baasbox.android.Logger;
+package com.baasbox.android;
 
 /**
  * Created by eto on 20/01/14.
