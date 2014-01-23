@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.stream;
+package com.baasbox.android.async;
 
 import com.baasbox.android.*;
-import com.baasbox.android.async.BaasHandler;
-import com.baasbox.android.async.NetworkTask;
 import com.baasbox.android.exceptions.BAASBoxException;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;

@@ -19,7 +19,6 @@ import android.content.Context;
 import com.baasbox.android.async.*;
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.json.JsonObject;
-import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.HttpRequest;
 import com.baasbox.android.spi.RestClient;
 import org.apache.http.HttpResponse;
@@ -130,7 +129,6 @@ public class BAASBox {
     private final Dispatcher asyncDispatcher;
     private final ImmediateDispatcher syncDispatcher;
 
-    public final CredentialStore credentialStore;
     public final RequestFactory requestFactory;
     public final RestClient restClient;
     public final Config config;
@@ -143,7 +141,6 @@ public class BAASBox {
         }
         this.context = context.getApplicationContext();
         this.config = config == null ? new Config() : config;
-        this.credentialStore = new PreferenceCredentialStore(this.context);
         this.store = new BaasCredentialManager(context);
         restClient = new HttpUrlConnectionClient(this.config);
         this.requestFactory = new RequestFactory(this.config, store);
@@ -175,7 +172,8 @@ public class BAASBox {
 
     private static BAASBox createClient(Context context, Config config, String sessionToken) {
         BAASBox box = new BAASBox(context, config);
-        if (sessionToken != null) box.credentialStore.updateToken(sessionToken);
+//        if (sessionToken != null) box.store.updateToken(sessionToken);
+        //todo update token work
         box.asyncDispatcher.start();
         return box;
     }
@@ -244,14 +242,6 @@ public class BAASBox {
 
     <Resp> BaasResult<Resp> submitSync(Task<Resp> task) {
         return syncDispatcher.execute(task);
-    }
-
-    RequestToken submitRequest(BaasRequest<?, ?> req) {
-        return null;
-    }
-
-    <Resp> BaasResult<Resp> submitRequestSync(BaasRequest<?, ?> request) {
-        return null;
     }
 
     public boolean cancel(RequestToken token) {

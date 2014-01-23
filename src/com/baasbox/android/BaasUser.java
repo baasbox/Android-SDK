@@ -177,7 +177,8 @@ public class BaasUser implements Parcelable {
     }
 
     public static boolean isAuthentcated() {
-        Credentials credentials = BAASBox.getDefaultChecked().credentialStore.get(true);
+        BaasCredentialManager credentialManager = BAASBox.getDefault().store;
+        Credentials credentials = credentialManager.getCredentials();
         return credentials != null && credentials.username != null && credentials.password != null;
     }
 

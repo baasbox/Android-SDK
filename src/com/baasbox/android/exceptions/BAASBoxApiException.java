@@ -15,6 +15,7 @@
 
 package com.baasbox.android.exceptions;
 
+import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 
 import java.util.LinkedHashMap;
@@ -66,7 +67,19 @@ public class BAASBoxApiException extends BAASBoxException {
         this.resource = error.getString("resource", null);
         this.method = error.getString("method", null);
         this.apiVersion = error.getString("API_version", "");
-        this.code = error.getInt("bb_code", -1);
+        int code;
+        try {
+            code = error.getInt("bb_code", -1);
+        } catch (JsonException e) {
+            try {
+                String bbcodeString = error.getString("bb_code", "-1");
+                code = Integer.parseInt(bbcodeString);
+                ;
+            } catch (NumberFormatException ex) {
+                code = -1;
+            }
+        }
+        this.code = code;
         JsonObject headers = error.getObject("request_header");
         LinkedHashMap<String, String> headersMap = new LinkedHashMap<String, String>();
         if (headers != null) {

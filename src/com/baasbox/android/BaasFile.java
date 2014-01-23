@@ -16,6 +16,7 @@
 package com.baasbox.android;
 
 import android.webkit.MimeTypeMap;
+import com.baasbox.android.async.AsyncStream;
 import com.baasbox.android.async.BaasHandler;
 import com.baasbox.android.async.NetworkTask;
 import com.baasbox.android.exceptions.BAASBoxException;
@@ -23,7 +24,6 @@ import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.HttpRequest;
-import com.baasbox.android.stream.AsyncStream;
 import org.apache.http.HttpResponse;
 
 import java.io.*;
