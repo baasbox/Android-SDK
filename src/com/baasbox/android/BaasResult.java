@@ -15,9 +15,6 @@
 
 package com.baasbox.android;
 
-import com.baasbox.android.exceptions.BaasCancellationException;
-import com.baasbox.android.exceptions.BaasException;
-
 /**
  * Created by eto on 23/12/13.
  */

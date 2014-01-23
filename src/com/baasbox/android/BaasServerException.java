@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.exceptions;
+package com.baasbox.android;
 
 import com.baasbox.android.json.JsonObject;
 

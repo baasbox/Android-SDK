@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.dispatch;
+package com.baasbox.android.impl;
 
 import com.baasbox.android.*;
-import com.baasbox.android.exceptions.BaasException;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

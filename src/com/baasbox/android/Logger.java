@@ -22,7 +22,7 @@ import java.util.Locale;
 /**
  * Created by Andrea Tortorella on 18/01/14.
  */
-public class Logger {
+public final class Logger {
     private final static boolean ENABLED = true;
     private final static String TAG = "BAASBOX";
 

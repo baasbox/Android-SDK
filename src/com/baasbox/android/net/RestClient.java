@@ -15,7 +15,7 @@
 
 package com.baasbox.android.net;
 
-import com.baasbox.android.exceptions.BaasException;
+import com.baasbox.android.BaasException;
 import org.apache.http.HttpResponse;
 
 /**
@@ -31,7 +31,7 @@ public interface RestClient {
      *
      * @param request the request
      * @return an http response
-     * @throws com.baasbox.android.exceptions.BaasException
+     * @throws com.baasbox.android.BaasException
      */
     public HttpResponse execute(HttpRequest request) throws BaasException;
 }

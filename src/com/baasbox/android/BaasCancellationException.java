@@ -13,24 +13,10 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.exceptions;
+package com.baasbox.android;
 
 /**
- * Created by eto on 24/12/13.
+ * Created by eto on 20/01/14.
  */
-public class BaasIOException extends BaasException {
-
-    private static final long serialVersionUID = 4277921777119622999L;
-
-    public BaasIOException(String detailMessage) {
-        super(detailMessage);
-    }
-
-    public BaasIOException(String detailMessage, Throwable throwable) {
-        super(detailMessage, throwable);
-    }
-
-    public BaasIOException(Throwable throwable) {
-        super(throwable);
-    }
+public class BaasCancellationException extends BaasException {
 }

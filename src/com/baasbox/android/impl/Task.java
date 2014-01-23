@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.dispatch;
+package com.baasbox.android.impl;
 
 
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import com.baasbox.android.BaasBox;
-import com.baasbox.android.BaasHandler;
-import com.baasbox.android.BaasResult;
-import com.baasbox.android.Priority;
-import com.baasbox.android.exceptions.BaasException;
+import com.baasbox.android.*;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;

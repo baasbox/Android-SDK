@@ -15,8 +15,6 @@
 
 package com.baasbox.android;
 
-import com.baasbox.android.exceptions.BaasException;
-import com.baasbox.android.exceptions.BaasIOException;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
 import org.apache.http.*;

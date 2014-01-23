@@ -13,10 +13,22 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.exceptions;
+package com.baasbox.android.impl;
+
+import com.baasbox.android.BaasException;
+import com.baasbox.android.BaasResult;
 
 /**
  * Created by eto on 20/01/14.
  */
-public class BaasCancellationException extends BaasException {
+public final class ImmediateDispatcher {
+
+    public <R> BaasResult<R> execute(Task<R> request) {
+        try {
+            R r = request.asyncCall();
+            return BaasResult.success(r);
+        } catch (BaasException e) {
+            return BaasResult.failure(e);
+        }
+    }
 }

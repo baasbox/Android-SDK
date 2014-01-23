@@ -17,8 +17,7 @@ package com.baasbox.android;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import com.baasbox.android.dispatch.NetworkTask;
-import com.baasbox.android.exceptions.BaasException;
+import com.baasbox.android.impl.NetworkTask;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;

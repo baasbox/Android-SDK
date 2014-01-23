@@ -13,22 +13,28 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.dispatch;
-
-import com.baasbox.android.BaasResult;
-import com.baasbox.android.exceptions.BaasException;
+package com.baasbox.android;
 
 /**
- * Created by eto on 20/01/14.
+ * Created by eto on 23/12/13.
  */
-public final class ImmediateDispatcher {
+public class BaasException extends Exception {
+    private static final long serialVersionUID = 1981606473384352072L;
 
-    public <R> BaasResult<R> execute(Task<R> request) {
-        try {
-            R r = request.asyncCall();
-            return BaasResult.success(r);
-        } catch (BaasException e) {
-            return BaasResult.failure(e);
-        }
+    public BaasException() {
     }
+
+    public BaasException(String detailMessage) {
+        super(detailMessage);
+    }
+
+    public BaasException(String detailMessage, Throwable throwable) {
+        super(detailMessage, throwable);
+    }
+
+    public BaasException(Throwable throwable) {
+        super(throwable);
+    }
+
+
 }

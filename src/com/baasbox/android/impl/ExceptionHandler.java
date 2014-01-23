@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.dispatch;
+package com.baasbox.android.impl;
 
 import com.baasbox.android.Logger;
 

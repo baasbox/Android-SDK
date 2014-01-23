@@ -13,16 +13,9 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.dispatch;
+package com.baasbox.android.impl;
 
-import com.baasbox.android.BaasBox;
-import com.baasbox.android.BaasHandler;
-import com.baasbox.android.Logger;
-import com.baasbox.android.Priority;
-import com.baasbox.android.exceptions.BaasClientException;
-import com.baasbox.android.exceptions.BaasException;
-import com.baasbox.android.exceptions.BaasIOException;
-import com.baasbox.android.exceptions.BaasServerException;
+import com.baasbox.android.*;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
