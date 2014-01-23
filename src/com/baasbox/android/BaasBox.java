@@ -19,8 +19,8 @@ import android.content.Context;
 import com.baasbox.android.dispatch.*;
 import com.baasbox.android.exceptions.BaasException;
 import com.baasbox.android.json.JsonObject;
-import com.baasbox.android.spi.HttpRequest;
-import com.baasbox.android.spi.RestClient;
+import com.baasbox.android.net.HttpRequest;
+import com.baasbox.android.net.RestClient;
 import org.apache.http.HttpResponse;
 
 /**

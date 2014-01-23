@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.spi;
+package com.baasbox.android.net;
 
 import java.io.InputStream;
 import java.util.Map;

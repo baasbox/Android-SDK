@@ -17,7 +17,7 @@ package com.baasbox.android;
 
 import com.baasbox.android.dispatch.NetworkTask;
 import com.baasbox.android.exceptions.BaasException;
-import com.baasbox.android.spi.HttpRequest;
+import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 

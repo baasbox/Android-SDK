@@ -18,7 +18,6 @@ package com.baasbox.android;
 import android.content.Context;
 import android.content.SharedPreferences;
 import com.baasbox.android.json.JsonObject;
-import com.baasbox.android.spi.Credentials;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -39,32 +38,32 @@ class BaasCredentialManager {
     private AtomicStampedReference<Credentials> credentials;
     private AtomicReference<BaasUser> cachedCurrentUser = new AtomicReference<BaasUser>();
 
-    public BaasCredentialManager(Context context){
-        this.diskCache = context.getSharedPreferences(DISK_PREFERENCES_NAME,Context.MODE_PRIVATE);
-        this.credentials = new AtomicStampedReference<Credentials>(load(),-1);
+    public BaasCredentialManager(Context context) {
+        this.diskCache = context.getSharedPreferences(DISK_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        this.credentials = new AtomicStampedReference<Credentials>(load(), -1);
     }
 
-    public BaasUser currentUser(){
-        for(;;){
+    public BaasUser currentUser() {
+        for (; ; ) {
             BaasUser current = cachedCurrentUser.get();
-            if (current!=null) return current;
+            if (current != null) return current;
             Credentials credentials = getCredentials();
-            if (credentials==null) return null;
+            if (credentials == null) return null;
             BaasUser cached = new BaasUser(JsonObject.decode(credentials.userData));
-            if (cachedCurrentUser.compareAndSet(null,cached)){
+            if (cachedCurrentUser.compareAndSet(null, cached)) {
                 return cached;
             }
         }
     }
 
-    public Credentials getCredentials(){
+    public Credentials getCredentials() {
         return credentials.getReference();
 
     }
 
 
-    public void storeCredentials(int seq,Credentials creds){
-        storeCredentials(seq, creds,null);
+    public void storeCredentials(int seq, Credentials creds) {
+        storeCredentials(seq, creds, null);
     }
 
 
@@ -95,65 +94,65 @@ class BaasCredentialManager {
 
     }
 
-    public void storeCredentials(int seq,Credentials creds,BaasUser user){
+    public void storeCredentials(int seq, Credentials creds, BaasUser user) {
         int[] stampHolder = new int[1];
-        for(;;){
+        for (; ; ) {
             Credentials current = credentials.get(stampHolder);
             int stamp = stampHolder[0];
-            if (stamp>seq){
+            if (stamp > seq) {
                 // current credentials are newer than the one passed in
                 // do nothing
                 return;
-            } else if (credentials.compareAndSet(current,creds,stamp,seq)) {
+            } else if (credentials.compareAndSet(current, creds, stamp, seq)) {
 
                 // if we were able to set the credentials force store
                 // the new one on disk
-                while (!store(creds.sessionToken,creds.password,creds.username,creds.userData));
+                while (!store(creds.sessionToken, creds.password, creds.username, creds.userData)) ;
                 cachedCurrentUser.set(user);
                 return;
             }
         }
     }
 
-    public void clearCredentials(int seq){
+    public void clearCredentials(int seq) {
         int[] stampHolder = new int[1];
         cachedCurrentUser.set(null);
-        for(;;){
+        for (; ; ) {
             Credentials current = credentials.get(stampHolder);
             int stamp = stampHolder[0];
-            if (stamp>seq){
+            if (stamp > seq) {
                 // current credentials are newer than the clear request
                 return;
-            } else if (credentials.compareAndSet(current,null,stamp,seq)){
+            } else if (credentials.compareAndSet(current, null, stamp, seq)) {
                 // if we were able to clear the credentials in memory
                 // force clear the new one on disk
-                while (!clear());
+                while (!clear()) ;
                 return;
             }
         }
     }
 
-    private boolean store(String token,String password,String username,String profile){
-        return diskCache.edit().putString(SESSION_KEY,token)
-                               .putString(PASSWORD_KEY,password)
-                               .putString(USER_NAME_KEY,username)
-                               .putString(PROFILE_KEY,profile).commit();
+    private boolean store(String token, String password, String username, String profile) {
+        return diskCache.edit().putString(SESSION_KEY, token)
+                .putString(PASSWORD_KEY, password)
+                .putString(USER_NAME_KEY, username)
+                .putString(PROFILE_KEY, profile).commit();
     }
 
-    private Credentials load(){
-        Map<String,?> data = diskCache.getAll();
-        if(data!=null&&data.containsKey(USER_NAME_KEY)){
+    private Credentials load() {
+        Map<String, ?> data = diskCache.getAll();
+        if (data != null && data.containsKey(USER_NAME_KEY)) {
             Credentials credentials = new Credentials();
-            credentials.username =(String)data.get(USER_NAME_KEY);
-            credentials.password=(String)data.get(PASSWORD_KEY);
-            credentials.sessionToken=(String)data.get(SESSION_KEY);
-            credentials.userData = (String)data.get(PROFILE_KEY);
+            credentials.username = (String) data.get(USER_NAME_KEY);
+            credentials.password = (String) data.get(PASSWORD_KEY);
+            credentials.sessionToken = (String) data.get(SESSION_KEY);
+            credentials.userData = (String) data.get(PROFILE_KEY);
             return credentials;
         }
         return null;
     }
 
-    private boolean clear(){
+    private boolean clear() {
         return diskCache.edit().clear().commit();
     }
 

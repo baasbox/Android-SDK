@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.spi;
+package com.baasbox.android;
 
-public final class Credentials {
-    public String sessionToken;
-    public String username;
-    public String password;
-    public String userData;
+final class Credentials {
+    String sessionToken;
+    String username;
+    String password;
+    String userData;
 }

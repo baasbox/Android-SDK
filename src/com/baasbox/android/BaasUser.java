@@ -22,8 +22,7 @@ import com.baasbox.android.dispatch.NetworkTask;
 import com.baasbox.android.exceptions.BaasException;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
-import com.baasbox.android.spi.Credentials;
-import com.baasbox.android.spi.HttpRequest;
+import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpResponse;
 
 import java.util.*;

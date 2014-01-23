@@ -24,7 +24,7 @@ import com.baasbox.android.exceptions.BaasIOException;
 import com.baasbox.android.exceptions.BaasServerException;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
-import com.baasbox.android.spi.HttpRequest;
+import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;

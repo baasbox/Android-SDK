@@ -17,8 +17,7 @@ package com.baasbox.android;
 
 import com.baasbox.android.impl.Base64;
 import com.baasbox.android.json.JsonObject;
-import com.baasbox.android.spi.Credentials;
-import com.baasbox.android.spi.HttpRequest;
+import com.baasbox.android.net.HttpRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
