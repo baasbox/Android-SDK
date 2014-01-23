@@ -39,24 +39,24 @@ class RequestFactory {
     static final String FORM_ENCODED_CONTENT = "application/x-www-form-urlencoded;charset=";
 
     static final String USER_AGENT_HEADER_NAME = "User-Agent";
-    private final static String USER_AGENT_HEADER = "BaasBox AndroidSDK/" + BAASBox.SDK_VERSION;
+    private final static String USER_AGENT_HEADER = "BaasBox AndroidSDK/" + BaasBox.SDK_VERSION;
 
     static final String CONTENT_LENGTH = "Content-Length";
 
     //baasbox Android SDK @version
 
-    private final BAASBox.Config config;
+    private final BaasBox.Config config;
     private final BaasCredentialManager credentials;
     private final String apiRoot;
 
-    RequestFactory(BAASBox.Config config, BaasCredentialManager credential) {
+    RequestFactory(BaasBox.Config config, BaasCredentialManager credential) {
         this.config = config;
         this.credentials = credential;
 
         apiRoot = initApiRoot(config);
     }
 
-    private static String initApiRoot(BAASBox.Config config) {
+    private static String initApiRoot(BaasBox.Config config) {
         StringBuilder api = new StringBuilder();
         api.append(config.HTTPS ? "https://" : "http://");
         api.append(config.API_DOMAIN);
@@ -255,14 +255,14 @@ class RequestFactory {
         return new HttpRequest(HttpRequest.POST, uri, headers, body);
     }
 
-    private static Map<String, String> setContentType(Map<String, String> headers, BAASBox.Config config, String contentType, int length) {
+    private static Map<String, String> setContentType(Map<String, String> headers, BaasBox.Config config, String contentType, int length) {
         headers = headers == null ? new HashMap<String, String>() : headers;
         headers.put(CONTENT_HEADER, contentType + config.HTTP_CHARSET);
         headers.put(CONTENT_LENGTH, Integer.toString(length));
         return headers;
     }
 
-    private static Map<String, String> fillHeaders(Map<String, String> headers, BAASBox.Config config, Credentials credentials) {
+    private static Map<String, String> fillHeaders(Map<String, String> headers, BaasBox.Config config, Credentials credentials) {
         headers = headers == null ? new HashMap<String, String>() : headers;
         headers.put(APPCODE_HEADER_NAME, config.APP_CODE);
         headers.put(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER);
@@ -309,7 +309,7 @@ class RequestFactory {
     }
 
 
-    private InputStream metaDataStream(String boundary, String type, BAASBox.Config config) {
+    private InputStream metaDataStream(String boundary, String type, BaasBox.Config config) {
         String header = String.format(Locale.US, "\r\n--%s\r\n" +
                 "Content-Disposition: form-data; name=\"%s\"\r\n" +
                 "Content-Type: " + JSON_CONTENT + "%s\r\n\r\n", boundary, type, config.HTTP_CHARSET);
@@ -332,7 +332,7 @@ class RequestFactory {
     }
 
 
-    private InputStream trail(String boundary, BAASBox.Config config) {
+    private InputStream trail(String boundary, BaasBox.Config config) {
         try {
             byte[] trail = String.format(Locale.US, "\r\n--%s--\r\n", boundary).getBytes(config.HTTP_CHARSET);
             ByteArrayInputStream in = new ByteArrayInputStream(trail);

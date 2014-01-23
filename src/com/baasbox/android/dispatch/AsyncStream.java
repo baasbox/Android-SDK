@@ -16,7 +16,7 @@
 package com.baasbox.android.dispatch;
 
 import com.baasbox.android.*;
-import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.exceptions.BaasException;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -31,7 +31,7 @@ public abstract class AsyncStream<R> extends NetworkTask<R> {
 
     private final DataStreamHandler<R> dataStream;
 
-    protected AsyncStream(BAASBox box, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
+    protected AsyncStream(BaasBox box, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
         super(box, priority, handler);
         this.dataStream = dataStream;
     }
@@ -39,7 +39,7 @@ public abstract class AsyncStream<R> extends NetworkTask<R> {
     protected abstract String streamId();
 
     @Override
-    protected R onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+    protected R onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
         HttpEntity entity = null;
         BufferedInputStream in = null;
         R result = null;
@@ -61,9 +61,9 @@ public abstract class AsyncStream<R> extends NetworkTask<R> {
             }
             result = dataStream.onData(null, 0, contentLength, streamId(), contentType);
         } catch (IOException e) {
-            throw new BAASBoxException(e);
+            throw new BaasException(e);
         } catch (Exception e) {
-            throw new BAASBoxException(e);
+            throw new BaasException(e);
         } finally {
             try {
                 if (in != null) {

@@ -17,7 +17,7 @@ package com.baasbox.android;
 
 import com.baasbox.android.dispatch.BaasHandler;
 import com.baasbox.android.dispatch.NetworkTask;
-import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.exceptions.BaasException;
 import com.baasbox.android.spi.HttpRequest;
 import org.apache.http.HttpResponse;
 
@@ -84,7 +84,7 @@ public abstract class BaasObject<E extends BaasObject<E>> {
         private final String collection;
         private final String to;
 
-        protected Access(BAASBox box, boolean add, boolean isRole, String collection, String id, String to, Grant grant, Priority priority, BaasHandler<Void> handler) {
+        protected Access(BaasBox box, boolean add, boolean isRole, String collection, String id, String to, Grant grant, Priority priority, BaasHandler<Void> handler) {
             super(box, priority, handler);
             this.isRole = isRole;
             this.add = add;
@@ -96,12 +96,12 @@ public abstract class BaasObject<E extends BaasObject<E>> {
         }
 
         @Override
-        protected Void onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+        protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             return null;
         }
 
         @Override
-        protected final HttpRequest request(BAASBox box) {
+        protected final HttpRequest request(BaasBox box) {
             String endpoint;
             RequestFactory factory = box.requestFactory;
             if (isRole) {

@@ -16,7 +16,7 @@
 package com.baasbox.android;
 
 import com.baasbox.android.dispatch.NetworkTask;
-import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.exceptions.BaasException;
 import com.baasbox.android.spi.HttpRequest;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -30,7 +30,7 @@ class StreamRequest extends NetworkTask<BaasStream> {
     private final String id;
     private final HttpRequest request;
 
-    protected StreamRequest(BAASBox box, String id, String sizeSpec, int sizeId) {
+    protected StreamRequest(BaasBox box, String id, String sizeSpec, int sizeId) {
         super(box, null, null);
         this.id = id;
         String endpoint = box.requestFactory.getEndpoint("file/?", id);
@@ -49,7 +49,7 @@ class StreamRequest extends NetworkTask<BaasStream> {
     }
 
     @Override
-    protected BaasStream onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+    protected BaasStream onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
         boolean close = true;
         HttpEntity entity = null;
         try {
@@ -58,7 +58,7 @@ class StreamRequest extends NetworkTask<BaasStream> {
             close = false;
             return stream;
         } catch (IOException e) {
-            throw new BAASBoxException(e);
+            throw new BaasException(e);
         } finally {
             if (close) {
                 try {
@@ -72,7 +72,7 @@ class StreamRequest extends NetworkTask<BaasStream> {
     }
 
     @Override
-    protected HttpRequest request(BAASBox box) {
+    protected HttpRequest request(BaasBox box) {
         return request;
     }
 }

@@ -16,7 +16,7 @@
 package com.baasbox.android.dispatch;
 
 import com.baasbox.android.BaasResult;
-import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.exceptions.BaasException;
 
 /**
  * Created by eto on 20/01/14.
@@ -27,7 +27,7 @@ public final class ImmediateDispatcher {
         try {
             R r = request.asyncCall();
             return BaasResult.success(r);
-        } catch (BAASBoxException e) {
+        } catch (BaasException e) {
             return BaasResult.failure(e);
         }
     }

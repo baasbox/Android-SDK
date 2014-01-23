@@ -32,19 +32,19 @@ public class RequestToken implements Parcelable, Comparable<RequestToken> {
     }
 
     public boolean suspend() {
-        return BAASBox.getDefaultChecked().suspend(this);
+        return BaasBox.getDefaultChecked().suspend(this);
     }
 
     public boolean resume(BaasHandler<?> handler) {
-        return BAASBox.getDefaultChecked().resume(this, handler);
+        return BaasBox.getDefaultChecked().resume(this, handler);
     }
 
     public boolean abort() {
-        return BAASBox.getDefaultChecked().abort(this);
+        return BaasBox.getDefaultChecked().abort(this);
     }
 
     public boolean cancel() {
-        return BAASBox.getDefaultChecked().cancel(this);
+        return BaasBox.getDefaultChecked().cancel(this);
     }
 
     @Override

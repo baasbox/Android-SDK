@@ -16,21 +16,25 @@
 package com.baasbox.android.exceptions;
 
 /**
- * Created by eto on 24/12/13.
+ * Created by eto on 23/12/13.
  */
-public class BAASBoxIOException extends BAASBoxException {
+public class BaasException extends Exception {
+    private static final long serialVersionUID = 1981606473384352072L;
 
-    private static final long serialVersionUID = 4277921777119622999L;
+    public BaasException() {
+    }
 
-    public BAASBoxIOException(String detailMessage) {
+    public BaasException(String detailMessage) {
         super(detailMessage);
     }
 
-    public BAASBoxIOException(String detailMessage, Throwable throwable) {
+    public BaasException(String detailMessage, Throwable throwable) {
         super(detailMessage, throwable);
     }
 
-    public BAASBoxIOException(Throwable throwable) {
+    public BaasException(Throwable throwable) {
         super(throwable);
     }
+
+
 }

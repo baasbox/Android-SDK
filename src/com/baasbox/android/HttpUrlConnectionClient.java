@@ -15,8 +15,8 @@
 
 package com.baasbox.android;
 
-import com.baasbox.android.exceptions.BAASBoxException;
-import com.baasbox.android.exceptions.BAASBoxIOException;
+import com.baasbox.android.exceptions.BaasException;
+import com.baasbox.android.exceptions.BaasIOException;
 import com.baasbox.android.spi.HttpRequest;
 import com.baasbox.android.spi.RestClient;
 import org.apache.http.*;
@@ -68,11 +68,11 @@ class HttpUrlConnectionClient implements RestClient {
             }
     };
 
-    private final BAASBox.Config config;
+    private final BaasBox.Config config;
     private SSLSocketFactory mSSLSocketFactory;
     private HostnameVerifier mHostVerifier;
 
-    HttpUrlConnectionClient(BAASBox.Config config) {
+    HttpUrlConnectionClient(BaasBox.Config config) {
         this.config = config;
         this.mSSLSocketFactory = config.HTTPS ? trustAll() : null;
         this.mHostVerifier = config.HTTPS ? ACCEPT_ALL : null;
@@ -92,7 +92,7 @@ class HttpUrlConnectionClient implements RestClient {
 
 
     @Override
-    public HttpResponse execute(HttpRequest request) throws BAASBoxException {
+    public HttpResponse execute(HttpRequest request) throws BaasException {
         try {
             HttpURLConnection connection = openConnection(request.url);
             for (String name : request.headers.keySet()) {
@@ -115,10 +115,10 @@ class HttpUrlConnectionClient implements RestClient {
                 }
             }
             return response;
-        } catch (BAASBoxIOException e) {
+        } catch (BaasIOException e) {
             throw e;
         } catch (IOException e) {
-            throw new BAASBoxIOException(e);
+            throw new BaasIOException(e);
         }
     }
 
@@ -138,12 +138,12 @@ class HttpUrlConnectionClient implements RestClient {
         return entity;
     }
 
-    private HttpURLConnection openConnection(String urlString) throws BAASBoxIOException, IOException {
+    private HttpURLConnection openConnection(String urlString) throws BaasIOException, IOException {
         URL url = null;
         try {
             url = new URL(urlString);
         } catch (MalformedURLException e) {
-            throw new BAASBoxIOException("Error while parsing url " + urlString, e);
+            throw new BaasIOException("Error while parsing url " + urlString, e);
         }
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setConnectTimeout(config.HTTP_CONNECTION_TIMEOUT);

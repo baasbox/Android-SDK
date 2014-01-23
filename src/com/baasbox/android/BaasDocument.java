@@ -20,7 +20,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import com.baasbox.android.dispatch.BaasHandler;
 import com.baasbox.android.dispatch.NetworkTask;
-import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.exceptions.BaasException;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.json.JsonStructure;
@@ -691,7 +691,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
     public static RequestToken fetchAll(String collection, Filter filter, Priority priority, BaasHandler<List<BaasDocument>> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new NullPointerException("collection cannot be null");
         Fetch f = new Fetch(box, collection, filter, priority, handler);
         return box.submitAsync(f);
@@ -709,7 +709,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the result of the request
      */
     public static BaasResult<List<BaasDocument>> fetchAllSync(String collection, Filter filter) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new NullPointerException("collection cannot be null");
         Fetch f = new Fetch(box, collection, filter, null, null);
         return box.submitSync(f);
@@ -765,7 +765,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
     private static RequestToken count(String collection, Filter filter, Priority priority, BaasHandler<Long> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new NullPointerException("collection cannot be null");
         Count count = new Count(box, collection, filter, priority, handler);
         return box.submitAsync(count);
@@ -791,7 +791,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the result of the request
      */
     public static BaasResult<Long> countSync(String collection, Filter filter) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new NullPointerException("collection cannot be null");
         Count request = new Count(box, collection, filter, null, null);
         return box.submitSync(request);
@@ -838,7 +838,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @throws java.lang.IllegalStateException if this document has no id
      */
     private RequestToken refresh(Priority priority, BaasHandler<BaasDocument> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (handler == null) throw new NullPointerException("handler cannot be null");
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
@@ -868,7 +868,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @throws java.lang.IllegalStateException if this document has no id
      */
     public BaasResult<BaasDocument> refreshSync() {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
         Refresh refresh = new Refresh(box, this, null, null);
@@ -881,7 +881,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     }
 
     public RequestToken delete(Priority priority, BaasHandler<Void> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
         Delete delete = new Delete(box, this, priority, handler);
@@ -894,7 +894,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     }
 
     public static RequestToken delete(String collection, String id, Priority priority, BaasHandler<Void> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new NullPointerException("collection cannot be null");
         if (id == null) throw new NullPointerException("id cannot be null");
         Delete delete = new Delete(box, collection, id, priority, handler);
@@ -904,7 +904,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     public BaasResult<Void> deleteSync() {
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Delete delete = new Delete(box, this, null, null);
         return box.submitSync(delete);
     }
@@ -912,7 +912,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     public static BaasResult<Void> deleteSync(String collection, String id) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         if (id == null) throw new NullPointerException("id cannot be null");
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Delete delete = new Delete(box, collection, id, null, null);
         return box.submitSync(delete);
     }
@@ -923,14 +923,14 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         private final String id;
         private final String collection;
 
-        protected Delete(BAASBox box, String collection, String id, Priority priority, BaasHandler<Void> handler) {
+        protected Delete(BaasBox box, String collection, String id, Priority priority, BaasHandler<Void> handler) {
             super(box, priority, handler);
             this.document = null;
             this.collection = collection;
             this.id = id;
         }
 
-        protected Delete(BAASBox box, BaasDocument document, Priority priority, BaasHandler<Void> handler) {
+        protected Delete(BaasBox box, BaasDocument document, Priority priority, BaasHandler<Void> handler) {
             super(box, priority, handler);
             this.document = document;
             this.collection = document.collection;
@@ -938,18 +938,18 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         }
 
         @Override
-        protected Void onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+        protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             if (document != null) document.id = null;
             return null;
         }
 
         @Override
-        protected Void onSkipRequest() throws BAASBoxException {
-            throw new BAASBoxException("document is not bound to an instance on the server");
+        protected Void onSkipRequest() throws BaasException {
+            throw new BaasException("document is not bound to an instance on the server");
         }
 
         @Override
-        protected HttpRequest request(BAASBox box) {
+        protected HttpRequest request(BaasBox box) {
             if (id == null) {
                 return null;
             } else {
@@ -976,14 +976,14 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     }
 
     public RequestToken save(SaveMode mode, Priority priority, BaasHandler<BaasDocument> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (mode == null) throw new NullPointerException("mode cannot be null");
         Save save = new Save(box, mode, this, priority, handler);
         return box.submitAsync(save);
     }
 
     public BaasResult<BaasDocument> saveSync(SaveMode mode) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (mode == null) throw new NullPointerException("mode cannot be null");
         Save save = new Save(box, mode, this, null, null);
         return box.submitSync(save);
@@ -996,35 +996,35 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
     @Override
     public RequestToken revokeAll(Grant grant, String role, Priority priority, BaasHandler<Void> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, false, true, collection, id, role, grant, priority, handler);
         return box.submitAsync(access);
     }
 
     @Override
     public BaasResult<Void> revokeAllSync(Grant grant, String role) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, false, true, collection, id, role, grant, null, null);
         return box.submitSync(access);
     }
 
     @Override
     public RequestToken revoke(Grant grant, String username, Priority priority, BaasHandler<Void> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, false, false, collection, id, username, grant, priority, handler);
         return box.submitAsync(access);
     }
 
     @Override
     public BaasResult<Void> revokeSync(Grant grant, String username) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, false, false, collection, id, username, grant, null, null);
         return box.submitSync(access);
     }
 
     @Override
     public RequestToken grantAll(Grant grant, String role, Priority priority, BaasHandler<Void> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, true, true, collection, id, role, grant, priority, handler);
         return box.submitAsync(access);
     }
@@ -1032,21 +1032,21 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
     @Override
     public BaasResult<Void> grantAllSync(Grant grant, String role) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, true, true, collection, id, role, grant, null, null);
         return box.submitSync(access);
     }
 
     @Override
     public RequestToken grant(Grant grant, String username, Priority priority, BaasHandler<Void> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, true, false, collection, id, username, grant, priority, handler);
         return box.submitAsync(access);
     }
 
     @Override
     public BaasResult<Void> grantSync(Grant grant, String username) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, true, false, collection, id, username, grant, null, null);
         return box.submitSync(access);
     }
@@ -1056,7 +1056,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         private final SaveMode mode;
         private JsonObject data;
 
-        protected Save(BAASBox box, SaveMode mode, BaasDocument document, Priority priority, BaasHandler<BaasDocument> handler) {
+        protected Save(BaasBox box, SaveMode mode, BaasDocument document, Priority priority, BaasHandler<BaasDocument> handler) {
             super(box, priority, handler);
             this.document = document;
             this.data = document.data.copy();
@@ -1064,14 +1064,14 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         }
 
         @Override
-        protected BaasDocument onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+        protected BaasDocument onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             JsonObject data = parseJson(response, box).getObject("data");
             document.update(data);
             return document;
         }
 
         @Override
-        protected HttpRequest request(BAASBox box) {
+        protected HttpRequest request(BaasBox box) {
             String collection = document.collection;
             String id = document.id;
             if (id == null) {
@@ -1091,7 +1091,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
     private final static class Access extends BaasObject.Access {
 
-        protected Access(BAASBox box, boolean add, boolean isRole, String collection, String id, String to, Grant grant, Priority priority, BaasHandler<Void> handler) {
+        protected Access(BaasBox box, boolean add, boolean isRole, String collection, String id, String to, Grant grant, Priority priority, BaasHandler<Void> handler) {
             super(box, add, isRole, collection, id, to, grant, priority, handler);
         }
 
@@ -1109,20 +1109,20 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     private final static class Refresh extends NetworkTask<BaasDocument> {
         private final BaasDocument document;
 
-        protected Refresh(BAASBox box, BaasDocument doc, Priority priority, BaasHandler<BaasDocument> handler) {
+        protected Refresh(BaasBox box, BaasDocument doc, Priority priority, BaasHandler<BaasDocument> handler) {
             super(box, priority, handler);
             this.document = doc;
         }
 
         @Override
-        protected BaasDocument onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+        protected BaasDocument onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             JsonObject object = parseJson(response, box).getObject("data");
             document.update(object);
             return document;
         }
 
         @Override
-        protected HttpRequest request(BAASBox box) {
+        protected HttpRequest request(BaasBox box) {
             String endpoint = box.requestFactory.getEndpoint("document/?/?", document.collection, document.id);
             return box.requestFactory.get(endpoint);
         }
@@ -1132,14 +1132,14 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         private final String collection;
         private final RequestFactory.Param[] filter;
 
-        protected Fetch(BAASBox box, String collection, Filter filter, Priority priority, BaasHandler<List<BaasDocument>> handler) {
+        protected Fetch(BaasBox box, String collection, Filter filter, Priority priority, BaasHandler<List<BaasDocument>> handler) {
             super(box, priority, handler);
             this.collection = collection;
             this.filter = filter == null ? null : filter.toParams();
         }
 
         @Override
-        protected List<BaasDocument> onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+        protected List<BaasDocument> onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             JsonObject data = parseJson(response, box).getObject("data");
             if (data == null) {
                 return Collections.emptyList();
@@ -1153,7 +1153,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         }
 
         @Override
-        protected HttpRequest request(BAASBox box) {
+        protected HttpRequest request(BaasBox box) {
             String ep = box.requestFactory.getEndpoint("document/?", collection);
             if (filter == null) {
                 return box.requestFactory.get(ep);
@@ -1167,19 +1167,19 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         private final String collection;
         private final RequestFactory.Param[] params;
 
-        protected Count(BAASBox box, String collection, Filter filter, Priority priority, BaasHandler<Long> handler) {
+        protected Count(BaasBox box, String collection, Filter filter, Priority priority, BaasHandler<Long> handler) {
             super(box, priority, handler);
             this.collection = collection;
             this.params = filter == null ? null : filter.toParams();
         }
 
         @Override
-        protected Long onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+        protected Long onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             return parseJson(response, box).getObject("data").getLong("count");
         }
 
         @Override
-        protected HttpRequest request(BAASBox box) {
+        protected HttpRequest request(BaasBox box) {
             String ep = box.requestFactory.getEndpoint("document/?/count", collection);
             if (params == null) {
                 return box.requestFactory.get(ep, params);

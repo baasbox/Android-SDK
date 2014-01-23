@@ -15,7 +15,7 @@
 
 package com.baasbox.android.spi;
 
-import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.exceptions.BaasException;
 import org.apache.http.HttpResponse;
 
 /**
@@ -27,11 +27,11 @@ public interface RestClient {
     /**
      * Execute the http request returning on success an HttpResponse
      * from the service.
-     * May fail, with any exception, but that must be wrapped in a BAASBoxException.
+     * May fail, with any exception, but that must be wrapped in a BaasException.
      *
      * @param request the request
      * @return an http response
-     * @throws BAASBoxException
+     * @throws com.baasbox.android.exceptions.BaasException
      */
-    public HttpResponse execute(HttpRequest request) throws BAASBoxException;
+    public HttpResponse execute(HttpRequest request) throws BaasException;
 }

@@ -23,13 +23,13 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * This class extends {@link com.baasbox.android.exceptions.BAASBoxException}. This is the root of all the
+ * This class extends {@link BaasException}. This is the root of all the
  * exception thrown by the remote server; if it crashes or the request made is
- * invalid, a subclass of BAASBoxApiException is thrown by the SDK.
+ * invalid, a subclass of BaasApiException is thrown by the SDK.
  *
  * @author Davide Caroselli
  */
-public class BAASBoxApiException extends BAASBoxException {
+public class BaasApiException extends BaasException {
 
     private static final long serialVersionUID = -1060197139549630283L;
 
@@ -54,13 +54,13 @@ public class BAASBoxApiException extends BAASBoxException {
      */
     public final String apiVersion;
     /**
-     * The id of the BAASBox specific error
+     * The id of the BaasBox specific error
      */
     public final int code;
 
     private final JsonObject json;
 
-    public BAASBoxApiException(int httpStatus, JsonObject error) {
+    public BaasApiException(int httpStatus, JsonObject error) {
         super(error.getString("message", ""));
         this.json = error;
         this.httpStatus = httpStatus;
@@ -90,9 +90,9 @@ public class BAASBoxApiException extends BAASBoxException {
         this.requestHeader = headersMap;
     }
 
-    public BAASBoxApiException(int code, int httpStatus, String resource, String method,
-                               Map<String, String> requestHeader, String apiVersion,
-                               String detailMessage) {
+    public BaasApiException(int code, int httpStatus, String resource, String method,
+                            Map<String, String> requestHeader, String apiVersion,
+                            String detailMessage) {
         super(detailMessage);
         this.json = null;
         this.code = code;

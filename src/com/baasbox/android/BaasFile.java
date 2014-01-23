@@ -19,7 +19,7 @@ import android.webkit.MimeTypeMap;
 import com.baasbox.android.dispatch.AsyncStream;
 import com.baasbox.android.dispatch.BaasHandler;
 import com.baasbox.android.dispatch.NetworkTask;
-import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.exceptions.BaasException;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
@@ -108,7 +108,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     public static RequestToken fetchAll(Filter filter, Priority priority, BaasHandler<List<BaasFile>> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Files files = new Files(box, filter, priority, handler);
         return box.submitAsync(files);
     }
@@ -126,7 +126,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     public static BaasResult<List<BaasFile>> fetchAllSync(Filter filter) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Files files = new Files(box, filter, null, null);
         return box.submitSync(files);
     }
@@ -136,7 +136,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     public static RequestToken fetch(String id, Priority priority, BaasHandler<BaasFile> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (id == null) throw new NullPointerException("id cannot be null");
         BaasFile file = new BaasFile();
         file.id = id;
@@ -145,7 +145,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     public static BaasResult<BaasFile> fetchSync(String id) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (id == null) throw new NullPointerException("id cannot be null");
         BaasFile file = new BaasFile();
         file.id = id;
@@ -154,7 +154,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     public BaasResult<BaasFile> refreshSync() {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
             throw new NullPointerException("this file is not bound to an entity on the server");
         Details details = new Details(box, this, null, null);
@@ -166,7 +166,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     public RequestToken refresh(Priority priority, BaasHandler<BaasFile> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
             throw new IllegalStateException("this file is not bound to an entity on the server");
         Details details = new Details(box, this, priority, handler);
@@ -174,14 +174,14 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     public BaasResult<Void> deleteSync() {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (id == null) throw new IllegalStateException("this file is not bounded to an entity on the server");
         Delete delete = new Delete(box, this, null, null);
         return box.submitSync(delete);
     }
 
     public static BaasResult<Void> deleteSync(String id) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (id == null) throw new NullPointerException("id cannot be null");
         Delete delete = new Delete(box, id, null, null);
         return box.submitSync(delete);
@@ -196,14 +196,14 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     public static RequestToken delete(String id, Priority priority, BaasHandler<Void> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (id == null) throw new NullPointerException("id cannot be null");
         Delete delete = new Delete(box, id, priority, handler);
         return box.submitAsync(delete);
     }
 
     public RequestToken delete(Priority priority, BaasHandler<Void> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
             throw new IllegalStateException("this file is not bound to an entity on the server");
         Delete delete = new Delete(box, this, priority, handler);
@@ -212,35 +212,35 @@ public class BaasFile extends BaasObject<BaasFile> {
 
     @Override
     public RequestToken revokeAll(Grant grant, String role, Priority priority, BaasHandler<Void> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, false, true, id, role, grant, priority, handler);
         return box.submitAsync(access);
     }
 
     @Override
     public BaasResult<Void> revokeAllSync(Grant grant, String role) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, false, true, id, role, grant, null, null);
         return box.submitSync(access);
     }
 
     @Override
     public RequestToken revoke(Grant grant, String username, Priority priority, BaasHandler<Void> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, false, false, id, username, grant, priority, handler);
         return box.submitAsync(access);
     }
 
     @Override
     public BaasResult<Void> revokeSync(Grant grant, String user) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, false, false, id, user, grant, null, null);
         return box.submitSync(access);
     }
 
     @Override
     public RequestToken grantAll(Grant grant, String role, Priority priority, BaasHandler<Void> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, true, true, id, role, grant, priority, handler);
         return box.submitAsync(access);
     }
@@ -248,7 +248,7 @@ public class BaasFile extends BaasObject<BaasFile> {
 
     @Override
     public BaasResult<Void> grantAllSync(Grant grant, String role) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, true, true, id, role, grant, null, null);
         return box.submitSync(access);
     }
@@ -256,21 +256,21 @@ public class BaasFile extends BaasObject<BaasFile> {
 
     @Override
     public BaasResult<Void> grantSync(Grant grant, String user) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, true, false, id, user, grant, null, null);
         return box.submitSync(access);
     }
 
     @Override
     public RequestToken grant(Grant grant, String username, Priority priority, BaasHandler<Void> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, true, false, id, username, grant, priority, handler);
         return box.submitAsync(access);
     }
 
     private final static class Access extends BaasObject.Access {
 
-        protected Access(BAASBox box, boolean add, boolean isRole, String id, String to, Grant grant, Priority priority, BaasHandler<Void> handler) {
+        protected Access(BaasBox box, boolean add, boolean isRole, String id, String to, Grant grant, Priority priority, BaasHandler<Void> handler) {
             super(box, add, isRole, null, id, to, grant, priority, handler);
         }
 
@@ -286,20 +286,20 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     public RequestToken upload(InputStream stream, Priority priority, BaasHandler<BaasFile> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         RequestFactory factory = box.requestFactory;
         Upload req = uploadRequest(box, stream, priority, handler, new JsonObject());
         return box.submitAsync(req);
     }
 
     public BaasResult<BaasFile> uploadSync(InputStream stream) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Upload req = uploadRequest(box, stream, null, null, new JsonObject());
         return box.submitSync(req);
     }
 
     public RequestToken upload(InputStream stream, BaasHandler<BaasFile> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         Upload upload = uploadRequest(box, stream, null, handler, null);
         return box.submitAsync(upload);
     }
@@ -316,7 +316,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     public BaasResult<BaasFile> uploadSync(BaasACL acl, File file) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (file == null) throw new NullPointerException("file cannot be null");
         try {
             FileInputStream in = new FileInputStream(file);
@@ -340,7 +340,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     public BaasResult<BaasFile> uploadSync(byte[] bytes) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (bytes == null) throw new NullPointerException("bytes cannot be null");
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         Upload req = uploadRequest(box, in, null, null, new JsonObject());
@@ -371,7 +371,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     private static <R> RequestToken stream(String id, String sizeSpec, int sizeIdx, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (contentHandler == null) throw new NullPointerException("data handler cannot be null");
         if (id == null) throw new NullPointerException("id cannot be null");
         AsyncStream<R> stream = new FileStream<R>(box, id, sizeSpec, sizeIdx, priority, contentHandler, handler);
@@ -382,7 +382,7 @@ public class BaasFile extends BaasObject<BaasFile> {
         private final String id;
         private HttpRequest request;
 
-        protected FileStream(BAASBox box, String id, String sizeSpec, int sizeId, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
+        protected FileStream(BaasBox box, String id, String sizeSpec, int sizeId, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
             super(box, priority, dataStream, handler);
             this.id = id;
             RequestFactory.Param param = null;
@@ -406,7 +406,7 @@ public class BaasFile extends BaasObject<BaasFile> {
         }
 
         @Override
-        protected HttpRequest request(BAASBox box) {
+        protected HttpRequest request(BaasBox box) {
             return request;
         }
     }
@@ -430,7 +430,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
     private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
-        BAASBox box = BAASBox.getDefaultChecked();
+        BaasBox box = BaasBox.getDefaultChecked();
         if (id == null) throw new NullPointerException("id cannot be null");
         StreamRequest synReq = new StreamRequest(box, id, spec, sizeId);
         return box.submitSync(synReq);
@@ -463,7 +463,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     }
 
 
-    private Upload uploadRequest(BAASBox box, InputStream stream, Priority priority, BaasHandler<BaasFile> handler, JsonObject acl) {
+    private Upload uploadRequest(BaasBox box, InputStream stream, Priority priority, BaasHandler<BaasFile> handler, JsonObject acl) {
         RequestFactory factory = box.requestFactory;
         if (!isBound.compareAndSet(false, true)) {
             throw new IllegalArgumentException("you cannot upload new content for this file");
@@ -496,20 +496,20 @@ public class BaasFile extends BaasObject<BaasFile> {
     private final static class Details extends NetworkTask<BaasFile> {
         private final BaasFile file;
 
-        protected Details(BAASBox box, BaasFile file, Priority priority, BaasHandler<BaasFile> handler) {
+        protected Details(BaasBox box, BaasFile file, Priority priority, BaasHandler<BaasFile> handler) {
             super(box, priority, handler);
             this.file = file;
         }
 
         @Override
-        protected BaasFile onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+        protected BaasFile onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             JsonObject data = parseJson(response, box).getObject("data");
             file.update(data);
             return file;
         }
 
         @Override
-        protected HttpRequest request(BAASBox box) {
+        protected HttpRequest request(BaasBox box) {
             return box.requestFactory.get(box.requestFactory.getEndpoint("file/details/?", file.id));
         }
     }
@@ -518,31 +518,31 @@ public class BaasFile extends BaasObject<BaasFile> {
         private final BaasFile file;
         private final String id;
 
-        protected Delete(BAASBox box, BaasFile file, Priority priority, BaasHandler<Void> handler) {
+        protected Delete(BaasBox box, BaasFile file, Priority priority, BaasHandler<Void> handler) {
             super(box, priority, handler);
             this.file = file;
             this.id = file.id;
         }
 
-        protected Delete(BAASBox box, String id, Priority priority, BaasHandler<Void> handler) {
+        protected Delete(BaasBox box, String id, Priority priority, BaasHandler<Void> handler) {
             super(box, priority, handler);
             this.id = id;
             this.file = null;
         }
 
         @Override
-        protected Void onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+        protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             if (file != null) file.id = null;
             return null;
         }
 
         @Override
-        protected Void onSkipRequest() throws BAASBoxException {
-            throw new BAASBoxException("file is not bounded to an entity on the server");
+        protected Void onSkipRequest() throws BaasException {
+            throw new BaasException("file is not bounded to an entity on the server");
         }
 
         @Override
-        protected HttpRequest request(BAASBox box) {
+        protected HttpRequest request(BaasBox box) {
             if (id == null) {
                 return null;
             } else {
@@ -555,7 +555,7 @@ public class BaasFile extends BaasObject<BaasFile> {
     private final static class Files extends NetworkTask<List<BaasFile>> {
         private RequestFactory.Param[] params;
 
-        protected Files(BAASBox box, Filter filter, Priority priority, BaasHandler<List<BaasFile>> handler) {
+        protected Files(BaasBox box, Filter filter, Priority priority, BaasHandler<List<BaasFile>> handler) {
             super(box, priority, handler);
             if (filter == null) {
                 params = null;
@@ -565,7 +565,7 @@ public class BaasFile extends BaasObject<BaasFile> {
         }
 
         @Override
-        protected List<BaasFile> onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+        protected List<BaasFile> onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             try {
                 JsonArray details = parseJson(response, box).getArray("data");
 
@@ -577,12 +577,12 @@ public class BaasFile extends BaasObject<BaasFile> {
                 }
                 return files;
             } catch (JsonException e) {
-                throw new BAASBoxException(e);
+                throw new BaasException(e);
             }
         }
 
         @Override
-        protected HttpRequest request(BAASBox box) {
+        protected HttpRequest request(BaasBox box) {
             String endpoint = box.requestFactory.getEndpoint("file/details");
             if (params == null) {
                 return box.requestFactory.get(endpoint);
@@ -596,21 +596,21 @@ public class BaasFile extends BaasObject<BaasFile> {
         private final BaasFile file;
         private final HttpRequest request;
 
-        protected Upload(BAASBox box, BaasFile file, HttpRequest request, Priority priority, BaasHandler<BaasFile> handler) {
+        protected Upload(BaasBox box, BaasFile file, HttpRequest request, Priority priority, BaasHandler<BaasFile> handler) {
             super(box, priority, handler);
             this.file = file;
             this.request = request;
         }
 
         @Override
-        protected BaasFile onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+        protected BaasFile onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             JsonObject o = parseJson(response, box).getObject("data");
             file.update(o);
             return file;
         }
 
         @Override
-        protected HttpRequest request(BAASBox box) {
+        protected HttpRequest request(BaasBox box) {
             return request;
         }
 

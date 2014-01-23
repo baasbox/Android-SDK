@@ -20,26 +20,26 @@ import com.baasbox.android.json.JsonObject;
 import java.util.HashMap;
 
 /**
- * A subclass of {@link BAASBoxApiException} indicating an error due a wrong
- * request. When a BAASBoxClientException is thrown the SDK made an error during
- * the request; misspelling the URI or putting a wrong parameter value. <br>
+ * A subclass of {@link BaasApiException} indicating an error due a problem
+ * within the server. When a BaasServerException is thrown, the BaasBox
+ * server thrown an unexpected exception.<br>
  * <br>
  * More info about the error could be found in the class parameters values.
  *
  * @author Davide Caroselli
  */
-public class BAASBoxClientException extends BAASBoxApiException {
+public class BaasServerException extends BaasApiException {
 
-    private static final long serialVersionUID = 7494588625332374406L;
+    private static final long serialVersionUID = 3343497779336452255L;
 
-    public BAASBoxClientException(int code, int httpStatus, String resource, String method,
-                                  HashMap<String, String> requestHeader, String apiVersion,
-                                  String detailMessage) {
+    public BaasServerException(int code, int httpStatus, String resource, String method,
+                               HashMap<String, String> requestHeader, String apiVersion,
+                               String detailMessage) {
         super(code, httpStatus, resource, method, requestHeader, apiVersion,
                 detailMessage);
     }
 
-    public BAASBoxClientException(int httpStatus, JsonObject json) {
-        super(httpStatus, json);
+    public BaasServerException(int status, JsonObject jsonResponse) {
+        super(status, jsonResponse);
     }
 }

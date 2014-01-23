@@ -19,10 +19,10 @@ package com.baasbox.android.dispatch;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import com.baasbox.android.BAASBox;
+import com.baasbox.android.BaasBox;
 import com.baasbox.android.BaasResult;
 import com.baasbox.android.Priority;
-import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.exceptions.BaasException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,7 +44,7 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
     private Handler postOn;
     private Dispatcher dispatcher;
     private Priority priority;
-    protected BAASBox box;
+    protected BaasBox box;
     private int x;
     private final AtomicReference<BaasHandler<?>> suspendableHandler = new AtomicReference<BaasHandler<?>>();
 
@@ -255,13 +255,13 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
 
             R value = asyncCall();
             result = BaasResult.success(value);
-        } catch (BAASBoxException e) {
+        } catch (BaasException e) {
             result = BaasResult.failure(e);
         }
 
     }
 
-    protected abstract R asyncCall() throws BAASBoxException;
+    protected abstract R asyncCall() throws BaasException;
 
     final void post() {
         postOn.post(this);

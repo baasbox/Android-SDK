@@ -18,5 +18,5 @@ package com.baasbox.android.exceptions;
 /**
  * Created by eto on 20/01/14.
  */
-public class BaasBoxCancellationException extends BAASBoxException {
+public class BaasCancellationException extends BaasException {
 }

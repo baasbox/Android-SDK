@@ -15,19 +15,19 @@
 
 package com.baasbox.android;
 
-import com.baasbox.android.exceptions.BAASBoxException;
-import com.baasbox.android.exceptions.BaasBoxCancellationException;
+import com.baasbox.android.exceptions.BaasCancellationException;
+import com.baasbox.android.exceptions.BaasException;
 
 /**
  * Created by eto on 23/12/13.
  */
 public abstract class BaasResult<T> {
 
-    public static <T> BaasResult<T> failure(BAASBoxException t) {
+    public static <T> BaasResult<T> failure(BaasException t) {
         return new Error<T>(t);
     }
 
-    public static <T> BaasResult<T> cancel(){
+    public static <T> BaasResult<T> cancel() {
         return new Cancel<T>();
     }
 
@@ -35,12 +35,13 @@ public abstract class BaasResult<T> {
         return new Success<T>(result);
     }
 
-    private BaasResult(){}
+    private BaasResult() {
+    }
 
-    public static class Cancel<T> extends Error<T>{
+    public static class Cancel<T> extends Error<T> {
 
         Cancel() {
-            super(new BaasBoxCancellationException());
+            super(new BaasCancellationException());
         }
 
         @Override
@@ -49,11 +50,11 @@ public abstract class BaasResult<T> {
         }
     }
 
-    public static class Error<T> extends BaasResult<T>{
-        private final BAASBoxException error;
+    public static class Error<T> extends BaasResult<T> {
+        private final BaasException error;
 
-        Error(BAASBoxException e){
-            this.error =e;
+        Error(BaasException e) {
+            this.error = e;
         }
 
         @Override
@@ -62,12 +63,12 @@ public abstract class BaasResult<T> {
         }
 
         @Override
-        public final T get() throws BAASBoxException {
+        public final T get() throws BaasException {
             throw error;
         }
 
         @Override
-        public final BAASBoxException error() {
+        public final BaasException error() {
             return error;
         }
 
@@ -87,10 +88,10 @@ public abstract class BaasResult<T> {
         }
     }
 
-    public static final class Success<T> extends BaasResult<T>{
+    public static final class Success<T> extends BaasResult<T> {
         private final T value;
 
-        Success(T value){
+        Success(T value) {
             this.value = value;
         }
 
@@ -115,12 +116,12 @@ public abstract class BaasResult<T> {
         }
 
         @Override
-        public BAASBoxException error() {
+        public BaasException error() {
             return null;
         }
 
         @Override
-        public T get() throws BAASBoxException {
+        public T get() throws BaasException {
             return value;
         }
     }
@@ -132,10 +133,10 @@ public abstract class BaasResult<T> {
 
     public abstract boolean isCanceled();
 
-    public abstract BAASBoxException error();
+    public abstract BaasException error();
 
     public abstract T value();
 
-    public abstract T get() throws BAASBoxException;
+    public abstract T get() throws BaasException;
 
 }

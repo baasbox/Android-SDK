@@ -17,25 +17,25 @@ package com.baasbox.android;
 
 import android.content.Context;
 import com.baasbox.android.dispatch.*;
-import com.baasbox.android.exceptions.BAASBoxException;
+import com.baasbox.android.exceptions.BaasException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.HttpRequest;
 import com.baasbox.android.spi.RestClient;
 import org.apache.http.HttpResponse;
 
 /**
- * This class represents the main context of BAASBox SDK.
+ * This class represents the main context of BaasBox SDK.
  * <p/>
  * Created by Andrea Tortorella on 23/12/13.
  */
-public class BAASBox {
+public class BaasBox {
 
     /**
      * Version of the baasbox api.
      */
     public final static String SDK_VERSION = "0.7.3-SNAPSHOT";
 
-    private static volatile BAASBox sDefaultClient;
+    private static volatile BaasBox sDefaultClient;
     private static final Object LOCK = new Object();
 
     /**
@@ -46,7 +46,7 @@ public class BAASBox {
      */
     public interface BAASHandler<R, T> {
         /**
-         * Called with the result of a request to BAASBox
+         * Called with the result of a request to BaasBox
          *
          * @param result
          * @param tag    of the original request or null
@@ -55,7 +55,7 @@ public class BAASBox {
     }
 
     /**
-     * The configuration for BAASBox client
+     * The configuration for BaasBox client
      */
     public final static class Config {
 
@@ -108,7 +108,7 @@ public class BAASBox {
         public String API_BASEPATH = "/";
 
         /**
-         * The BAASBox app code, default is <code>1234567890</code>.
+         * The BaasBox app code, default is <code>1234567890</code>.
          */
         public String APP_CODE = "1234567890";
 
@@ -135,7 +135,7 @@ public class BAASBox {
 
     public final BaasCredentialManager store;
 
-    private BAASBox(Context context, Config config) {
+    private BaasBox(Context context, Config config) {
         if (context == null) {
             throw new NullPointerException("context cannot be null");
         }
@@ -152,9 +152,9 @@ public class BAASBox {
      * Creates a client with default configuration
      *
      * @param context main context of the application
-     * @return a BAASBox client
+     * @return a BaasBox client
      */
-    private static BAASBox createClient(Context context) {
+    private static BaasBox createClient(Context context) {
         return createClient(context, null);
 
     }
@@ -163,15 +163,15 @@ public class BAASBox {
      * Creates a client with provided configuration.
      *
      * @param context main context of the application
-     * @param config  a {@link BAASBox.Config} for this client
+     * @param config  a {@link BaasBox.Config} for this client
      * @return
      */
-    private static BAASBox createClient(Context context, Config config) {
+    private static BaasBox createClient(Context context, Config config) {
         return createClient(context, config, null);
     }
 
-    private static BAASBox createClient(Context context, Config config, String sessionToken) {
-        BAASBox box = new BAASBox(context, config);
+    private static BaasBox createClient(Context context, Config config, String sessionToken) {
+        BaasBox box = new BaasBox(context, config);
 //        if (sessionToken != null) box.store.updateToken(sessionToken);
         //todo update token work
         box.asyncDispatcher.start();
@@ -184,7 +184,7 @@ public class BAASBox {
      * @param context
      * @return
      */
-    public static BAASBox initDefault(Context context) {
+    public static BaasBox initDefault(Context context) {
         return initDefault(context, null, null);
     }
 
@@ -195,7 +195,7 @@ public class BAASBox {
      * @param config
      * @return
      */
-    public static BAASBox initDefault(Context context, Config config) {
+    public static BaasBox initDefault(Context context, Config config) {
         return initDefault(context, config, null);
     }
 
@@ -208,7 +208,7 @@ public class BAASBox {
      * @param session
      * @return
      */
-    public static BAASBox initDefault(Context context, Config config, String session) {
+    public static BaasBox initDefault(Context context, Config config, String session) {
         if (sDefaultClient == null) {
             synchronized (LOCK) {
                 if (sDefaultClient == null) {
@@ -221,16 +221,16 @@ public class BAASBox {
 
     /**
      * Returns the single baasbox instance for this device if one has been
-     * initialized through {@link BAASBox#initDefault(android.content.Context)}
+     * initialized through {@link BaasBox#initDefault(android.content.Context)}
      * or null.
      *
      * @return BAASbox instance
      */
-    public static BAASBox getDefault() {
+    public static BaasBox getDefault() {
         return sDefaultClient;
     }
 
-    static BAASBox getDefaultChecked() {
+    static BaasBox getDefaultChecked() {
         if (sDefaultClient == null)
             throw new IllegalStateException("Trying to use implicit client, but no default initialized");
         return sDefaultClient;
@@ -255,7 +255,7 @@ public class BAASBox {
     /**
      * Suspends a background request to the server.
      * Suspended requests are executed in background,
-     * but no handler is invoked until {@link com.baasbox.android.BAASBox#resume(RequestToken, Object, com.baasbox.android.BAASBox.BAASHandler)}
+     * but no handler is invoked until {@link BaasBox#resume(RequestToken, Object, BaasBox.BAASHandler)}
      * is called.
      * <p/>
      * Suspend assign a <code>name</code> to the request for future resumption
@@ -360,13 +360,13 @@ public class BAASBox {
 
         HttpRequest request;
 
-        protected RawRequest(BAASBox box, HttpRequest request, Priority priority, BaasHandler<JsonObject> handler) {
+        protected RawRequest(BaasBox box, HttpRequest request, Priority priority, BaasHandler<JsonObject> handler) {
             super(box, priority, handler);
             this.request = request;
         }
 
         @Override
-        protected JsonObject onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+        protected JsonObject onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -376,7 +376,7 @@ public class BAASBox {
         }
 
         @Override
-        protected HttpRequest request(BAASBox box) {
+        protected HttpRequest request(BaasBox box) {
             return request;
         }
     }
@@ -384,19 +384,19 @@ public class BAASBox {
     private static final class RegisterPush extends NetworkTask<Void> {
         private final String registrationId;
 
-        protected RegisterPush(BAASBox box, String registrationId, Priority priority, BaasHandler<Void> handler) {
+        protected RegisterPush(BaasBox box, String registrationId, Priority priority, BaasHandler<Void> handler) {
             super(box, priority, handler);
             this.registrationId = registrationId;
         }
 
         @Override
-        protected Void onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+        protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             Logger.debug("PUSH_ENABLED: %s", parseJson(response, box));
             return null;
         }
 
         @Override
-        protected HttpRequest request(BAASBox box) {
+        protected HttpRequest request(BaasBox box) {
             return box.requestFactory.put(box.requestFactory.getEndpoint("push/device/android/?", registrationId));
         }
     }

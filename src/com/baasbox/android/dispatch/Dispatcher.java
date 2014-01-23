@@ -18,7 +18,7 @@ package com.baasbox.android.dispatch;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
-import com.baasbox.android.BAASBox;
+import com.baasbox.android.BaasBox;
 import com.baasbox.android.Logger;
 import com.baasbox.android.RequestToken;
 
@@ -37,12 +37,12 @@ public final class Dispatcher {
     private final ConcurrentHashMap<Integer, Task<?>> liveAsyncs;
     private final ExceptionHandler exceptionHandler;
     private final Worker[] workers;
-    private final BAASBox box;
+    private final BaasBox box;
     private volatile boolean quit;
 
     final Handler defaultMainHandler = new Handler(Looper.getMainLooper());
 
-    public Dispatcher(BAASBox box) {
+    public Dispatcher(BaasBox box) {
         this.box = box;
         this.exceptionHandler = setHandler(box.config.EXCEPTION_HANDLER);
         this.workers = createWorkers(box.config.NUM_THREADS);
