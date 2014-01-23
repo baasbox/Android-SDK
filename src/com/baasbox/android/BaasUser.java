@@ -21,9 +21,7 @@ import com.baasbox.android.async.BaasHandler;
 import com.baasbox.android.async.NetworkTask;
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.json.JsonArray;
-import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
-import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.Credentials;
 import com.baasbox.android.spi.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -200,58 +198,44 @@ public class BaasUser implements Parcelable {
         init(user);
     }
 
-    public <T> RequestToken send(JsonObject message, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+    public RequestToken send(JsonObject message, Priority priority, BaasHandler<Void> handler) {
         BAASBox box = BAASBox.getDefaultChecked();
-        if (username == null)
-            throw new NullPointerException("this user is not bound to any one on the server");
-        if (handler == null) throw new NullPointerException("handler cannot be null");
-        priority = priority == null ? Priority.NORMAL : priority;
-        PushRequest<T> request = new PushRequest<T>(box.requestFactory, username, message == null ? new JsonObject() : null, priority, tag, handler);
-        return box.submitRequest(request);
+        Push push = new Push(box,username,message,priority,handler);
+        return box.submitAsync(push);
     }
 
-    public RequestToken send(JsonObject message, BAASBox.BAASHandler<Void, ?> handler) {
-        return send(message, null, Priority.NORMAL, handler);
+    public RequestToken send(JsonObject message, BaasHandler<Void> handler) {
+        return send(message, null, handler);
     }
 
-    public <T> RequestToken ping(T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
-        BAASBox box = BAASBox.getDefaultChecked();
-        if (username == null)
-            throw new NullPointerException("this user is not bound to any one on the server");
-        if (handler == null) throw new NullPointerException("handler cannot be null");
-        priority = priority == null ? Priority.NORMAL : priority;
-        PushRequest<T> request = new PushRequest<T>(box.requestFactory, username, null, priority, null, handler);
-        return box.submitRequest(request);
-    }
-
-    public RequestToken ping(BAASBox.BAASHandler<Void, ?> handler) {
-        return ping(null, Priority.NORMAL, handler);
-    }
 
     public BaasResult<Void> sendSync(JsonObject message) {
         BAASBox box = BAASBox.getDefaultChecked();
-        if (username == null)
-            throw new NullPointerException("this user is not bound to any one on the server");
-        PushRequest<Void> request = new PushRequest<Void>(box.requestFactory, username, message == null ? new JsonObject() : message, null, null, null);
-        return box.submitRequestSync(request);
+        Push push = new Push(box, username, message, null, null);
+        return box.submitSync(push);
     }
 
-    public BaasResult<Void> pingSync() {
-        BAASBox box = BAASBox.getDefaultChecked();
-        if (username == null)
-            throw new NullPointerException("this user is not bound to any one on the server");
-        PushRequest<Void> request = new PushRequest<Void>(box.requestFactory, username, null, null, null, null);
-        return box.submitRequestSync(request);
-    }
+    private static class Push extends NetworkTask<Void> {
+        private final String name;
+        private final JsonObject message;
 
-    private final static class PushRequest<T> extends BaseRequest<Void, T> {
-        PushRequest(RequestFactory factory, String user, JsonObject message, Priority priority, T t, BAASBox.BAASHandler<Void, T> handler) {
-            super(factory.post(factory.getEndpoint("push/message/?", user), message), priority, t, handler);
+        protected Push(BAASBox box, String user, JsonObject message, Priority priority, BaasHandler<Void> handler) {
+            super(box, priority, handler);
+            this.name = user;
+            this.message = message;
         }
 
         @Override
-        protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+        protected Void onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+            JsonObject ret = parseJson(response, box);
+            Logger.error("PUSH_OK %s", ret);
             return null;
+        }
+
+        @Override
+        protected HttpRequest request(BAASBox box) {
+            String endpoint = box.requestFactory.getEndpoint("push/message/?", name);
+            return box.requestFactory.post(endpoint, message);
         }
     }
 
@@ -881,48 +865,10 @@ public class BaasUser implements Parcelable {
         return box.submitAsync(users);
     }
 
-    /**
-     * Asynchronously requests to follow a user given it's username,
-     * using no tag and default {@link com.baasbox.android.Priority}
-     *
-     * @param username
-     * @param handler
-     * @return a {@link com.baasbox.android.RequestToken} to manage the request
-     */
-    public static RequestToken follow(String username, BAASBox.BAASHandler<BaasUser, ?> handler) {
-        if (username == null) throw new NullPointerException("username cannot be null");
-        BaasUser user = new BaasUser(username);
-        return user.follow(BAASBox.getDefaultChecked(), null, Priority.NORMAL, handler);
-    }
-
-    public static BaasResult<BaasUser> followSync(String username) {
-        if (username == null) throw new NullPointerException("username cannot be null");
-        return new BaasUser(username).followSync(BAASBox.getDefaultChecked());
-    }
-
     public BaasResult<BaasUser> followSync() {
-        return followSync(BAASBox.getDefaultChecked());
-    }
-
-    private BaasResult<BaasUser> followSync(BAASBox client) {
-        if (client == null) throw new NullPointerException("client cannot be null");
-        return client.submitRequestSync(new FollowRequest<Void>(client.requestFactory, this, null, null, null));
-    }
-
-    /**
-     * Asynchronously requests to follow a user given it's username.
-     *
-     * @param username
-     * @param tag
-     * @param priority
-     * @param handler
-     * @param <T>
-     * @return a {@link com.baasbox.android.RequestToken} to manage the request
-     */
-    public static <T> RequestToken follow(String username, T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
-        if (username == null) throw new NullPointerException("username cannot be null");
-        BaasUser user = new BaasUser(username);
-        return user.follow(BAASBox.getDefaultChecked(), tag, priority, handler);
+        BAASBox box = BAASBox.getDefaultChecked();
+        Follow follow = new Follow(box, true, this, null, null);
+        return box.submitSync(follow);
     }
 
     /**
@@ -932,75 +878,44 @@ public class BaasUser implements Parcelable {
      * @param handler
      * @return a {@link com.baasbox.android.RequestToken} to manage the request
      */
-    public RequestToken follow(BAASBox.BAASHandler<BaasUser, ?> handler) {
-        return follow(BAASBox.getDefaultChecked(), null, Priority.NORMAL, handler);
+    public RequestToken follow(BaasHandler<BaasUser> handler) {
+        return follow(null, handler);
     }
 
     /**
      * Asynchronously requests to follow the user.
      *
-     * @param tag
      * @param priority
      * @param handler
-     * @param <T>
      * @return a {@link com.baasbox.android.RequestToken} to manage the request
      */
-    public <T> RequestToken follow(T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
-        return follow(BAASBox.getDefaultChecked(), tag, priority, handler);
+    public RequestToken follow(Priority priority, BaasHandler<BaasUser> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        Follow follow = new Follow(box, true, this, priority, handler);
+        return box.submitAsync(follow);
     }
 
-    private <T> RequestToken follow(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
-        if (client == null) throw new NullPointerException("client cannot be null");
-        if (handler == null) throw new NullPointerException("handler cannot be null");
-        priority = priority == null ? Priority.NORMAL : priority;
-        FollowRequest<T> req = new FollowRequest<T>(client.requestFactory, this, priority, tag, handler);
-        return client.submitRequest(req);
-    }
-
-    /**
-     * Asynchronously requests to unfollow the user
-     * using no tag and default {@link com.baasbox.android.Priority}
-     *
-     * @param handler
-     * @return a {@link com.baasbox.android.RequestToken} to manage the request
-     */
-    public RequestToken unfollow(BAASBox.BAASHandler<BaasUser, ?> handler) {
-        return unfollow(BAASBox.getDefaultChecked(), null, Priority.NORMAL, handler);
-    }
-
-    /**
-     * Asynchronously requests to unfollow the user
-     *
-     * @param tag
-     * @param priority
-     * @param handler
-     * @param <T>
-     * @return a {@link com.baasbox.android.RequestToken} to manage the request
-     */
-    public <T> RequestToken unfollow(T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
-        return unfollow(BAASBox.getDefaultChecked(), tag, priority, handler);
-    }
-
-
-    public static BaasResult<BaasUser> unfollowSync(String username) {
-        return new BaasUser(username).unfollowSync(BAASBox.getDefaultChecked());
+    public RequestToken unfollow(BaasHandler<BaasUser> user) {
+        return unfollow(null, user);
     }
 
     public BaasResult<BaasUser> unfollowSync() {
-        return unfollowSync(BAASBox.getDefaultChecked());
+        BAASBox box = BAASBox.getDefaultChecked();
+        Follow follow = new Follow(box, false, this, null, null);
+        return box.submitSync(follow);
     }
 
-    private BaasResult<BaasUser> unfollowSync(BAASBox client) {
-        if (client == null) throw new NullPointerException("client cannot be null");
-        return client.submitRequestSync(new UnFollowRequest<Void>(client.requestFactory, this, username, null, null, null));
-    }
-
-    private <T> RequestToken unfollow(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<BaasUser, T> handler) {
-        if (client == null) throw new NullPointerException("client cannot be null");
-        if (handler == null) throw new NullPointerException("handler cannot be null");
-        priority = priority == null ? Priority.NORMAL : priority;
-        UnFollowRequest<T> req = new UnFollowRequest<T>(client.requestFactory, this, username, priority, tag, handler);
-        return client.submitRequest(req);
+    /**
+     * Asynchronously requests to unfollow the user
+     *
+     * @param priority
+     * @param handler
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public RequestToken unfollow(Priority priority, BaasHandler<BaasUser> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        Follow follow = new Follow(box, false, this, priority, handler);
+        return box.submitAsync(follow);
     }
 
     private static class FetchUser extends NetworkTask<BaasUser>{
@@ -1080,45 +995,46 @@ public class BaasUser implements Parcelable {
         }
     }
 
-    private static class FollowRequest<T> extends BaseRequest<BaasUser, T> {
-        final BaasUser user;
+    private static final class Follow extends NetworkTask<BaasUser> {
+        private final BaasUser user;
+        private final boolean follow;
 
-        FollowRequest(RequestFactory factory, BaasUser user, Priority priority, T t, BAASBox.BAASHandler<BaasUser, T> handler) {
-            super(factory.post(factory.getEndpoint("follow/?", user.username)), priority, t, handler, true);
+        protected Follow(BAASBox box, boolean follow, BaasUser user, Priority priority, BaasHandler<BaasUser> handler) {
+            super(box, priority, handler);
             this.user = user;
+            this.follow = follow;
         }
 
         @Override
-        protected BaasUser handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            try {
-                JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
-                JsonObject data = o.getObject("data");
+        protected BaasUser onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+            if (follow) {
+                JsonObject data = parseJson(response, box).getObject("data");
+
                 user.update(data);
-                return user;
-            } catch (JsonException e) {
-                throw new BAASBoxException(e);
+            } else {
+                user.friendVisibleData = null;
+            }
+            return user;
+        }
+
+        @Override
+        protected BaasUser onSkipRequest() throws BAASBoxException {
+            throw new BAASBoxException("Cannot follow yourself");
+        }
+
+        @Override
+        protected HttpRequest request(BAASBox box) {
+            if (user.isCurrent()) {
+                return null;
+            }
+            String endpoint = box.requestFactory.getEndpoint("follow/?", user.getName());
+            if (follow) {
+                return box.requestFactory.post(endpoint);
+            } else {
+                return box.requestFactory.delete(endpoint);
             }
         }
     }
-
-
-    private static class UnFollowRequest<T> extends BaseRequest<BaasUser, T> {
-        final BaasUser user;
-
-        UnFollowRequest(RequestFactory factory, BaasUser user, String username, Priority priority, T t, BAASBox.BAASHandler<BaasUser, T> handler) {
-            super(factory.delete(factory.getEndpoint("follow/?", username)), priority, t, handler, true);
-            this.user = user;
-        }
-
-        @Override
-        protected BaasUser handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
-            //todo remove roles
-            if (user != null) user.friendVisibleData = null;
-            return user;
-        }
-    }
-
 
     JsonObject toJsonBody(String password) {
         JsonObject object = new JsonObject();
