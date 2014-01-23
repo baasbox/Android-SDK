@@ -18,24 +18,16 @@ package com.baasbox.android;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
+import com.baasbox.android.async.BaasHandler;
+import com.baasbox.android.async.NetworkTask;
 import com.baasbox.android.exceptions.BAASBoxException;
-import com.baasbox.android.exceptions.BAASBoxIOException;
 import com.baasbox.android.json.JsonArray;
-import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.json.JsonStructure;
-import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.HttpRequest;
-
 import org.apache.http.HttpResponse;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a document entity that belong to a collection
@@ -671,8 +663,8 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    public static RequestToken getAll(String collection, BAASBox.BAASHandler<List<BaasDocument>, ?> handler) {
-        return getAll(BAASBox.getDefaultChecked(), collection, null, null, Priority.NORMAL, handler);
+    public static RequestToken fetchAll(String collection, BaasHandler<List<BaasDocument>> handler) {
+        return fetchAll(collection, null, null, handler);
     }
 
     /**
@@ -685,64 +677,29 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    public static RequestToken getAll(String collection, Filter filter, BAASBox.BAASHandler<List<BaasDocument>, ?> handler) {
-        return getAll(BAASBox.getDefaultChecked(), collection, filter, null, Priority.NORMAL, handler);
+    public static RequestToken fetchAll(String collection, Filter filter, BaasHandler<List<BaasDocument>> handler) {
+        return fetchAll(collection, filter, null, handler);
     }
-
-
-    /**
-     * Asynchronously retrieves the list of documents readable to the user that match <code>filter</code>
-     * in <code>collection</code>
-     *
-     * @param collection the collection to retrieve not <code>null</code>
-     * @param filter     a filter to apply to the request
-     * @param tag        a tag that will be paassed to the handler
-     * @param priority   at which this request will be executed
-     * @param handler    a callback to be invoked with the result of the request
-     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
-     */
-    public static <T> RequestToken getAll(String collection, Filter filter, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
-        return getAll(BAASBox.getDefaultChecked(), collection, filter, tag, priority, handler);
-    }
-
 
     /**
      * Asynchronously retrieves the list of documents readable to the user
      * in <code>collection</code>
      *
      * @param collection the collection to retrieve not <code>null</code>
-     * @param tag        a tag that will be paassed to the handler
      * @param priority   at which this request will be executed
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    public static <T> RequestToken getAll(String collection, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
-        return getAll(BAASBox.getDefaultChecked(), collection, null, tag, priority, handler);
-    }
-
-
-    private static <T> RequestToken getAll(BAASBox client, String collection, Filter filter, T tag, Priority priority, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
-        if (client == null) throw new NullPointerException("client cannot be null");
+    public static RequestToken fetchAll(String collection, Filter filter, Priority priority, BaasHandler<List<BaasDocument>> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
         if (collection == null) throw new NullPointerException("collection cannot be null");
-        if (handler == null) throw new NullPointerException("handler cannot be null");
-        priority = priority == null ? Priority.NORMAL : priority;
-        filter = filter == null ? Filter.ANY : filter;
-        ListRequest<T> req = new ListRequest<T>(client.requestFactory, collection, filter, priority, tag, handler);
-        return client.submitRequest(req);
+        Fetch f = new Fetch(box, collection, filter, priority, handler);
+        return box.submitAsync(f);
     }
 
-    /**
-     * Synchronously retrieves the list of documents readable to the user that match <code>filter</code>
-     * in <code>collection</code>
-     *
-     * @param collection the collection to retrieve not <code>null</code>
-     * @param filter     a {@link com.baasbox.android.Filter} to apply to the request. May be <code>null</code>
-     * @return the result of the request
-     */
-    public static BaasResult<List<BaasDocument>> getAllSync(String collection, Filter filter) {
-        return getAllSync(BAASBox.getDefaultChecked(), collection, filter);
+    public static BaasResult<List<BaasDocument>> fetchAllSync(String collection) {
+        return fetchAllSync(collection, null);
     }
-
 
     /**
      * Synchronously retrieves the list of documents readable to the user
@@ -751,16 +708,11 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @param collection the collection to retrieve not <code>null</code>
      * @return the result of the request
      */
-    public static BaasResult<List<BaasDocument>> getAllSync(String collection) {
-        return getAllSync(BAASBox.getDefaultChecked(), collection, null);
-    }
-
-    private static BaasResult<List<BaasDocument>> getAllSync(BAASBox client, String collection, Filter filter) {
-        if (client == null) throw new NullPointerException("client cannot be null");
+    public static BaasResult<List<BaasDocument>> fetchAllSync(String collection, Filter filter) {
+        BAASBox box = BAASBox.getDefaultChecked();
         if (collection == null) throw new NullPointerException("collection cannot be null");
-        filter = filter == null ? Filter.ANY : filter;
-        ListRequest<Void> request = new ListRequest<Void>(client.requestFactory, collection, filter, null, null, null);
-        return client.submitRequestSync(request);
+        Fetch f = new Fetch(box, collection, filter, null, null);
+        return box.submitSync(f);
     }
 
     /**
@@ -771,8 +723,8 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    public static RequestToken count(String collection, BAASBox.BAASHandler<Long, ?> handler) {
-        return count(BAASBox.getDefaultChecked(), collection, null, null, Priority.NORMAL, handler);
+    public static RequestToken count(String collection, BaasHandler<Long> handler) {
+        return count(collection, null, null, handler);
     }
 
     /**
@@ -785,22 +737,20 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    public static RequestToken count(String collection, Filter filter, BAASBox.BAASHandler<Long, ?> handler) {
-        return count(BAASBox.getDefaultChecked(), collection, null, null, Priority.NORMAL, handler);
+    public static RequestToken count(String collection, Filter filter, BaasHandler<Long> handler) {
+        return count(collection, filter, null, handler);
     }
-
 
     /**
      * Asynchronously retrieves the number of documents readable to the user in <code>collection</code>
      *
      * @param collection the collection to count not <code>null</code>
-     * @param tag        a tag that will be paassed to the handler
      * @param priority   at which this request will be executed
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    public static <T> RequestToken count(String collection, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
-        return count(BAASBox.getDefaultChecked(), collection, null, tag, priority, handler);
+    public static RequestToken count(String collection, Priority priority, BaasHandler<Long> handler) {
+        return count(collection, null, priority, handler);
     }
 
 
@@ -810,21 +760,15 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      *
      * @param collection the collection to count not <code>null</code>
      * @param filter     a {@link com.baasbox.android.Filter} to apply to the request. May be <code>null</code>
-     * @param tag        a tag that will be paassed to the handler
      * @param priority   at which this request will be executed
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    public static <T> RequestToken count(String collection, Filter filter, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
-        return count(BAASBox.getDefaultChecked(), collection, filter, tag, priority, handler);
-    }
-
-    private static <T> RequestToken count(BAASBox client, String collection, Filter filter, T tag, Priority priority, BAASBox.BAASHandler<Long, T> handler) {
+    private static RequestToken count(String collection, Filter filter, Priority priority, BaasHandler<Long> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
         if (collection == null) throw new NullPointerException("collection cannot be null");
-        if (handler == null) throw new NullPointerException("handler cannot be null");
-        if (client == null) throw new NullPointerException("client cannot be null");
-        CountRequest<T> request = new CountRequest<T>(client.requestFactory, collection, filter, priority, tag, handler);
-        return client.submitRequest(request);
+        Count count = new Count(box, collection, filter, priority, handler);
+        return box.submitAsync(count);
     }
 
 
@@ -835,7 +779,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the result of the request
      */
     public static BaasResult<Long> counSync(String collection) {
-        return countSync(BAASBox.getDefaultChecked(), collection, null);
+        return countSync(collection, null);
     }
 
     /**
@@ -847,29 +791,10 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the result of the request
      */
     public static BaasResult<Long> countSync(String collection, Filter filter) {
-        return countSync(BAASBox.getDefaultChecked(), collection, filter);
-    }
-
-    private static BaasResult<Long> countSync(BAASBox client, String collection, Filter filter) {
-        if (client == null) throw new NullPointerException("client cannot be null");
+        BAASBox box = BAASBox.getDefaultChecked();
         if (collection == null) throw new NullPointerException("collection cannot be null");
-        CountRequest<Void> request = new CountRequest<Void>(client.requestFactory, collection, filter, null, null, null);
-        return client.submitRequestSync(request);
-    }
-
-    /**
-     * Asynchronously fetches the document identified by <code>id</code> in <code>collection</code>
-     *
-     * @param collection the collection to retrieve the document from. Not <code>null</code>
-     * @param id         the id of the document to retrieve. Not <code>null</code>
-     * @param tag        a tag that will be paassed to the handler
-     * @param priority   at which this request will be executed
-     * @param handler    a callback to be invoked with the result of the request
-     * @param <T>        the type of the tag
-     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
-     */
-    public static <T> RequestToken fetch(String collection, String id, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
-        return fetch(BAASBox.getDefaultChecked(), collection, id, tag, priority, handler);
+        Count request = new Count(box, collection, filter, null, null);
+        return box.submitSync(request);
     }
 
     /**
@@ -881,19 +806,17 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    public static RequestToken fetch(String collection, String id, BAASBox.BAASHandler<BaasDocument, ?> handler) {
-        return fetch(BAASBox.getDefaultChecked(), collection, id, null, null, handler);
+    public static RequestToken fetch(String collection, String id, BaasHandler<BaasDocument> handler) {
+        return fetch(collection, id, null, handler);
     }
 
-    private static <T> RequestToken fetch(BAASBox client, String collection, String id, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
-        if (client == null) throw new NullPointerException("client cannot be null");
+    private static RequestToken fetch(String collection, String id, Priority priority, BaasHandler<BaasDocument> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
-        if (handler == null) throw new NullPointerException("handler cannot be null");
-        priority = priority == null ? Priority.NORMAL : priority;
-        RefreshRequest<T> req = new RefreshRequest<T>(client.requestFactory, collection, id, priority, tag, handler);
-        return client.submitRequest(req);
+        BaasDocument doc = new BaasDocument(collection);
+        doc.id = id;
+        return doc.refresh(priority, handler);
     }
 
     /**
@@ -903,10 +826,9 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      * @throws java.lang.IllegalStateException if this document has no id
      */
-    public RequestToken refresh(BAASBox.BAASHandler<BaasDocument, ?> handler) {
-        return refresh(BAASBox.getDefaultChecked(), null, Priority.NORMAL, handler);
+    public RequestToken refresh(BaasHandler<BaasDocument> handler) {
+        return refresh(null, handler);
     }
-
 
     /**
      * Asynchronously refresh the content of this document.
@@ -915,18 +837,13 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      * @throws java.lang.IllegalStateException if this document has no id
      */
-    public <T> RequestToken refresh(T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
-        return refresh(BAASBox.getDefaultChecked(), tag, priority, handler);
-    }
-
-    private <T> RequestToken refresh(BAASBox client, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
-        if (client == null) throw new NullPointerException("client cannot be null");
+    private RequestToken refresh(Priority priority, BaasHandler<BaasDocument> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
         if (handler == null) throw new NullPointerException("handler cannot be null");
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
-        priority = priority == null ? Priority.NORMAL : priority;
-        RefreshRequest<T> req = new RefreshRequest<T>(client.requestFactory, this, priority, tag, handler);
-        return client.submitRequest(req);
+        Refresh refresh = new Refresh(box, this, priority, handler);
+        return box.submitAsync(refresh);
     }
 
     /**
@@ -937,15 +854,11 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @return the result of the request
      */
     public static BaasResult<BaasDocument> fetchSync(String collection, String id) {
-        return fetchSync(BAASBox.getDefaultChecked(), collection, id);
-    }
-
-    private static BaasResult<BaasDocument> fetchSync(BAASBox client, String collection, String id) {
-        if (client == null) throw new NullPointerException("client cannot be null");
         if (collection == null) throw new NullPointerException("collection cannot be null");
         if (id == null) throw new NullPointerException("id cannot be null");
-        RefreshRequest<Void> req = new RefreshRequest<Void>(client.requestFactory, collection, id, null, null, null);
-        return client.submitRequestSync(req);
+        BaasDocument doc = new BaasDocument(collection);
+        doc.id = id;
+        return doc.refreshSync();
     }
 
     /**
@@ -958,88 +871,122 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         BAASBox box = BAASBox.getDefaultChecked();
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
-        return box.submitRequestSync(new RefreshRequest<Void>(box.requestFactory, this, null, null, null));
+        Refresh refresh = new Refresh(box, this, null, null);
+        return box.submitSync(refresh);
     }
 
 
-    public RequestToken delete(BAASBox.BAASHandler<Void, ?> handler) {
-        if (getId() == null)
+    public RequestToken delete(BaasHandler<Void> handler) {
+        return delete(null, handler);
+    }
+
+    public RequestToken delete(Priority priority, BaasHandler<Void> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
+        if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
-        return delete(BAASBox.getDefaultChecked(), collection, id, null, Priority.NORMAL, handler);
-    }
-
-    public <T> RequestToken delete(T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
-        if (getId() == null)
-            throw new IllegalStateException("this document is not bound to any remote entity");
-        return delete(BAASBox.getDefaultChecked(), collection, id, tag, priority, handler);
+        Delete delete = new Delete(box, this, priority, handler);
+        return box.submitAsync(delete);
     }
 
 
-    public static RequestToken delete(String collection, String id, BAASBox.BAASHandler<Void, ?> handler) {
-        return BaasDocument.delete(BAASBox.getDefaultChecked(), collection, id, null, Priority.NORMAL, handler);
+    public static RequestToken delete(String collection, String id, BaasHandler<Void> handler) {
+        return delete(collection, id, null, handler);
     }
 
-    public static <T> RequestToken delete(String collection, String id, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
-        return BaasDocument.delete(BAASBox.getDefaultChecked(), collection, id, tag, priority, handler);
-    }
-
-    private static <T> RequestToken delete(BAASBox client, String collection, String id, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+    public static RequestToken delete(String collection, String id, Priority priority, BaasHandler<Void> handler) {
+        BAASBox box = BAASBox.getDefaultChecked();
         if (collection == null) throw new NullPointerException("collection cannot be null");
         if (id == null) throw new NullPointerException("id cannot be null");
-        final RequestFactory factory = client.requestFactory;
-        String endpoint = factory.getEndpoint("document/?/?", collection, id);
-        HttpRequest delete = factory.delete(endpoint);
-        BaasRequest<Void, T> breq = new BaasObject.DeleteRequest<T>(delete, priority, tag, handler);
-        return client.submitRequest(breq);
+        Delete delete = new Delete(box, collection, id, priority, handler);
+        return box.submitAsync(delete);
     }
 
     public BaasResult<Void> deleteSync() {
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
-        return BaasDocument.deleteSync(collection, id);
+        BAASBox box = BAASBox.getDefaultChecked();
+        Delete delete = new Delete(box, this, null, null);
+        return box.submitSync(delete);
     }
 
     public static BaasResult<Void> deleteSync(String collection, String id) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         if (id == null) throw new NullPointerException("id cannot be null");
-        BAASBox client = BAASBox.getDefaultChecked();
-        String endpoint = client.requestFactory.getEndpoint("document/?/?", collection, id);
-        HttpRequest delete = client.requestFactory.delete(endpoint);
-        DeleteRequest<Void> req = new DeleteRequest<Void>(delete, null, null, null);
-        return client.submitRequestSync(req);
+        BAASBox box = BAASBox.getDefaultChecked();
+        Delete delete = new Delete(box, collection, id, null, null);
+        return box.submitSync(delete);
     }
 
-    public static <T> RequestToken create(String collection, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
+    private final static class Delete extends NetworkTask<Void> {
+
+        private final BaasDocument document;
+        private final String id;
+        private final String collection;
+
+        protected Delete(BAASBox box, String collection, String id, Priority priority, BaasHandler<Void> handler) {
+            super(box, priority, handler);
+            this.document = null;
+            this.collection = collection;
+            this.id = id;
+        }
+
+        protected Delete(BAASBox box, BaasDocument document, Priority priority, BaasHandler<Void> handler) {
+            super(box, priority, handler);
+            this.document = document;
+            this.collection = document.collection;
+            this.id = document.id;
+        }
+
+        @Override
+        protected Void onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+            if (document != null) document.id = null;
+            return null;
+        }
+
+        @Override
+        protected Void onSkipRequest() throws BAASBoxException {
+            throw new BAASBoxException("document is not bound to an instance on the server");
+        }
+
+        @Override
+        protected HttpRequest request(BAASBox box) {
+            if (id == null) {
+                return null;
+            } else {
+                String endpoint = box.requestFactory.getEndpoint("document/?/?", collection, id);
+                return box.requestFactory.delete(endpoint);
+            }
+        }
+    }
+
+    public static RequestToken create(String collection, Priority priority, BaasHandler<BaasDocument> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         BaasDocument doc = new BaasDocument(collection);
-        return doc.save(SaveMode.IGNORE_VERSION, tag, priority, handler);
+        return doc.save(SaveMode.IGNORE_VERSION, priority, handler);
     }
 
-    public static RequestToken create(String collection, BAASBox.BAASHandler<BaasDocument, ?> handler) {
+    public static RequestToken create(String collection, BaasHandler<BaasDocument> handler) {
         if (collection == null) throw new NullPointerException("collection cannot be null");
         BaasDocument doc = new BaasDocument(collection);
-        return doc.save(SaveMode.IGNORE_VERSION, null, Priority.NORMAL, handler);
+        return doc.save(SaveMode.IGNORE_VERSION, null, handler);
     }
 
-
-    public RequestToken save(SaveMode mode, BAASBox.BAASHandler<BaasDocument, ?> handler) {
-        return save(mode, null, Priority.NORMAL, handler);
+    public RequestToken save(SaveMode mode, BaasHandler<BaasDocument> handler) {
+        return save(mode, null, handler);
     }
 
-    public <T> RequestToken save(SaveMode mode, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
+    public RequestToken save(SaveMode mode, Priority priority, BaasHandler<BaasDocument> handler) {
         BAASBox box = BAASBox.getDefaultChecked();
         if (mode == null) throw new NullPointerException("mode cannot be null");
-        if (handler == null) throw new NullPointerException("handler cannot be null");
-        priority = priority == null ? Priority.NORMAL : priority;
-        SaveRequest<T> req = SaveRequest.create(box, this, mode, tag, priority, handler);
-        return box.submitRequest(req);
+        Save save = new Save(box, mode, this, priority, handler);
+        return box.submitAsync(save);
     }
 
     public BaasResult<BaasDocument> saveSync(SaveMode mode) {
         BAASBox box = BAASBox.getDefaultChecked();
         if (mode == null) throw new NullPointerException("mode cannot be null");
-        SaveRequest<Void> req = SaveRequest.create(box, this, mode, null, null, null);
-        return box.submitRequestSync(req);
+        Save save = new Save(box, mode, this, null, null);
+        return box.submitSync(save);
     }
 
     public static BaasResult<BaasDocument> createSync(String collection) {
@@ -1104,166 +1051,79 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         return box.submitRequestSync(req);
     }
 
-    //    public <T> RequestToken revoke(Grant grant, String user, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
-//        BAASBox box = BAASBox.getDefaultChecked();
-//        if (grant == null) throw new NullPointerException("grant cannot be null");
-//        if (user == null) throw new NullPointerException("user cannot be null");
-//        if (handler == null) throw new NullPointerException("handler cannot be null");
-//        priority = priority == null ? Priority.NORMAL : priority;
-//        GrantRequest<T> request = GrantRequest.grant(box, false, grant, false, collection, id, user, tag, priority, handler);
-//        return box.submitRequest(request);
-//    }
-//
-//    public RequestToken revoke(Grant grant, String user, BAASBox.BAASHandler<Void, ?> handler) {
-//        return revoke(grant, user, null, Priority.NORMAL, handler);
-//    }
-//
-//    public <T> RequestToken revoke(Grant grant, BaasUser user, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
-//        String username = user.getName();
-//        if (username == null) throw new IllegalStateException("missing username");
-//        return revoke(grant, username, tag, priority, handler);
-//    }
-//
-//    public RequestToken revoke(Grant grant, BaasUser user, BAASBox.BAASHandler<Void, ?> handler) {
-//        String username = user.getName();
-//        if (username == null) throw new IllegalStateException("missing username");
-//        return revoke(grant, username, null, Priority.NORMAL, handler);
-//    }
-//
-//
-//    public <T> RequestToken grant(Grant grant, String user, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
-//        BAASBox box = BAASBox.getDefaultChecked();
-//        if (grant == null) throw new NullPointerException("grant cannot be null");
-//        if (user == null) throw new NullPointerException("user cannot be null");
-//        if (handler == null) throw new NullPointerException("handler cannot be null");
-//        priority = priority == null ? Priority.NORMAL : priority;
-//        GrantRequest<T> request = GrantRequest.grant(box, true, grant, false, collection, id, user, tag, priority, handler);
-//        return box.submitRequest(request);
-//    }
-//
-//    public RequestToken grant(Grant grant, String user, BAASBox.BAASHandler<Void, ?> handler) {
-//        return grant(grant, user, null, Priority.NORMAL, handler);
-//    }
-//
-//
-//    public <T> RequestToken grant(Grant grant, BaasUser user, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
-//        String username = user.getName();
-//        if (username == null) throw new IllegalStateException("missing username");
-//        return grant(grant, username, tag, priority, handler);
-//    }
-//
-//    public RequestToken grant(Grant grant, BaasUser user, BAASBox.BAASHandler<Void, ?> handler) {
-//        String username = user.getName();
-//        if (username == null) throw new IllegalStateException("missing username");
-//        return grant(grant, username, null, Priority.NORMAL, handler);
-//    }
+    private static final class Save extends NetworkTask<BaasDocument> {
+        private final BaasDocument document;
+        private final SaveMode mode;
+        private JsonObject data;
 
-//    private static final class GrantRequest<T> extends BaseRequest<Void, T> {
-//        static <T> GrantRequest<T> grant(BAASBox box, boolean add, Grant grant, boolean role, String collection, String docId, String userOrRole, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
-//            String type = role ? "role" : "user";
-//            String endpoint = box.requestFactory.getEndpoint("document/?/?/?/?/?", collection, docId, grant.action, type, userOrRole);
-//            HttpRequest request;
-//            if (add) {
-//                request = box.requestFactory.put(endpoint, null);
-//            } else {
-//                request = box.requestFactory.delete(endpoint);
-//            }
-//            return new GrantRequest<T>(request, priority, tag, handler);
-//        }
-//
-//        private GrantRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<Void, T> handler) {
-//            super(request, priority, t, handler);
-//
-//        }
-//
-//        @Override
-//        protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-//            return null;
-//        }
-//    }
-
-    private static final class SaveRequest<T> extends BaseRequest<BaasDocument, T> {
-
-        static <T> SaveRequest<T> create(BAASBox client, BaasDocument document, SaveMode mode, T tag, Priority priority, BAASBox.BAASHandler<BaasDocument, T> handler) {
-            final String collection = document.collection;
-            final String id = document.getId();
-            RequestFactory factory = client.requestFactory;
-            HttpRequest request;
-
-            if (id == null) {
-                String endpoint = factory.getEndpoint("document/?", collection);
-                request = factory.post(endpoint, document.data);
-            } else {
-                String endpoint = factory.getEndpoint("document/?/?", collection, id);
-                JsonObject o = document.data;
-                if (mode == SaveMode.CHECK_VERSION) {
-                    o = o.copy().putLong("@version", document.version);
-                }
-                request = factory.put(endpoint, o);
-            }
-            return new SaveRequest<T>(request, document, priority, tag, handler);
+        protected Save(BAASBox box, SaveMode mode, BaasDocument document, Priority priority, BaasHandler<BaasDocument> handler) {
+            super(box, priority, handler);
+            this.document = document;
+            this.data = document.data.copy();
+            this.mode = mode;
         }
 
+        @Override
+        protected BaasDocument onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+            JsonObject data = parseJson(response, box).getObject("data");
+            document.update(data);
+            return document;
+        }
+
+        @Override
+        protected HttpRequest request(BAASBox box) {
+            String collection = document.collection;
+            String id = document.id;
+            if (id == null) {
+                String endpoint = box.requestFactory.getEndpoint("document/?", collection);
+                return box.requestFactory.post(endpoint, data);
+            } else {
+                String endpoint = box.requestFactory.getEndpoint("document/?/?", collection, id);
+                if (mode == SaveMode.CHECK_VERSION) {
+                    data.putLong("@version", document.version);
+                }
+                return box.requestFactory.put(endpoint, data);
+
+            }
+        }
+
+    }
+
+    private final static class Refresh extends NetworkTask<BaasDocument> {
         private final BaasDocument document;
 
-        private SaveRequest(HttpRequest request, BaasDocument document, Priority priority, T t, BAASBox.BAASHandler<BaasDocument, T> handler) {
-            super(request, priority, t, handler);
-            this.document = document;
+        protected Refresh(BAASBox box, BaasDocument doc, Priority priority, BaasHandler<BaasDocument> handler) {
+            super(box, priority, handler);
+            this.document = doc;
         }
 
         @Override
-        protected BaasDocument handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            try {
-                JsonObject data = getJsonEntity(response, config.HTTP_CHARSET);
-                JsonObject toMerge = data.getObject("data");
-                this.document.update(toMerge);
-                return document;
-            } catch (JsonException e) {
-                throw new BAASBoxException(e);
-            }
+        protected BaasDocument onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+            JsonObject object = parseJson(response, box).getObject("data");
+            document.update(object);
+            return document;
+        }
+
+        @Override
+        protected HttpRequest request(BAASBox box) {
+            String endpoint = box.requestFactory.getEndpoint("document/?/?", document.collection, document.id);
+            return box.requestFactory.get(endpoint);
         }
     }
 
+    private final static class Fetch extends NetworkTask<List<BaasDocument>> {
+        private final String collection;
+        private final RequestFactory.Param[] filter;
 
-    private final static class RefreshRequest<T> extends BaseRequest<BaasDocument, T> {
-        private BaasDocument document;
-
-        RefreshRequest(RequestFactory factory, BaasDocument document, Priority priority, T t, BAASBox.BAASHandler<BaasDocument, T> handler) {
-            this(factory, document.collection, document.id, priority, t, handler);
-            this.document = document;
-        }
-
-        RefreshRequest(RequestFactory factory, String collection, String id, Priority priority, T tag, BAASBox.BAASHandler<BaasDocument, T> handler) {
-            super(factory.get(factory.getEndpoint("document/?/?", collection, id)), priority, tag, handler);
+        protected Fetch(BAASBox box, String collection, Filter filter, Priority priority, BaasHandler<List<BaasDocument>> handler) {
+            super(box, priority, handler);
+            this.collection = collection;
+            this.filter = filter == null ? null : filter.toParams();
         }
 
         @Override
-        protected BaasDocument handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            try {
-                JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
-                JsonObject data = content.getObject("data");
-                if (this.document == null) {
-                    return new BaasDocument(data);
-                } else {
-                    this.document.update(data);
-                    return document;
-                }
-            } catch (JsonException e) {
-                throw new BAASBoxIOException("cannot parse response from the server");
-            }
-        }
-    }
-
-    private final static class ListRequest<T> extends BaseRequest<List<BaasDocument>, T> {
-
-        ListRequest(RequestFactory factory, String collection, Filter filter, Priority priority, T t, BAASBox.BAASHandler<List<BaasDocument>, T> handler) {
-            super(factory.get(factory.getEndpoint("document/?", collection), filter.toParams()), priority, t, handler);
-        }
-
-        @Override
-        public List<BaasDocument> handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            JsonObject o = getJsonEntity(response, config.HTTP_CHARSET);
-            JsonArray data = o.getArray("data");
+        protected List<BaasDocument> onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+            JsonObject data = parseJson(response, box).getObject("data");
             if (data == null) {
                 return Collections.emptyList();
             } else {
@@ -1274,20 +1134,41 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
                 return res;
             }
         }
+
+        @Override
+        protected HttpRequest request(BAASBox box) {
+            String ep = box.requestFactory.getEndpoint("document/?", collection);
+            if (filter == null) {
+                return box.requestFactory.get(ep);
+            } else {
+                return box.requestFactory.get(ep, filter);
+            }
+        }
     }
 
-    private final static class CountRequest<T> extends BaseRequest<Long, T> {
+    private final static class Count extends NetworkTask<Long> {
+        private final String collection;
+        private final RequestFactory.Param[] params;
 
-        CountRequest(RequestFactory factory, String collection, Filter filter, Priority priority, T t, BAASBox.BAASHandler<Long, T> handler) {
-            super(factory.get(factory.getEndpoint("docuement/?/count", collection), filter == null ? null : filter.toParams()), priority, t, handler);
-
+        protected Count(BAASBox box, String collection, Filter filter, Priority priority, BaasHandler<Long> handler) {
+            super(box, priority, handler);
+            this.collection = collection;
+            this.params = filter == null ? null : filter.toParams();
         }
 
         @Override
-        protected Long handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            JsonObject content = getJsonEntity(response, config.HTTP_CHARSET);
-            Long count = content.getObject("data").getLong("count");
-            return count;
+        protected Long onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
+            return parseJson(response, box).getObject("data").getLong("count");
+        }
+
+        @Override
+        protected HttpRequest request(BAASBox box) {
+            String ep = box.requestFactory.getEndpoint("document/?/count", collection);
+            if (params == null) {
+                return box.requestFactory.get(ep, params);
+            } else {
+                return box.requestFactory.get(ep);
+            }
         }
     }
 
