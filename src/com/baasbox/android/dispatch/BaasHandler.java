@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.async;
+package com.baasbox.android.dispatch;
 
 import com.baasbox.android.BaasResult;
 
@@ -22,7 +22,7 @@ import com.baasbox.android.BaasResult;
  * request
  *
  * @param <R> the expected response type
- * Created by Andrea Tortorella on 20/01/14.
+ *            Created by Andrea Tortorella on 20/01/14.
  */
 public interface BaasHandler<R> {
     /**

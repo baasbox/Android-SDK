@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.async;
+package com.baasbox.android.dispatch;
 
 import com.baasbox.android.BaasResult;
 import com.baasbox.android.exceptions.BAASBoxException;
@@ -23,7 +23,7 @@ import com.baasbox.android.exceptions.BAASBoxException;
  */
 public final class ImmediateDispatcher {
 
-    public<R> BaasResult<R> execute(Task<R> request){
+    public <R> BaasResult<R> execute(Task<R> request) {
         try {
             R r = request.asyncCall();
             return BaasResult.success(r);

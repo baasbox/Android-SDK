@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.async;
+package com.baasbox.android.dispatch;
 
 
 import android.os.Handler;
 import android.os.Looper;
-
 import android.util.Log;
 import com.baasbox.android.BAASBox;
 import com.baasbox.android.BaasResult;
@@ -30,12 +29,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 
 /**
- *
  * Created by Andrea Tortorella on 20/01/14.
  */
-public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
+public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
 
-    final static void st(String step){
+    final static void st(String step) {
         Log.e("STEPPER", step);
     }
 
@@ -51,43 +49,43 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
     private final AtomicReference<BaasHandler<?>> suspendableHandler = new AtomicReference<BaasHandler<?>>();
 
 
-    protected Task(Priority priority,BaasHandler<R> handler) {
-        this.priority=priority==null?Priority.NORMAL:priority;
-        this.suspendableHandler.set(handler==null?BaasHandler.NOOP :handler);
+    protected Task(Priority priority, BaasHandler<R> handler) {
+        this.priority = priority == null ? Priority.NORMAL : priority;
+        this.suspendableHandler.set(handler == null ? BaasHandler.NOOP : handler);
     }
 
     @Override
     public int compareTo(Task<R> another) {
         Priority me = priority;
         Priority you = another.priority;
-        return  me==you?
-                seqNumber-another.seqNumber:
-                you.ordinal()-me.ordinal();
+        return me == you ?
+                seqNumber - another.seqNumber :
+                you.ordinal() - me.ordinal();
     }
 
-    public int seq(){
+    public int seq() {
         return seqNumber;
     }
 
-    private enum Signal implements BaasHandler{
+    private enum Signal implements BaasHandler {
         ABORTED,
         SUSPENDED,
         DELIVERED,
-        COMMITTED
+        COMMITTED;
 
-        ;
         @Override
-        public void handle(BaasResult result) {}
+        public void handle(BaasResult result) {
+        }
     }
 
 
-    final boolean abort(){
-        if(!taken.get()){
+    final boolean abort() {
+        if (!taken.get()) {
             // aborting always runs before connection
             // happens. If we reach this point the request
             // can be active or suspended
             // but nor delivered or committed
-            result=BaasResult.cancel();
+            result = BaasResult.cancel();
             // we can simply forcefully set the value
             // to ABORTED to let the resource been cleaned up
             suspendableHandler.set(Signal.ABORTED);
@@ -97,10 +95,10 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
         return false;
     }
 
-    boolean resume(BaasHandler<R> handler){
-        for(;;){
+    boolean resume(BaasHandler<R> handler) {
+        for (; ; ) {
             BaasHandler<?> curr = suspendableHandler.get();
-            if (curr == Signal.COMMITTED){
+            if (curr == Signal.COMMITTED) {
                 //the request has already been committed
                 //so we cannot resume it again
                 //but if we found it than it's still known to the dispatcher
@@ -110,12 +108,12 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
                 return false;
             }
             boolean submit;
-            if (curr == Signal.SUSPENDED){
+            if (curr == Signal.SUSPENDED) {
                 // the request is suspended and it's
                 // still in flight
                 st("suspended still in flight");
                 submit = false;
-            } else if (curr == Signal.DELIVERED){
+            } else if (curr == Signal.DELIVERED) {
                 // the request is resumed after delivery
                 // we than need to resubmit it to it's handler
                 st("suspendend missing callback");
@@ -123,12 +121,12 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
             } else {
                 // the request is not suspended
                 // so we cannot resume it: just leave
-                st("not suspended it's: "+curr);
+                st("not suspended it's: " + curr);
                 return false;
             }
-            if (suspendableHandler.compareAndSet(curr,handler)){
+            if (suspendableHandler.compareAndSet(curr, handler)) {
                 // we now have an handler set
-                if (submit){
+                if (submit) {
                     // if we where in a delivered status
                     // we need to repost the callback for execution
                     post();
@@ -143,14 +141,13 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
     }
 
 
-
     @Override
     public final void run() {
-        for(;;){
+        for (; ; ) {
             final BaasHandler<?> curr = suspendableHandler.get();
             // at this stage we are in the callback thread of execution
             // we get the current handler and choose the state to reach
-            if (curr==Signal.COMMITTED){
+            if (curr == Signal.COMMITTED) {
                 //the callback has already run
                 // really we don't have to make any work
                 st("running finish already done");
@@ -158,7 +155,7 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
             }
 
             final BaasHandler<?> target;
-            if (curr == Signal.SUSPENDED||curr==Signal.DELIVERED){
+            if (curr == Signal.SUSPENDED || curr == Signal.DELIVERED) {
                 //if the current state is SUSPENDED the target state
                 //to reach is DELIVERED
                 //handlers in DELIVERED state won't change and remain the same
@@ -173,16 +170,16 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
                 target = Signal.COMMITTED;
             }
 
-            if (suspendableHandler.compareAndSet(curr,target)){
+            if (suspendableHandler.compareAndSet(curr, target)) {
                 //at this point the transition is completed
                 //if the target we reached is COMMITTED than we have
                 //to execute the callback and cleanup the dispatcher
                 st("last transition");
-                if (target==Signal.COMMITTED){
+                if (target == Signal.COMMITTED) {
 
-                    if (curr!=null){
+                    if (curr != null) {
                         st("handling");
-                        ((BaasHandler<R>)curr).handle(result);
+                        ((BaasHandler<R>) curr).handle(result);
                     }
                     dispatcher.finish(this);
                 }
@@ -193,13 +190,13 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
         }
     }
 
-    boolean suspend(){
-        for(;;){
+    boolean suspend() {
+        for (; ; ) {
             BaasHandler<?> curr = suspendableHandler.get();
             // we want suspend to be an idempotent action
             // if we suspend multiple times a request
             // this should not fail and do not update the status
-            if (curr == Signal.SUSPENDED||curr==Signal.DELIVERED){
+            if (curr == Signal.SUSPENDED || curr == Signal.DELIVERED) {
                 // the callback is already suspended
                 // in one of the three states:
                 //   * SUSPENDED still in flight
@@ -208,7 +205,7 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
                 // we had success
                 st("already suspended");
                 return true;
-            }else if (curr == Signal.COMMITTED||curr == Signal.ABORTED){
+            } else if (curr == Signal.COMMITTED || curr == Signal.ABORTED) {
                 //if the request is committed we cannot cancel it anymore
                 //the other case is that the handler has been erased but
                 //just before removing the request from the ones still in flight
@@ -216,7 +213,7 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
                 // so we cannot suspend
                 st("cannot suspend");
                 return false;
-            } else if (suspendableHandler.compareAndSet(curr,Signal.SUSPENDED)){
+            } else if (suspendableHandler.compareAndSet(curr, Signal.SUSPENDED)) {
                 // we had success transitioning to a suspended state;
                 // the request is now suspended and the handler is unbound
                 st("suspending");
@@ -226,39 +223,39 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
         }
     }
 
-    final boolean cancel(){
-        if (!taken.get()){
-            result=BaasResult.cancel();
+    final boolean cancel() {
+        if (!taken.get()) {
+            result = BaasResult.cancel();
             return true;
         }
         return false;
     }
 
-    final boolean isCanceled(){
+    final boolean isCanceled() {
         BaasResult<R> r = result;
-        return r!=null&&r.isCanceled();
+        return r != null && r.isCanceled();
     }
 
-    private boolean takeAndVerifyCancel(){
+    private boolean takeAndVerifyCancel() {
         taken.set(true);
         return isCanceled();
     }
 
-    final boolean isSuspended(){
-        BaasHandler<?> h =suspendableHandler.get();
-        return h==Signal.SUSPENDED||h==Signal.DELIVERED;
+    final boolean isSuspended() {
+        BaasHandler<?> h = suspendableHandler.get();
+        return h == Signal.SUSPENDED || h == Signal.DELIVERED;
     }
 
-    final void execute(){
+    final void execute() {
         try {
 
-            if (takeAndVerifyCancel()){
+            if (takeAndVerifyCancel()) {
                 return;
             }
 
             R value = asyncCall();
             result = BaasResult.success(value);
-        } catch (BAASBoxException e){
+        } catch (BAASBoxException e) {
             result = BaasResult.failure(e);
         }
 
@@ -271,15 +268,15 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>>{
     }
 
     final void bind(int seqNumber, Dispatcher dispatcher) {
-        this.seqNumber=seqNumber;
-        this.dispatcher=dispatcher;
+        this.seqNumber = seqNumber;
+        this.dispatcher = dispatcher;
 
-        if (postOn==null){
+        if (postOn == null) {
             Looper looper = Looper.myLooper();
-            if (looper == Looper.getMainLooper()||looper==null){
-                this.postOn=dispatcher.defaultMainHandler;
+            if (looper == Looper.getMainLooper() || looper == null) {
+                this.postOn = dispatcher.defaultMainHandler;
             } else {
-                this.postOn=new Handler(looper);
+                this.postOn = new Handler(looper);
             }
         }
     }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.async;
+package com.baasbox.android.dispatch;
 
 import com.baasbox.android.Logger;
 
@@ -23,7 +23,7 @@ import com.baasbox.android.Logger;
 public interface ExceptionHandler {
     public final static ExceptionHandler DEFAULT = new ExceptionHandler() {
         @Override
-        public boolean onError(Throwable t) throws RuntimeException{
+        public boolean onError(Throwable t) throws RuntimeException {
             throw new RuntimeException(t);
         }
     };
@@ -31,9 +31,10 @@ public interface ExceptionHandler {
     public final static ExceptionHandler LOGGING_HANDLER = new ExceptionHandler() {
         @Override
         public boolean onError(Throwable t) throws RuntimeException {
-            Logger.error(t,"Error during execution of task on dispatcher: continue with next request");
+            Logger.error(t, "Error during execution of task on dispatcher: continue with next request");
             return true;
         }
     };
+
     public boolean onError(Throwable t) throws RuntimeException;
 }

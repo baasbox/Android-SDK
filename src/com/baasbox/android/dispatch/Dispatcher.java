@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.async;
+package com.baasbox.android.dispatch;
 
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
-
 import com.baasbox.android.BAASBox;
 import com.baasbox.android.Logger;
 import com.baasbox.android.RequestToken;
@@ -28,7 +27,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
  * Created by Andrea Tortorella on 20/01/14.
  */
 public final class Dispatcher {
@@ -36,7 +34,7 @@ public final class Dispatcher {
 
 
     private final PriorityBlockingQueue<Task<?>> taskQueue;
-    private final ConcurrentHashMap<Integer,Task<?>> liveAsyncs;
+    private final ConcurrentHashMap<Integer, Task<?>> liveAsyncs;
     private final ExceptionHandler exceptionHandler;
     private final Worker[] workers;
     private final BAASBox box;
@@ -44,118 +42,118 @@ public final class Dispatcher {
 
     final Handler defaultMainHandler = new Handler(Looper.getMainLooper());
 
-    public Dispatcher(BAASBox box){
-        this.box=box;
-        this.exceptionHandler =setHandler(box.config.EXCEPTION_HANDLER);
+    public Dispatcher(BAASBox box) {
+        this.box = box;
+        this.exceptionHandler = setHandler(box.config.EXCEPTION_HANDLER);
         this.workers = createWorkers(box.config.NUM_THREADS);
-        this.taskQueue =new PriorityBlockingQueue<Task<?>>(16);
-        this.liveAsyncs = new ConcurrentHashMap<Integer, Task<?>>(16,0.75f,1);
+        this.taskQueue = new PriorityBlockingQueue<Task<?>>(16);
+        this.liveAsyncs = new ConcurrentHashMap<Integer, Task<?>>(16, 0.75f, 1);
     }
 
-    private static ExceptionHandler setHandler(ExceptionHandler handler){
-        if(handler==null){
+    private static ExceptionHandler setHandler(ExceptionHandler handler) {
+        if (handler == null) {
             Logger.warn("EXCEPTION_HANDLER is null: set using default");
             return ExceptionHandler.DEFAULT;
         }
         return handler;
     }
 
-    private static Worker[] createWorkers(int threads){
-        if(threads<0){
+    private static Worker[] createWorkers(int threads) {
+        if (threads < 0) {
             Logger.warn("Ignoring NUM_THREADS: less than 0 threads, default will be used");
             threads = 0;
         }
-        if(threads == 0){
+        if (threads == 0) {
             threads = Runtime.getRuntime().availableProcessors();
-            Logger.info("Using default number of threads configuration %s",threads);
+            Logger.info("Using default number of threads configuration %s", threads);
         }
         return new Worker[threads];
     }
 
-    public void start(){
+    public void start() {
         stop();
         quit = false;
-        for(int i = 0;i<workers.length;i++){
-            workers[i]=new Worker(this);
+        for (int i = 0; i < workers.length; i++) {
+            workers[i] = new Worker(this);
             workers[i].start();
         }
     }
 
-    public void stop(){
+    public void stop() {
         quit = true;
-        for(int i=0;i<workers.length;i++){
-            if(workers[i]!=null){
+        for (int i = 0; i < workers.length; i++) {
+            if (workers[i] != null) {
                 workers[i].interrupt();
-                workers[i]=null;
+                workers[i] = null;
             }
         }
     }
 
     void finish(Task<?> req) {
         this.liveAsyncs.remove(req.seqNumber, req);
-        Logger.info("%s finished",req);
+        Logger.info("%s finished", req);
     }
 
-    public RequestToken post(Task<?> request){
+    public RequestToken post(Task<?> request) {
         final int seqNumber = SEQUENCE.getAndIncrement();
         request.bind(seqNumber, this);
         RequestToken token = new RequestToken(seqNumber);
-        liveAsyncs.put(seqNumber,request);
+        liveAsyncs.put(seqNumber, request);
         taskQueue.add(request);
         return token;
     }
 
-    public <R>boolean resume(RequestToken token,BaasHandler<R> handler){
-        Task<R> task =(Task<R>) liveAsyncs.get(token.requestId);
-        if (task==null){
+    public <R> boolean resume(RequestToken token, BaasHandler<R> handler) {
+        Task<R> task = (Task<R>) liveAsyncs.get(token.requestId);
+        if (task == null) {
             Task.st("not found");
             return false;
         }
         return task.resume(handler);
     }
 
-    public boolean cancel(RequestToken token,boolean immediate){
+    public boolean cancel(RequestToken token, boolean immediate) {
         Task<?> task = liveAsyncs.get(token.requestId);
-        if (task==null)return false;
-        if (immediate){
+        if (task == null) return false;
+        if (immediate) {
             return task.abort();
         } else {
             return task.cancel();
         }
     }
 
-    public boolean suspend(RequestToken token){
+    public boolean suspend(RequestToken token) {
         Task<?> task = liveAsyncs.get(token.requestId);
-        return task !=null&& task.suspend();
+        return task != null && task.suspend();
     }
 
 
-    private static final class Worker extends Thread{
+    private static final class Worker extends Thread {
         private final PriorityBlockingQueue<Task<?>> queue;
         private final Dispatcher dispatcher;
 
-        Worker(Dispatcher dispatcher){
-            this.dispatcher=dispatcher;
-            this.queue=dispatcher.taskQueue;
+        Worker(Dispatcher dispatcher) {
+            this.dispatcher = dispatcher;
+            this.queue = dispatcher.taskQueue;
         }
 
         @Override
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             Task<?> task;
-            while (true){
+            while (true) {
                 try {
                     task = queue.take();
-                }catch (InterruptedException e){
+                } catch (InterruptedException e) {
                     if (dispatcher.quit) return;
                     continue;
                 }
-                try{
+                try {
                     task.execute();
                     task.post();
 
-                }catch (Throwable t){
-                    if (dispatcher.exceptionHandler.onError(t)){
+                } catch (Throwable t) {
+                    if (dispatcher.exceptionHandler.onError(t)) {
                         continue;
                     }
                 }

@@ -16,7 +16,7 @@
 package com.baasbox.android;
 
 import android.content.Context;
-import com.baasbox.android.async.*;
+import com.baasbox.android.dispatch.*;
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.HttpRequest;
