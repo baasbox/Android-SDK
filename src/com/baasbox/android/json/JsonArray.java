@@ -17,7 +17,6 @@ package com.baasbox.android.json;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
 import com.baasbox.android.impl.Base64;
 
 import java.io.IOException;

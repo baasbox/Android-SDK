@@ -16,7 +16,6 @@
 package com.baasbox.android.spi;
 
 import com.baasbox.android.exceptions.BAASBoxException;
-
 import org.apache.http.HttpResponse;
 
 /**
