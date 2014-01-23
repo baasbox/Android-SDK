@@ -35,7 +35,7 @@ public abstract class BaasResult<T> {
     private BaasResult() {
     }
 
-    public static class Cancel<T> extends Error<T> {
+    private static class Cancel<T> extends Error<T> {
 
         Cancel() {
             super(new BaasCancellationException());
@@ -47,7 +47,7 @@ public abstract class BaasResult<T> {
         }
     }
 
-    public static class Error<T> extends BaasResult<T> {
+    private static class Error<T> extends BaasResult<T> {
         private final BaasException error;
 
         Error(BaasException e) {
@@ -85,7 +85,7 @@ public abstract class BaasResult<T> {
         }
     }
 
-    public static final class Success<T> extends BaasResult<T> {
+    private static final class Success<T> extends BaasResult<T> {
         private final T value;
 
         Success(T value) {

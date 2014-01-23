@@ -15,6 +15,8 @@
 
 package com.baasbox.android;
 
+import com.baasbox.android.impl.Logger;
+
 /**
  * Created by eto on 20/01/14.
  */
