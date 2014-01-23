@@ -15,8 +15,9 @@
 
 package com.baasbox.android;
 
+import com.baasbox.android.async.BaasHandler;
+import com.baasbox.android.async.NetworkTask;
 import com.baasbox.android.exceptions.BAASBoxException;
-import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.HttpRequest;
 import org.apache.http.HttpResponse;
 
@@ -47,70 +48,76 @@ public abstract class BaasObject<E extends BaasObject<E>> {
 
     public abstract BaasResult<Void> grantAllSync(Grant grant, String role);
 
-    public abstract <T> RequestToken grant(Grant grant, String username, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler);
+    public abstract RequestToken grant(Grant grant, String username, Priority priority, BaasHandler<Void> handler);
 
-    public final RequestToken grant(Grant grant, String username, BAASBox.BAASHandler<Void, ?> handler) {
-        return grant(grant, username, null, Priority.NORMAL, handler);
+    public final RequestToken grant(Grant grant, String username, BaasHandler<Void> handler) {
+        return grant(grant, username, Priority.NORMAL, handler);
     }
 
-    public abstract <T> RequestToken grantAll(Grant grant, String role, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler);
+    public abstract RequestToken grantAll(Grant grant, String role, Priority priority, BaasHandler<Void> handler);
 
 
-    public final RequestToken grantAll(Grant grant, String role, BAASBox.BAASHandler<Void, ?> handler) {
-        return grantAll(grant, role, null, Priority.NORMAL, handler);
-    }
-
-
-    public abstract <T> RequestToken revoke(Grant grant, String username, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler);
-
-    public final RequestToken revoke(Grant grant, String username, BAASBox.BAASHandler<Void, ?> handler) {
-        return grant(grant, username, null, Priority.NORMAL, handler);
-    }
-
-    public abstract <T> RequestToken revokeAll(Grant grant, String role, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler);
-
-
-    public final RequestToken revokeAll(Grant grant, String role, BAASBox.BAASHandler<Void, ?> handler) {
-        return grantAll(grant, role, null, Priority.NORMAL, handler);
+    public final RequestToken grantAll(Grant grant, String role, BaasHandler<Void> handler) {
+        return grantAll(grant, role, Priority.NORMAL, handler);
     }
 
 
-    static final class GrantRequest<T> extends BaseRequest<Void, T> {
+    public abstract RequestToken revoke(Grant grant, String username, Priority priority, BaasHandler<Void> handler);
 
-        static <T> GrantRequest<T> grantAsync(BAASBox box, boolean add, Grant grant, boolean role, String collection, String id, String user, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
-            if (handler == null) throw new NullPointerException("handler cannot be null");
-            priority = priority == null ? Priority.NORMAL : priority;
-            return grant(box, add, grant, role, collection, id, user, tag, priority, handler);
-        }
+    public final RequestToken revoke(Grant grant, String username, BaasHandler<Void> handler) {
+        return grant(grant, username, Priority.NORMAL, handler);
+    }
 
-        static <T> GrantRequest<T> grant(BAASBox box, boolean add, Grant grant, boolean role, String collection, String docId, String userOrRole, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
-            if (grant == null) throw new NullPointerException("grant cannot be null");
-            if (userOrRole == null) throw new NullPointerException("userOrRole cannot be null");
+    public abstract RequestToken revokeAll(Grant grant, String role, Priority priority, BaasHandler<Void> handler);
 
-            String type = role ? "role" : "user";
-            String endpoint;
-            if (collection != null) {
-                endpoint = box.requestFactory.getEndpoint("document/?/?/?/?/?", collection, docId, grant.action, type, userOrRole);
-            } else {
-                endpoint = box.requestFactory.getEndpoint("file/?/?/?/?", docId, grant.action, type, userOrRole);
-            }
-            HttpRequest request;
-            if (add) {
-                request = box.requestFactory.put(endpoint);
-            } else {
-                request = box.requestFactory.delete(endpoint);
-            }
-            return new GrantRequest<T>(request, priority, tag, handler);
-        }
 
-        private GrantRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<Void, T> handler) {
-            super(request, priority, t, handler);
+    public final RequestToken revokeAll(Grant grant, String role, BaasHandler<Void> handler) {
+        return grantAll(grant, role, Priority.NORMAL, handler);
+    }
 
+
+    static abstract class Access extends NetworkTask<Void> {
+        private final boolean isRole;
+        private final boolean add;
+        private final Grant grant;
+        private final String id;
+        private final String collection;
+        private final String to;
+
+        protected Access(BAASBox box, boolean add, boolean isRole, String collection, String id, String to, Grant grant, Priority priority, BaasHandler<Void> handler) {
+            super(box, priority, handler);
+            this.isRole = isRole;
+            this.add = add;
+            this.grant = grant;
+            this.id = id;
+            this.to = to;
+
+            this.collection = collection;
         }
 
         @Override
-        protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
+        protected Void onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
             return null;
         }
+
+        @Override
+        protected final HttpRequest request(BAASBox box) {
+            String endpoint;
+            RequestFactory factory = box.requestFactory;
+            if (isRole) {
+                endpoint = roleGrant(factory, grant, collection, id, to);
+            } else {
+                endpoint = userGrant(factory, grant, collection, id, to);
+            }
+            if (add) {
+                return factory.put(endpoint);
+            } else {
+                return factory.delete(endpoint);
+            }
+        }
+
+        protected abstract String userGrant(RequestFactory factory, Grant grant, String collection, String id, String to);
+
+        protected abstract String roleGrant(RequestFactory factory, Grant grant, String collection, String id, String to);
     }
 }

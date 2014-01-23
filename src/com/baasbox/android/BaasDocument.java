@@ -995,60 +995,60 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     }
 
     @Override
-    public <T> RequestToken revokeAll(Grant grant, String role, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+    public RequestToken revokeAll(Grant grant, String role, Priority priority, BaasHandler<Void> handler) {
         BAASBox box = BAASBox.getDefaultChecked();
-        GrantRequest<T> req = GrantRequest.grantAsync(box, false, grant, true, collection, id, role, tag, priority, handler);
-        return box.submitRequest(req);
+        Access access = new Access(box, false, true, collection, id, role, grant, priority, handler);
+        return box.submitAsync(access);
     }
 
     @Override
     public BaasResult<Void> revokeAllSync(Grant grant, String role) {
         BAASBox box = BAASBox.getDefaultChecked();
-        GrantRequest<Void> req = GrantRequest.grant(box, false, grant, true, collection, id, role, null, null, null);
-        return box.submitRequestSync(req);
+        Access access = new Access(box, false, true, collection, id, role, grant, null, null);
+        return box.submitSync(access);
     }
 
     @Override
-    public <T> RequestToken revoke(Grant grant, String username, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+    public RequestToken revoke(Grant grant, String username, Priority priority, BaasHandler<Void> handler) {
         BAASBox box = BAASBox.getDefaultChecked();
-        GrantRequest<T> req = GrantRequest.grant(box, false, grant, false, collection, id, username, tag, priority, handler);
-        return box.submitRequest(req);
+        Access access = new Access(box, false, false, collection, id, username, grant, priority, handler);
+        return box.submitAsync(access);
     }
 
     @Override
-    public BaasResult<Void> revokeSync(Grant grant, String user) {
+    public BaasResult<Void> revokeSync(Grant grant, String username) {
         BAASBox box = BAASBox.getDefaultChecked();
-        GrantRequest<Void> req = GrantRequest.grant(box, false, grant, false, collection, id, user, null, null, null);
-        return box.submitRequestSync(req);
+        Access access = new Access(box, false, false, collection, id, username, grant, null, null);
+        return box.submitSync(access);
     }
 
     @Override
-    public <T> RequestToken grantAll(Grant grant, String role, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+    public RequestToken grantAll(Grant grant, String role, Priority priority, BaasHandler<Void> handler) {
         BAASBox box = BAASBox.getDefaultChecked();
-        GrantRequest<T> req = GrantRequest.grantAsync(box, true, grant, true, collection, id, role, tag, priority, handler);
-        return box.submitRequest(req);
+        Access access = new Access(box, true, true, collection, id, role, grant, priority, handler);
+        return box.submitAsync(access);
     }
 
 
     @Override
     public BaasResult<Void> grantAllSync(Grant grant, String role) {
         BAASBox box = BAASBox.getDefaultChecked();
-        GrantRequest<Void> req = GrantRequest.grant(box, true, grant, true, collection, id, role, null, null, null);
-        return box.submitRequestSync(req);
+        Access access = new Access(box, true, true, collection, id, role, grant, null, null);
+        return box.submitSync(access);
     }
 
     @Override
-    public <T> RequestToken grant(Grant grant, String username, T tag, Priority priority, BAASBox.BAASHandler<Void, T> handler) {
+    public RequestToken grant(Grant grant, String username, Priority priority, BaasHandler<Void> handler) {
         BAASBox box = BAASBox.getDefaultChecked();
-        GrantRequest<T> req = GrantRequest.grant(box, false, grant, true, collection, id, username, tag, priority, handler);
-        return box.submitRequest(req);
+        Access access = new Access(box, true, false, collection, id, username, grant, priority, handler);
+        return box.submitAsync(access);
     }
 
     @Override
-    public BaasResult<Void> grantSync(Grant grant, String user) {
+    public BaasResult<Void> grantSync(Grant grant, String username) {
         BAASBox box = BAASBox.getDefaultChecked();
-        GrantRequest<Void> req = GrantRequest.grant(box, true, grant, false, collection, id, user, null, null, null);
-        return box.submitRequestSync(req);
+        Access access = new Access(box, true, false, collection, id, username, grant, null, null);
+        return box.submitSync(access);
     }
 
     private static final class Save extends NetworkTask<BaasDocument> {
@@ -1087,6 +1087,23 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
             }
         }
 
+    }
+
+    private final static class Access extends BaasObject.Access {
+
+        protected Access(BAASBox box, boolean add, boolean isRole, String collection, String id, String to, Grant grant, Priority priority, BaasHandler<Void> handler) {
+            super(box, add, isRole, collection, id, to, grant, priority, handler);
+        }
+
+        @Override
+        protected String userGrant(RequestFactory factory, Grant grant, String collection, String id, String to) {
+            return factory.getEndpoint("document/?/?/?/user/?", collection, id, grant.action, to);
+        }
+
+        @Override
+        protected String roleGrant(RequestFactory factory, Grant grant, String collection, String id, String to) {
+            return factory.getEndpoint("document/?/?/?/role/?", collection, id, grant.action, to);
+        }
     }
 
     private final static class Refresh extends NetworkTask<BaasDocument> {
