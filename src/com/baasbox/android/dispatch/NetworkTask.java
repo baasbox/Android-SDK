@@ -16,6 +16,7 @@
 package com.baasbox.android.dispatch;
 
 import com.baasbox.android.BaasBox;
+import com.baasbox.android.BaasHandler;
 import com.baasbox.android.Logger;
 import com.baasbox.android.Priority;
 import com.baasbox.android.exceptions.BaasClientException;

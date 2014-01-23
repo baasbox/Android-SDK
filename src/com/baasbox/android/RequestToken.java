@@ -17,7 +17,6 @@ package com.baasbox.android;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import com.baasbox.android.dispatch.BaasHandler;
 
 /**
  * A handle to an asynchronous request.

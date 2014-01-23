@@ -17,7 +17,6 @@ package com.baasbox.android;
 
 import android.webkit.MimeTypeMap;
 import com.baasbox.android.dispatch.AsyncStream;
-import com.baasbox.android.dispatch.BaasHandler;
 import com.baasbox.android.dispatch.NetworkTask;
 import com.baasbox.android.exceptions.BaasException;
 import com.baasbox.android.json.JsonArray;

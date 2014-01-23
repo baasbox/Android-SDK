@@ -19,6 +19,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
 import com.baasbox.android.BaasBox;
+import com.baasbox.android.BaasHandler;
 import com.baasbox.android.Logger;
 import com.baasbox.android.RequestToken;
 

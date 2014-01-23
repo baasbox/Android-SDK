@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.dispatch;
-
-import com.baasbox.android.BaasResult;
+package com.baasbox.android;
 
 /**
  * Interface definition for a callback to be invoked when BaasBox responds to an asynchronous

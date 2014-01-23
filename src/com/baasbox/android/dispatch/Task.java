@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import com.baasbox.android.BaasBox;
+import com.baasbox.android.BaasHandler;
 import com.baasbox.android.BaasResult;
 import com.baasbox.android.Priority;
 import com.baasbox.android.exceptions.BaasException;

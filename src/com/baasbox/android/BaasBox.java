@@ -39,22 +39,6 @@ public class BaasBox {
     private static final Object LOCK = new Object();
 
     /**
-     * Interface definition for a callback to be invoked when baasbox responds to a request
-     *
-     * @param <R> the expected return type
-     * @param <T> the expected tag type
-     */
-    public interface BAASHandler<R, T> {
-        /**
-         * Called with the result of a request to BaasBox
-         *
-         * @param result
-         * @param tag    of the original request or null
-         */
-        public void handle(BaasResult<R> result, T tag);
-    }
-
-    /**
      * The configuration for BaasBox client
      */
     public final static class Config {
@@ -252,18 +236,7 @@ public class BaasBox {
         return asyncDispatcher.cancel(token, true);
     }
 
-    /**
-     * Suspends a background request to the server.
-     * Suspended requests are executed in background,
-     * but no handler is invoked until {@link BaasBox#resume(RequestToken, Object, BaasBox.BAASHandler)}
-     * is called.
-     * <p/>
-     * Suspend assign a <code>name</code> to the request for future resumption
-     *
-     * @param token the token that indentifies a pending request.
-     */
     boolean suspend(RequestToken token) {
-//        asyncDispatcher.suspend(token);
         return asyncDispatcher.suspend(token);
     }
 
@@ -271,21 +244,6 @@ public class BaasBox {
         return asyncDispatcher.resume(token, handler);
     }
 
-    /**
-     * Resumes a suspended background request to the server.
-     * Suspended requests are executed in background but no
-     * handler is invoked until resumption.
-     *
-     * @param tag
-     * @param handler
-     * @param <T>
-     * @return
-     */
-    <T> RequestToken resume(RequestToken token, T tag, BAASHandler<?, T> handler) {
-//        return asyncDispatcher.resume(token, tag, handler);
-
-        return null;
-    }
 
     /**
      * Synchronously sends a raw rest request to the server that is specified by
