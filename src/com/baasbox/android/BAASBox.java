@@ -16,19 +16,12 @@
 package com.baasbox.android;
 
 import android.content.Context;
-
-import com.baasbox.android.async.BaasHandler;
-import com.baasbox.android.async.Dispatcher;
-import com.baasbox.android.async.ExceptionHandler;
-import com.baasbox.android.async.ImmediateDispatcher;
-import com.baasbox.android.async.NetworkTask;
-import com.baasbox.android.async.Task;
+import com.baasbox.android.async.*;
 import com.baasbox.android.exceptions.BAASBoxException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.HttpRequest;
 import com.baasbox.android.spi.RestClient;
-
 import org.apache.http.HttpResponse;
 
 /**
@@ -68,6 +61,7 @@ public class BAASBox {
     public final static class Config {
 
         public ExceptionHandler EXCEPTION_HANDLER = ExceptionHandler.DEFAULT;
+
         /**
          * The supported authentication types.
          */
@@ -152,7 +146,7 @@ public class BAASBox {
         this.credentialStore = new PreferenceCredentialStore(this.context);
         this.store = new BaasCredentialManager(context);
         restClient = new HttpUrlConnectionClient(this.config);
-        this.requestFactory = new RequestFactory(this.config, credentialStore);
+        this.requestFactory = new RequestFactory(this.config, store);
         this.syncDispatcher = new ImmediateDispatcher();
         this.asyncDispatcher = new Dispatcher(this);// AsyncDefaultDispatcher(this, restClient);
     }
@@ -198,6 +192,7 @@ public class BAASBox {
 
     /**
      * Initialize BaasBox client with the configuration <code>config</code>
+     *
      * @param context
      * @param config
      * @return
@@ -209,6 +204,7 @@ public class BAASBox {
     /**
      * Initialize BaasBox client with the configuration <code>config</code>
      * and a new <code>session</code>
+     *
      * @param context
      * @param config
      * @param session
@@ -242,28 +238,28 @@ public class BAASBox {
         return sDefaultClient;
     }
 
-    RequestToken submitAsync(Task<?> task){
+    RequestToken submitAsync(Task<?> task) {
         return asyncDispatcher.post(task);
     }
 
-    <Resp>BaasResult<Resp> submitSync(Task<Resp> task){
+    <Resp> BaasResult<Resp> submitSync(Task<Resp> task) {
         return syncDispatcher.execute(task);
     }
 
-    RequestToken submitRequest(BaasRequest<?,?> req){
+    RequestToken submitRequest(BaasRequest<?, ?> req) {
         return null;
     }
 
-    <Resp> BaasResult<Resp> submitRequestSync(BaasRequest<?,?> request) {
+    <Resp> BaasResult<Resp> submitRequestSync(BaasRequest<?, ?> request) {
         return null;
     }
 
     public boolean cancel(RequestToken token) {
-        return asyncDispatcher.cancel(token,false);
+        return asyncDispatcher.cancel(token, false);
     }
 
-    public boolean abort(RequestToken token){
-        return asyncDispatcher.cancel(token,true);
+    public boolean abort(RequestToken token) {
+        return asyncDispatcher.cancel(token, true);
     }
 
     /**
@@ -271,8 +267,9 @@ public class BAASBox {
      * Suspended requests are executed in background,
      * but no handler is invoked until {@link com.baasbox.android.BAASBox#resume(RequestToken, Object, com.baasbox.android.BAASBox.BAASHandler)}
      * is called.
-     *
+     * <p/>
      * Suspend assign a <code>name</code> to the request for future resumption
+     *
      * @param token the token that indentifies a pending request.
      */
     boolean suspend(RequestToken token) {
@@ -280,8 +277,8 @@ public class BAASBox {
         return asyncDispatcher.suspend(token);
     }
 
-    boolean resume(RequestToken token,BaasHandler<?> handler){
-        return asyncDispatcher.resume(token,handler);
+    boolean resume(RequestToken token, BaasHandler<?> handler) {
+        return asyncDispatcher.resume(token, handler);
     }
 
     /**
@@ -333,27 +330,26 @@ public class BAASBox {
         RequestFactory factory = requestFactory;
         endpoint = factory.getEndpoint(endpoint);
         HttpRequest any = factory.any(method, endpoint, body);
-        return submitSync(new RawRequest(this,any,null,null));
+        return submitSync(new RawRequest(this, any, null, null));
     }
 
     /**
      * Asynchronously sends a raw rest request to the server that is specified by
      * the parameters passed in
      *
-     * @param priority     priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
-     * @param method       the method to use
-     * @param endpoint     the resource
-     * @param body         an optional jsono bject
+     * @param priority priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
+     * @param method   the method to use
+     * @param endpoint the resource
+     * @param body     an optional jsono bject
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
-    public  RequestToken rest(int method, String endpoint, JsonObject body,Priority priority, BaasHandler<JsonObject> jsonHandler) {
+    public RequestToken rest(int method, String endpoint, JsonObject body, Priority priority, BaasHandler<JsonObject> jsonHandler) {
         if (endpoint == null) throw new NullPointerException("endpoint cannot be null");
         endpoint = requestFactory.getEndpoint(endpoint);
-        HttpRequest any = requestFactory.any(method,endpoint,body);
-        RawRequest request = new RawRequest(this,any,priority,jsonHandler);
+        HttpRequest any = requestFactory.any(method, endpoint, body);
+        RawRequest request = new RawRequest(this, any, priority, jsonHandler);
         return submitAsync(request);
     }
-
 
 
     /**
@@ -369,7 +365,7 @@ public class BAASBox {
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
     public RequestToken rest(int method, String endpoint, JsonObject body, boolean authenticate, BaasHandler<JsonObject> handler) {
-        return rest(method,endpoint,body,null,handler);
+        return rest(method, endpoint, body, null, handler);
     }
 
 
@@ -391,10 +387,11 @@ public class BAASBox {
         return submitRequestSync(req);
     }
 
-    private static class RawRequest extends NetworkTask<JsonObject>{
+    private static class RawRequest extends NetworkTask<JsonObject> {
 
         HttpRequest request;
-        protected RawRequest(BAASBox box,HttpRequest request,Priority priority, BaasHandler<JsonObject> handler) {
+
+        protected RawRequest(BAASBox box, HttpRequest request, Priority priority, BaasHandler<JsonObject> handler) {
             super(box, priority, handler);
             this.request = request;
         }
@@ -403,10 +400,10 @@ public class BAASBox {
         protected JsonObject onOk(int status, HttpResponse response, BAASBox box) throws BAASBoxException {
             try {
                 Thread.sleep(1000);
-            }catch (InterruptedException e){
+            } catch (InterruptedException e) {
 
             }
-            return parseJson(response,box);
+            return parseJson(response, box);
         }
 
         @Override
@@ -416,7 +413,7 @@ public class BAASBox {
     }
 
 
-//    private static class RawRequest<T> extends BaseRequest<JsonObject, T> {
+    //    private static class RawRequest<T> extends BaseRequest<JsonObject, T> {
 //
 //        RawRequest(HttpRequest request, Priority priority, T t, BAASHandler<JsonObject, T> handler, boolean retry) {
 //            super(request, priority, t, handler, retry);

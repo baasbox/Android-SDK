@@ -68,6 +68,33 @@ class BaasCredentialManager {
     }
 
 
+    public void storeUser(int seq, String unparsed, BaasUser user) {
+        int[] stampHolder = new int[1];
+        for (; ; ) {
+            Credentials current = credentials.get(stampHolder);
+            int stamp = stampHolder[0];
+            if (current == null) {
+                // in this case there are no credentials stored so the users
+                // is logged out
+                return;
+            }
+
+            Credentials newCredentials = new Credentials();
+            newCredentials.password = current.password;
+            newCredentials.sessionToken = current.sessionToken;
+            newCredentials.username = current.username;
+            newCredentials.userData = unparsed;
+            if (credentials.compareAndSet(current, newCredentials, stamp, seq)) {
+                while (!store(newCredentials.sessionToken, newCredentials.password, newCredentials.username, newCredentials.userData))
+                    ;
+                cachedCurrentUser.set(user);
+                return;
+            }
+
+        }
+
+    }
+
     public void storeCredentials(int seq,Credentials creds,BaasUser user){
         int[] stampHolder = new int[1];
         for(;;){

@@ -17,7 +17,6 @@ package com.baasbox.android;
 
 import com.baasbox.android.impl.Base64;
 import com.baasbox.android.json.JsonObject;
-import com.baasbox.android.spi.CredentialStore;
 import com.baasbox.android.spi.Credentials;
 import com.baasbox.android.spi.HttpRequest;
 
@@ -26,11 +25,7 @@ import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by eto on 24/12/13.
@@ -51,10 +46,10 @@ class RequestFactory {
     //baasbox Android SDK @version
 
     private final BAASBox.Config config;
-    private final CredentialStore credentials;
+    private final BaasCredentialManager credentials;
     private final String apiRoot;
 
-    RequestFactory(BAASBox.Config config, CredentialStore credential) {
+    RequestFactory(BAASBox.Config config, BaasCredentialManager credential) {
         this.config = config;
         this.credentials = credential;
 
@@ -211,7 +206,7 @@ class RequestFactory {
     }
 
     public HttpRequest put(String uri, Map<String, String> headers, InputStream body) {
-        headers = fillHeaders(headers, config, credentials.get(true));
+        headers = fillHeaders(headers, config, credentials.getCredentials());
         return new HttpRequest(HttpRequest.PUT, uri, headers, body);
     }
 
@@ -238,7 +233,7 @@ class RequestFactory {
     }
 
     public HttpRequest delete(String endpoint, Map<String, String> queryParams, Map<String, String> headers) {
-        headers = fillHeaders(headers, config, credentials.get(false));
+        headers = fillHeaders(headers, config, credentials.getCredentials());
         if (queryParams != null) {
             String queryUrl = encodeParams(queryParams, config.HTTP_CHARSET);
             endpoint = endpoint + "?" + queryUrl;
@@ -247,7 +242,7 @@ class RequestFactory {
     }
 
     public HttpRequest get(String endpoint, Map<String, String> headers, Param... queryParams) {
-        headers = fillHeaders(headers, config, credentials.get(false));
+        headers = fillHeaders(headers, config, credentials.getCredentials());
         if (queryParams != null) {
             String queryUrl = encodeQueryParams(queryParams, config.HTTP_CHARSET);
             endpoint = endpoint + "?" + queryUrl;
@@ -256,7 +251,7 @@ class RequestFactory {
     }
 
     public HttpRequest post(String uri, Map<String, String> headers, InputStream body) {
-        headers = fillHeaders(headers, config, credentials.get(false));
+        headers = fillHeaders(headers, config, credentials.getCredentials());
         return new HttpRequest(HttpRequest.POST, uri, headers, body);
     }
 
