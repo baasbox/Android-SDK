@@ -113,17 +113,4 @@ public abstract class BaasObject<E extends BaasObject<E>> {
             return null;
         }
     }
-
-
-    final static class DeleteRequest<T> extends BaseRequest<Void, T> {
-
-        DeleteRequest(HttpRequest request, Priority priority, T t, BAASBox.BAASHandler<Void, T> handler) {
-            super(request, priority, t, handler);
-        }
-
-        @Override
-        protected Void handleOk(HttpResponse response, BAASBox.Config config, CredentialStore credentialStore) throws BAASBoxException {
-            return null;
-        }
-    }
 }
