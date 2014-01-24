@@ -104,6 +104,18 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         this.data = data == null ? new JsonObject() : data.copy();
     }
 
+    BaasDocument() {
+        super();
+        Class<?> clazz = ((Object) this).getClass();
+        Baas baas = clazz.getAnnotation(Baas.class);
+        if (baas == null) {
+            this.collection = baas.value();
+        } else {
+            this.collection = clazz.getSimpleName();
+        }
+        this.data = new JsonObject();
+    }
+
     public BaasDocument(String collection, ContentValues values) {
         this(collection, JsonObject.from(values));
     }
@@ -1143,7 +1155,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
         @Override
         protected List<BaasDocument> onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            JsonObject data = parseJson(response, box).getObject("data");
+            JsonArray data = parseJson(response, box).getArray("data");
             if (data == null) {
                 return Collections.emptyList();
             } else {
