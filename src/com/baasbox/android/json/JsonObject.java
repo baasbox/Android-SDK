@@ -15,6 +15,7 @@
 
 package com.baasbox.android.json;
 
+import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.baasbox.android.impl.Base64;
@@ -555,4 +556,16 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
             return new JsonObject[size];
         }
     };
+
+    public static JsonObject from(ContentValues values) {
+        Set<Map.Entry<String, Object>> entries = values.valueSet();
+        JsonObject object = new JsonObject();
+        for (Map.Entry<String, Object> entry : entries) {
+            String name = entry.getKey();
+            Object value = entry.getValue();
+            object.put(name, value);
+        }
+
+        return object;
+    }
 }

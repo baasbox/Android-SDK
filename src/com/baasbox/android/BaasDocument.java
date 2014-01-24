@@ -16,6 +16,7 @@
 package com.baasbox.android;
 
 
+import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.baasbox.android.impl.NetworkTask;
@@ -83,7 +84,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * @param collection
      */
     public BaasDocument(String collection) {
-        this(collection, null);
+        this(collection, (JsonObject) null);
     }
 
     /**
@@ -101,6 +102,10 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         data = checkObject(data);
         //fixme we copy the data to avoid insertion of forbidden fields, but this is a costly operation
         this.data = data == null ? new JsonObject() : data.copy();
+    }
+
+    public BaasDocument(String collection, ContentValues values) {
+        this(collection, JsonObject.from(values));
     }
 
     private static JsonObject cleanObject(JsonObject data) {
