@@ -10,6 +10,13 @@ import java.io.StringReader;
  */
 public abstract class JsonStructure{
 
+    public final static int ABSENT = 0;
+    public final static int OBJECT = 1;
+    public final static int ARRAY = 2;
+    public final static int STRING = 3;
+    public final static int BOOLEAN = 4;
+    public final static int NUMBER = 5;
+    public final static int NULL = 6;
 
     JsonStructure() {
     }

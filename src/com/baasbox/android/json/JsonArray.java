@@ -633,6 +633,26 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     }
 
 
+    public int getType(int index) {
+        if (index < 0) throw new IndexOutOfBoundsException("inde x must be positive");
+        if (index >= size()) return ABSENT;
+        Object o = list.get(index);
+        if (o == null) {
+            return NULL;
+        } else if (o instanceof Number) {
+            return NUMBER;
+        } else if (o instanceof JsonArray) {
+            return ARRAY;
+        } else if (o instanceof JsonObject) {
+            return OBJECT;
+        } else if (o instanceof String) {
+            return STRING;
+        } else if (o instanceof Boolean) {
+            return BOOLEAN;
+        }
+        throw new Error("Object contains wrong type: " + o.getClass());
+    }
+
     @Override
     public int describeContents() {
         return 0;

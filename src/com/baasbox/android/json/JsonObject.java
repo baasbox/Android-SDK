@@ -631,6 +631,24 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         }
     }
 
+    public int getType(String key) {
+        if (!map.containsKey(key)) return ABSENT;
+        Object o = map.get(key);
+        if (o == null) {
+            return NULL;
+        } else if (o instanceof Number) {
+            return NUMBER;
+        } else if (o instanceof JsonArray) {
+            return ARRAY;
+        } else if (o instanceof JsonObject) {
+            return OBJECT;
+        } else if (o instanceof String) {
+            return STRING;
+        } else if (o instanceof Boolean) {
+            return BOOLEAN;
+        }
+        throw new Error("Object contains wrong type: " + o.getClass());
+    }
 
     /**
      * Checks if this object contains a mapping with <code>name</code> key
