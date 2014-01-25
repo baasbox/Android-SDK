@@ -61,16 +61,16 @@ public class BaasACL {
         JsonObject p = null;
         if (r != null) {
             p = new JsonObject();
-            p.put("read", r);
+            p.putObject("read", r);
         }
         if (u != null) {
             p = p == null ? new JsonObject() : p;
-            p.put("updates", u);
+            p.putObject("updates", u);
         }
 
         if (d != null) {
             p = p == null ? new JsonObject() : p;
-            p.put("delete", d);
+            p.putObject("delete", d);
         }
         return p;
     }

@@ -1040,13 +1040,13 @@ public class BaasUser implements Parcelable {
     JsonObject toJsonBody(String password) {
         JsonObject object = new JsonObject();
         if (password != null) {
-            object.put("username", username)
-                    .put("password", password);
+            object.putString("username", username)
+                    .putString("password", password);
         }
-        object.put(Scope.PRIVATE.visibility, privateData)
-                .put(Scope.FRIEND.visibility, friendVisibleData)
-                .put(Scope.REGISTERED.visibility, registeredVisibleData)
-                .put(Scope.PUBLIC.visibility, publicVisibleData);
+        object.putObject(Scope.PRIVATE.visibility, privateData)
+                .putObject(Scope.FRIEND.visibility, friendVisibleData)
+                .putObject(Scope.REGISTERED.visibility, registeredVisibleData)
+                .putObject(Scope.PUBLIC.visibility, publicVisibleData);
         return object;
     }
 

@@ -29,20 +29,27 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by eto on 01/01/14.
+ * Represents a JSON object.
+ * Created by Andrea Tortorella on 01/01/14.
  */
 public class JsonObject extends JsonStructure implements Iterable<Map.Entry<String, Object>>, Parcelable {
 
     protected Map<String, Object> map;
 
+
+    /**
+     * Creates a new JsonObject with no mappings
+     */
     public JsonObject() {
         map = new LinkedHashMap<String, Object>();
     }
+
 
     JsonObject(Parcel source) {
         this();
         source.readMap(map, null);
     }
+
 
     private JsonObject(JsonObject object) {
         this();
@@ -66,10 +73,17 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         }
     }
 
-    public JsonObject putString(String name, String value) {
-        if (name == null) throw new NullPointerException("name cannot be null");
-        map.put(name, value);
-        return this;
+
+    public static JsonObject from(ContentValues values) {
+        Set<Map.Entry<String, Object>> entries = values.valueSet();
+        JsonObject object = new JsonObject();
+        for (Map.Entry<String, Object> entry : entries) {
+            String name = entry.getKey();
+            Object value = entry.getValue();
+
+            object.put(name, value);
+        }
+        return object;
     }
 
     public static JsonObject of(Object... keyValues) {
@@ -90,144 +104,312 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         return o;
     }
 
-    public String getString(String name, String otherwise) {
-        if (name == null) throw new NullPointerException("name cannt be null");
-        Object o = map.get(name);
-        if (o == null) return otherwise;
-        if (o instanceof String) return (String) o;
-        if (o instanceof byte[]) return Base64.encodeToString((byte[]) o, Base64.DEFAULT);
-        if (o instanceof Long) return Long.toString((Long) o);
-        if (o instanceof Double) return Double.toString((Double) o);
-        throw new JsonException("not a string");
-    }
-
-    public String getString(String name) {
-        return getString(name, null);
-    }
-
-    public JsonObject putBoolean(String name, boolean bool) {
+    /**
+     * Associate <code>name</code> key to the {@link java.lang.String} <code>value</code>
+     * in this object.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a {@link java.lang.String} value
+     * @return this object with the new mapping created
+     */
+    public JsonObject putString(String name, String value) {
         if (name == null) throw new NullPointerException("name cannot be null");
-        map.put(name, bool);
+        map.put(name, value);
         return this;
     }
 
 
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.String}
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param name      a non <code>null</code> key
+     * @param otherwise a default value
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
+    public String getString(String name, String otherwise) {
+        if (name == null) throw new NullPointerException("name cannot be null");
+        Object o = map.get(name);
+        if (o == null) return otherwise;
+        if (o instanceof String) return (String) o;
+        throw new JsonException("not a string");
+    }
+
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.String}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
+    public String getString(String name) {
+        return getString(name, null);
+    }
+
+    /**
+     * Associate <code>name</code> key to the <code>boolean</code> <code>value</code>
+     * in this object.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a <code>boolean</code> value
+     * @return this object with the new mapping created
+     */
+    public JsonObject putBoolean(String name, boolean value) {
+        if (name == null) throw new NullPointerException("name cannot be null");
+        map.put(name, value);
+        return this;
+    }
+
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.Boolean}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public Boolean getBoolean(String name) {
         if (name == null) throw new NullPointerException("name cannot be null");
         Object bool = map.get(name);
         if (bool == null) return null;
         if (bool instanceof Boolean) return (Boolean) bool;
-        if (bool instanceof String) {
-            if (((String) bool).equalsIgnoreCase("true")) return true;
-            if (((String) bool).equalsIgnoreCase("false")) return false;
-        }
         throw new JsonException("not a boolean");
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>boolean</code>
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param otherwise a <code>boolean</code> default
+     * @param name      a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public boolean getBoolean(String name, boolean otherwise) {
         Boolean b = getBoolean(name);
         return b == null ? otherwise : b;
     }
 
-    public JsonObject putLong(String name, long number) {
+
+    /**
+     * Associate <code>name</code> key to the <code>long</code> <code>value</code>
+     * in this object.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a <code>long</code> value
+     * @return this object with the new mapping created
+     */
+    public JsonObject putLong(String name, long value) {
         if (name == null) throw new NullPointerException("name cannot be null");
-        map.put(name, number);
+        map.put(name, value);
         return this;
     }
 
 
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.Long}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public Long getLong(String name) {
         if (name == null) throw new NullPointerException("name cannot be null");
         Object number = map.get(name);
         if (number == null) return null;
         if (number instanceof Long) return (Long) number;
         if (number instanceof Double) return ((Double) number).longValue();
-        try {
-            if (number instanceof String) return Long.valueOf((String) number);
-        } catch (NumberFormatException e) {
-            throw new JsonException(e);
-        }
         throw new JsonException("not a long");
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>long</code>
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param otherwise a <code>long</code> default
+     * @param name      a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public long getLong(String name, long otherwise) {
         Long l = getLong(name);
         return l == null ? otherwise : l;
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>int</code>
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param otherwise a <code>int</code> default
+     * @param name      a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public int getInt(String name, int otherwise) {
         Long l = getLong(name);
         return l == null ? otherwise : l.intValue();
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.Integer}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public Integer getInt(String name) {
         Long l = getLong(name);
         return l == null ? null : l.intValue();
     }
 
-    public JsonObject putDouble(String name, double number) {
+    /**
+     * Associate <code>name</code> key to the <code>double</code> <code>value</code>
+     * in this object.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a <code>double</code> value
+     * @return this object with the new mapping created
+     */
+    public JsonObject putDouble(String name, double value) {
         if (name == null) throw new NullPointerException("name cannot be null");
-        map.put(name, number);
+        map.put(name, value);
         return this;
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>double</code>
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param otherwise a <code>double</code> default
+     * @param name      a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public double getDouble(String name, double otherwise) {
         Double l = getDouble(name);
         return l == null ? otherwise : l;
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.Double}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public Double getDouble(String name) {
         if (name == null) throw new NullPointerException("name cannot be null");
         Object number = map.get(name);
         if (number == null) return null;
         if (number instanceof Long) return ((Long) number).doubleValue();
         if (number instanceof Double) return (Double) number;
-        try {
-            if (number instanceof String) return Double.valueOf((String) number);
-        } catch (NumberFormatException e) {
-            throw new JsonException(e);
-        }
         throw new JsonException("not a double");
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>float</code>
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param otherwise a <code>float</code> default
+     * @param name      a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public float getFloat(String name, float otherwise) {
         Double l = getDouble(name);
         return l == null ? otherwise : l.floatValue();
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link java.lang.Float}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public Float getFloat(String name) {
         Double l = getDouble(name);
         return l == null ? null : l.floatValue();
     }
 
+
+    /**
+     * Puts an explicit mapping to from <code>name</code> to <code>null</code>
+     * in this object.
+     * <p/>
+     * This is different from not having the mapping at all, to completely remove
+     * the mapping use instead {@link com.baasbox.android.json.JsonObject#remove(String)}
+     *
+     * @param name a non <code>null</code> key
+     * @return this object with the new mapping created
+     * @see com.baasbox.android.json.JsonObject#remove(String)
+     */
     public JsonObject putNull(String name) {
         if (name == null) throw new NullPointerException("name cannot be null");
         map.put(name, null);
         return this;
     }
 
+    /**
+     * Removes all the mappings from this object
+     *
+     * @return this object without any mapping
+     */
     public JsonObject clear() {
         map.clear();
         return this;
     }
 
-
+    /**
+     * Checks if <code>name</code> maps explicitly to <code>null</code>
+     *
+     * @param name a non <code>null</code> key
+     * @return <code>true</code> if the object contains a mapping from <code>name</code> to <code>null</code>
+     * <code>false</code> otherwise
+     */
     public boolean isNull(String name) {
         if (name == null) throw new NullPointerException("name cannot be null");
-        return map.containsKey(name) && map.get(name) == null;
+        return map.containsKey(name) && map.get(name) ==null;
     }
 
 
+    /**
+     * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonArray} <code>value</code>
+     * in this object.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a {@link com.baasbox.android.json.JsonArray} or null
+     * @return this object with the new mapping created
+     */
     public JsonObject putArray(String name, JsonArray value) {
         if (name == null) throw new NullPointerException("name cannot be null");
         map.put(name, value);
         return this;
     }
 
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonArray}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public JsonArray getArray(String name) {
         return getArray(name, null);
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonArray}
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param name      a non <code>null</code> key
+     * @param otherwise a default value
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public JsonArray getArray(String name, JsonArray otherwise) {
         if (name == null) throw new NullPointerException("name cannot be null");
         Object a = map.get(name);
@@ -241,17 +423,42 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         return new JsonArray(map.values());
     }
 
+
+    /**
+     * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonObject} <code>value</code>
+     * in this object.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a  {@link com.baasbox.android.json.JsonObject}
+     * @return this object with the new mapping created
+     */
     public JsonObject putObject(String name, JsonObject value) {
         if (name == null) throw new NullPointerException("name cannot be null");
-//        if (value == null) throw new NullPointerException("value cannot be null");
         map.put(name, value);
         return this;
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonObject}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public JsonObject getObject(String name) {
         return getObject(name, null);
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonObject}
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param name      a non <code>null</code> key
+     * @param otherwise a default value
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public JsonObject getObject(String name, JsonObject otherwise) {
         if (name == null) throw new NullPointerException("name cannot be null");
         Object o = map.get(name);
@@ -261,6 +468,16 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     }
 
 
+    /**
+     * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonStructure} <code>value</code>
+     * in this object.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a {@link com.baasbox.android.json.JsonStructure}
+     * @return this object with the new mapping created
+     * @see com.baasbox.android.json.JsonObject#putArray(String, com.baasbox.android.json.JsonArray)
+     * @see com.baasbox.android.json.JsonObject#putObject(String, com.baasbox.android.json.JsonObject)
+     */
     public JsonObject putStructure(String name, JsonStructure value) {
         if (name == null) throw new NullPointerException("name cannot be null");
         map.put(name, value);
@@ -268,10 +485,26 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     }
 
 
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonStructure}
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
     public JsonStructure getStructure(String name) {
         return getStructure(name, null);
     }
 
+
+    /**
+     * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonStructure}
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param name      a non <code>null</code> key
+     * @param otherwise a default value
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
     public JsonStructure getStructure(String name, JsonStructure otherwise) {
         if (name == null) throw new NullPointerException("name cannot be null");
         Object o = map.get(name);
@@ -280,23 +513,68 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         throw new JsonException("not a structure");
     }
 
+
+    /**
+     * Associate <code>name</code> key to the <code>byte[]</code> <code>value</code>
+     * in this object.
+     * Note that binary data is encoded using base64 and added as strings in the object.
+     *
+     * @param name  a non <code>null</code> key
+     * @param value a <code>byte[]</code> array
+     * @return this object with the new mapping created
+     */
     public JsonObject putBinary(String name, byte[] value) {
         if (name == null) throw new NullPointerException("name cannot be null");
-        map.put(name, value);
+        map.put(name, value == null ? null : Base64.encode(value, Base64.DEFAULT));
         return this;
     }
 
-    public JsonObject put(String name, Object value) {
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>byte[]</code> array
+     * or <code>null</code> if the mapping is absent.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>null</code>
+     */
+    public byte[] getBinary(String name) {
+        return getBinary(name, null);
+    }
+
+
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>byte[]</code> array
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param name      a non <code>null</code> key
+     * @param otherwise a default value
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
+    public byte[] getBinary(String name, byte[] otherwise) {
+        if (name == null) throw new NullPointerException("name cannot be null");
+        Object o = map.get(name);
+        if (o == null) return otherwise;
+        if (o instanceof String) {
+            try {
+                return Base64.decode((String) o, Base64.DEFAULT);
+            } catch (IllegalArgumentException e) {
+                throw new JsonException("not a binary");
+            }
+        }
+        throw new JsonException("not a binary");
+    }
+
+    private JsonObject put(String name, Object value) {
         if (name == null) throw new NullPointerException("name cannot be null");
         if (value == null) {
             map.put(name, null);
         } else if ((value instanceof String) ||
                 (value instanceof JsonStructure) ||
-                (value instanceof byte[]) ||
                 (value instanceof Boolean) ||
                 (value instanceof Long) ||
                 (value instanceof Double)) {
             map.put(name, value);
+        } else if (value instanceof byte[]) {
+            map.put(name, Base64.encode((byte[]) value, Base64.DEFAULT));
         } else if (value instanceof Float) {
             map.put(name, ((Float) value).doubleValue());
         } else if (value instanceof Integer) {
@@ -307,28 +585,28 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         return this;
     }
 
-    public byte[] getBinary(String name) {
-        String encoded = (String) map.get(name);
-        return encoded == null ? null : Base64.decode(encoded, Base64.DEFAULT);
-    }
 
-    public byte[] getBinary(String name, byte[] otherwise) {
-        if (name == null) throw new NullPointerException("name cannot be null");
-        Object o = map.get(name);
-        if (o == null) return otherwise;
-        if (o instanceof byte[]) return (byte[]) o;
-        if (o instanceof String) {
-            try {
-                return Base64.decode((String) o, Base64.DEFAULT);
-            } catch (IllegalArgumentException e) {
-                throw new JsonException(e);
-            }
-        }
-        throw new JsonException("not a binary");
-    }
-
+    /**
+     * Removes the mapping with <code>name</code> key from the object.
+     *
+     * @param name a non <code>null</code> key
+     * @return the value that was mapped to <code>name</code> if present or <code>null</code>
+     */
     public Object remove(String name) {
+        if (name == null) throw new NullPointerException("name cannot be null");
         return map.remove(name);
+    }
+
+
+    /**
+     * Removes the mapping with <code>name</code> key from the object.
+     *
+     * @param name a non <code>null</code> key
+     * @return this object with the mapping removed
+     */
+    public JsonObject without(String name) {
+        remove(name);
+        return this;
     }
 
     public <T> T get(String name) {
@@ -337,21 +615,62 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         return (T) o;
     }
 
+
+    /**
+     * Checks if this object contains a mapping with <code>name</code> key
+     *
+     * @param name a non <code>null</code> key
+     * @return <code>true</code> if the object contains the mapping <code>false</code> otherwise
+     */
     public boolean contains(String name) {
         if (name == null) throw new NullPointerException("name cannot be null");
         return map.containsKey(name);
     }
 
+    /**
+     * Returns a {@link java.util.Set<java.lang.String>} of all the keys contained in this document
+     *
+     * @return a set of the keys contained in this document
+     */
     public Set<String> getFieldNames() {
         return map.keySet();
     }
 
+    /**
+     * Returns the number of mappings in this object
+     * @return the size of this object
+     */
     public int size() {
         return map.size();
     }
 
+    /**
+     * Merges the mappings of <code>other</code> in this object.
+     * @param other an object to merge in
+     * @return this object with the mappings of other
+     */
     public JsonObject merge(JsonObject other) {
+        if (other == null) return this;
         map.putAll(other.map);
+        return this;
+    }
+
+
+    /**
+     * Merges the mappings of <code>other</code> in this object.
+     * Fields that are present in this object are not overwritten.
+     *
+     * @param other an object to merge in
+     * @return this object with the mappings of other
+     */
+    public JsonObject mergeMissing(JsonObject other) {
+        if (other == null) return this;
+        Set<String> fieldNames = other.getFieldNames();
+        for (String key : fieldNames) {
+            if (!map.containsKey(key)) {
+                map.put(key, other.map.get(key));
+            }
+        }
         return this;
     }
 
@@ -440,6 +759,12 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
 
     }
 
+    /**
+     * Decodes the <code>json</code> string passed as parameter.
+     * @param json the string to decode
+     * @return a new JsonObject representation of the string
+     * @throws com.baasbox.android.json.JsonException if an error happens during parsing of the string
+     */
     public static JsonObject decode(String json) {
         JsonReader reader = new JsonReader(new StringReader(json));
         reader.setLenient(true);
@@ -496,7 +821,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
                         break;
                     case NUMBER:
                         String inNum = reader.nextString();
-                        Number n;
                         try {
                             o.putLong(propertyName, Long.valueOf(inNum));
                         } catch (NumberFormatException ne) {
@@ -530,6 +854,11 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         }
     }
 
+    /**
+     * Returns an {@link java.util.Iterator} of the mappings contained
+     * in this object
+     * @return an iterator of the mappings
+     */
     @Override
     public Iterator<Map.Entry<String, Object>> iterator() {
         return map.entrySet().iterator();
@@ -557,15 +886,4 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         }
     };
 
-    public static JsonObject from(ContentValues values) {
-        Set<Map.Entry<String, Object>> entries = values.valueSet();
-        JsonObject object = new JsonObject();
-        for (Map.Entry<String, Object> entry : entries) {
-            String name = entry.getKey();
-            Object value = entry.getValue();
-            object.put(name, value);
-        }
-
-        return object;
-    }
 }

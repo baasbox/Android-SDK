@@ -499,7 +499,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     /**
      * Associate <code>name</code> key to the <code>byte[]</code> <code>value</code>
      * in this document.
-     * Binary data will be encoded using base64 during serialization.
+     * Note that binary data is encoded using base64 and added as strings in the object.
      *
      * @param name  a non <code>null</code> key
      * @param value a non <code>null</code> <code>byte[]</code> array
