@@ -33,6 +33,8 @@ import java.util.Set;
  * Created by Andrea Tortorella on 01/01/14.
  */
 public class JsonObject extends JsonStructure implements Iterable<Map.Entry<String, Object>>, Parcelable {
+    //todo lazy copying
+    //todo choose when to convert binary data to base64
 
     protected Map<String, Object> map;
 
@@ -74,9 +76,17 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     }
 
 
+    /**
+     * Creates a new JsonObject based on values contained in the {@link android.content.ContentValues}
+     *
+     * @param values non null values
+     * @return a new JsonObject with the values mapped in
+     */
     public static JsonObject from(ContentValues values) {
+        if (values == null) throw new NullPointerException("values cannot be null");
         Set<Map.Entry<String, Object>> entries = values.valueSet();
         JsonObject object = new JsonObject();
+
         for (Map.Entry<String, Object> entry : entries) {
             String name = entry.getKey();
             Object value = entry.getValue();
@@ -577,8 +587,10 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
             map.put(name, Base64.encode((byte[]) value, Base64.DEFAULT));
         } else if (value instanceof Float) {
             map.put(name, ((Float) value).doubleValue());
-        } else if (value instanceof Integer) {
-            map.put(name, ((Integer) value).longValue());
+        } else if ((value instanceof Integer) ||
+                (value instanceof Short) ||
+                (value instanceof Byte)) {
+            map.put(name, ((Number) value).longValue());
         } else {
             throw new JsonException("Not a valid object");
         }
@@ -612,7 +624,11 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     public <T> T get(String name) {
         Object o = map.get(name);
         if (o == null) return null;
-        return (T) o;
+        try {
+            return (T) o;
+        } catch (ClassCastException e) {
+            throw new JsonException(e);
+        }
     }
 
 
