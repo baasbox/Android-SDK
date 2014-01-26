@@ -15,6 +15,9 @@
 
 package com.baasbox.android;
 
+import android.content.Context;
+import android.os.Build;
+import com.baasbox.android.impl.Logger;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
 import org.apache.http.*;
@@ -24,9 +27,11 @@ import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
 
 import javax.net.ssl.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
@@ -41,6 +46,7 @@ import java.util.Map;
  * Created by eto on 23/12/13.
  */
 class HttpUrlConnectionClient implements RestClient {
+    private final static long HTTP_CACHE_SIZE = 10 * 1024 * 1024;
     private final static HostnameVerifier ACCEPT_ALL =
             new HostnameVerifier() {
                 @Override
@@ -70,12 +76,31 @@ class HttpUrlConnectionClient implements RestClient {
     private SSLSocketFactory mSSLSocketFactory;
     private HostnameVerifier mHostVerifier;
 
-    HttpUrlConnectionClient(BaasBox.Config config) {
+    HttpUrlConnectionClient(Context context,BaasBox.Config config) {
         this.config = config;
         this.mSSLSocketFactory = config.HTTPS ? trustAll() : null;
         this.mHostVerifier = config.HTTPS ? ACCEPT_ALL : null;
+        disableReuseConnectionIfNecessary();
+        enableHttpCacheIfAvailable(context,HTTP_CACHE_SIZE);
     }
 
+    private void disableReuseConnectionIfNecessary(){
+        if (Build.VERSION.SDK_INT<Build.VERSION_CODES.FROYO){
+            System.setProperty("http.keepAlive","false");
+        }
+    }
+
+    private void enableHttpCacheIfAvailable(Context context,long cacheSize){
+        File httpCacheDir = new File(context.getCacheDir(),"baashttpcache");
+        try {
+            Class.forName("android.net.http.HttpResponseCache")
+                    .getMethod("install", File.class, long.class)
+                    .invoke(null, httpCacheDir, cacheSize);
+            Logger.debug("Installed http cache");
+        } catch (Exception e) {
+            Logger.debug("HttpResponseCache not available");
+        }
+    }
     private static SSLSocketFactory trustAll() {
         try {
             SSLContext ssl = SSLContext.getInstance("SSL");
@@ -93,6 +118,7 @@ class HttpUrlConnectionClient implements RestClient {
     public HttpResponse execute(HttpRequest request) throws BaasException {
         try {
             HttpURLConnection connection = openConnection(request.url);
+
             for (String name : request.headers.keySet()) {
                 connection.addRequestProperty(name, request.headers.get(name));
             }
@@ -113,9 +139,7 @@ class HttpUrlConnectionClient implements RestClient {
                 }
             }
             return response;
-        } catch (BaasIOException e) {
-            throw e;
-        } catch (IOException e) {
+        }catch (IOException e) {
             throw new BaasIOException(e);
         }
     }
@@ -146,6 +170,7 @@ class HttpUrlConnectionClient implements RestClient {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setConnectTimeout(config.HTTP_CONNECTION_TIMEOUT);
         connection.setReadTimeout(config.HTTP_SOCKET_TIMEOUT);
+        connection.setInstanceFollowRedirects(true);
         connection.setDoInput(true);
 
         if (config.HTTPS) {

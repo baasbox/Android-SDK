@@ -18,7 +18,6 @@ package com.baasbox.android;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.baasbox.android.impl.Logger;
-import com.baasbox.android.impl.NetworkTask;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
@@ -394,7 +393,7 @@ public class BaasUser implements Parcelable {
         private final String password;
 
         protected SignupRequest(BaasBox box, BaasUser user, String password, Priority priority, BaasHandler<BaasUser> handler) {
-            super(box, priority, handler);
+            super(box, priority, handler,false);
             this.userSignUp = user;
             this.password = password;
         }
@@ -493,7 +492,7 @@ public class BaasUser implements Parcelable {
         private final BaasUser user;
 
         protected LoginRequest(BaasBox box, BaasUser user, String password, String regId, Priority priority, BaasHandler<BaasUser> handler) {
-            super(box, priority, handler);
+            super(box, priority, handler,false);
             this.password = password;
             this.regId = regId;
             this.user = user;
@@ -517,19 +516,12 @@ public class BaasUser implements Parcelable {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("login");
-            Map<String, String> formBody = new LinkedHashMap<String, String>();
-            formBody.put("username", user.username);
-            formBody.put("password", password);
-            formBody.put("appcode", box.config.APP_CODE);
-            if (regId != null) {
-                String login_data = String.format(Locale.US,
-                        "{\"os\":\"android\",\"deviceId\":\"%s\"}", regId);
-                formBody.put("login_data", login_data);
-            }
-            return box.requestFactory.post(endpoint, formBody);
+            return box.store.loginRequest(user.username,password,regId);
         }
+
     }
+
+
 
     /**
      * Synchronously saves the updates made to the current user.
@@ -662,7 +654,7 @@ public class BaasUser implements Parcelable {
         private final BaasUser user;
 
         protected LogoutRequest(BaasBox box, BaasUser user, String registration, Priority priority, BaasHandler<Void> handler) {
-            super(box, priority, handler);
+            super(box, priority, handler,false);
             this.registration = registration;
             this.user = user;
 

@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.impl;
+package com.baasbox.android;
 
-import com.baasbox.android.*;
+import com.baasbox.android.impl.Logger;
+import com.baasbox.android.impl.Task;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
@@ -31,31 +32,57 @@ import java.io.IOException;
 public abstract class NetworkTask<R> extends Task<R> {
 
     private final BaasBox box;
+    private boolean retryOnFailedLogin;
 
-    protected NetworkTask(BaasBox box, Priority priority, BaasHandler<R> handler) {
-        super(priority, handler);
-        this.box = box;
+    protected NetworkTask(BaasBox box,Priority priority,BaasHandler<R> handler,boolean retryLogin){
+        super(priority,handler);
+        this.box=box;
+        retryOnFailedLogin=retryLogin;
     }
+    protected NetworkTask(BaasBox box, Priority priority, BaasHandler<R> handler) {
+       this(box,priority,handler,box.config.AUTHENTICATION_TYPE== BaasBox.Config.AuthType.SESSION_TOKEN);
+    }
+
 
     protected final R parseResponse(HttpResponse response, BaasBox box) throws BaasException {
         final int status = response.getStatusLine().getStatusCode();
         final int statusClass = status / 100;
-        switch (statusClass) {
-            case 1:
-                return onContinue(status, response, box);
-            case 2:
-                return onOk(status, response, box);
-            case 3:
-                return onRedirect(status, response, box);
-            case 4:
-                return onClientError(status, response, box);
-            case 5:
-                return onServerError(status, response, box);
-            default:
-                throw new Error("unexpected status code: " + status);
+        try{
+            switch (statusClass) {
+                case 1:
+                    return onContinue(status, response, box);
+                case 2:
+                    return onOk(status, response, box);
+                case 3:
+                    return onRedirect(status, response, box);
+                case 4:
+                    return onClientError(status, response, box);
+                case 5:
+                    return onServerError(status, response, box);
+                default:
+                    throw new Error("unexpected status code: " + status);
+            }
+        }catch (BaasInvalidSessionException e){
+            if (retryOnFailedLogin){
+                retryOnFailedLogin=false;
+                if (attemptRefreshToken(box)){
+                    return asyncCall();
+                } else {
+                    throw e;
+                }
+            } else {
+                throw e;
+            }
         }
     }
 
+    private boolean attemptRefreshToken(BaasBox box){
+        try {
+            return box.store.refreshTokenRequest(seq());
+        } catch (BaasException e){
+            return false;
+        }
+    }
     protected R onContinue(int status, HttpResponse response, BaasBox box) throws BaasException {
         throw new BaasException("unexpected status " + status);
     }
@@ -65,8 +92,12 @@ public abstract class NetworkTask<R> extends Task<R> {
     }
 
     protected R onClientError(int status, HttpResponse response, BaasBox box) throws BaasException {
-        JsonObject json = parseJson(response, box);
-        throw new BaasClientException(status, json);
+        JsonObject json = parseJson(response,box);
+        if (status==401&&json.getInt("bb_code",-1)==BaasInvalidSessionException.INVALID_SESSION_TOKEN_CODE){
+           throw new BaasInvalidSessionException(json);
+        }else {
+           throw new BaasClientException(status, json);
+        }
     }
 
     protected R onServerError(int status, HttpResponse response, BaasBox box) throws BaasException {
@@ -74,7 +105,7 @@ public abstract class NetworkTask<R> extends Task<R> {
         throw new BaasServerException(status, jsonResponse);
     }
 
-    protected final JsonObject parseJson(HttpResponse response, BaasBox box) throws BaasException {
+    protected final static JsonObject parseJson(HttpResponse response, BaasBox box) throws BaasException {
         HttpEntity entity = response.getEntity();
         if (entity != null) {
             String content = null;
@@ -114,7 +145,7 @@ public abstract class NetworkTask<R> extends Task<R> {
         }
         Logger.info("requested %s", request);
         HttpResponse response = box.restClient.execute(request);
-        return parseResponse(response, box);
+        R r = parseResponse(response, box);
+        return r;
     }
-
 }

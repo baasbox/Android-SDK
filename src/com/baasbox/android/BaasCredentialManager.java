@@ -18,7 +18,11 @@ package com.baasbox.android;
 import android.content.Context;
 import android.content.SharedPreferences;
 import com.baasbox.android.json.JsonObject;
+import com.baasbox.android.net.HttpRequest;
+import org.apache.http.HttpResponse;
 
+import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicStampedReference;
@@ -37,8 +41,9 @@ class BaasCredentialManager {
 
     private AtomicStampedReference<Credentials> credentials;
     private AtomicReference<BaasUser> cachedCurrentUser = new AtomicReference<BaasUser>();
-
-    public BaasCredentialManager(Context context) {
+    private final BaasBox box;
+    public BaasCredentialManager(BaasBox box,Context context) {
+        this.box =box;
         this.diskCache = context.getSharedPreferences(DISK_PREFERENCES_NAME, Context.MODE_PRIVATE);
         this.credentials = new AtomicStampedReference<Credentials>(load(), -1);
     }
@@ -92,6 +97,44 @@ class BaasCredentialManager {
 
         }
 
+    }
+
+    final boolean refreshTokenRequest(int seq) throws BaasException {
+        Credentials c = getCredentials();
+        if (c!=null&&c.username!=null&&c.password!=null){
+            String user = c.username;
+            String pass= c.password;
+            HttpRequest req = loginRequest(user, pass, null);
+            HttpResponse resp = box.restClient.execute(req);
+            if (resp.getStatusLine().getStatusCode()/100==2){
+                String session = NetworkTask.parseJson(resp, box).getObject("data").getString("X-BB-SESSION");
+                if (session!=null){
+                    Credentials newc = new Credentials();
+                    newc.password=pass;
+                    newc.username=user;
+                    newc.sessionToken=session;
+                    storeCredentials(seq,newc);
+                    return true;
+                }
+                return false;
+            }
+        }
+        return false;
+    }
+
+
+    final HttpRequest loginRequest(String username,String password,String regId) {
+        String endpoint = box.requestFactory.getEndpoint("login");
+        Map<String, String> formBody = new LinkedHashMap<String, String>();
+        formBody.put("username", username);
+        formBody.put("password", password);
+        formBody.put("appcode", box.config.APP_CODE);
+        if (regId != null) {
+            String login_data = String.format(Locale.US,
+                    "{\"os\":\"android\",\"deviceId\":\"%s\"}", regId);
+            formBody.put("login_data", login_data);
+        }
+        return box.requestFactory.post(endpoint, formBody);
     }
 
     public void storeCredentials(int seq, Credentials creds, BaasUser user) {

@@ -15,7 +15,6 @@
 
 package com.baasbox.android;
 
-import com.baasbox.android.impl.NetworkTask;
 import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpResponse;
 

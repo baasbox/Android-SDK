@@ -15,6 +15,8 @@
 
 package com.baasbox.android;
 
+import com.baasbox.android.json.JsonObject;
+
 import java.util.HashMap;
 
 /**
@@ -30,11 +32,15 @@ import java.util.HashMap;
  *
  * @author Davide Caroselli
  */
-public class BaasInvalidSessionException extends BaasApiException {
+public class BaasInvalidSessionException extends BaasClientException {
 
     public static final int INVALID_SESSION_TOKEN_CODE = 40101;
 
     private static final long serialVersionUID = -6923343849646015698L;
+
+    public BaasInvalidSessionException(JsonObject object){
+        super(401,object);
+    }
 
     public BaasInvalidSessionException(String resource, String method,
                                        HashMap<String, String> requestHeader, String apiVersion,

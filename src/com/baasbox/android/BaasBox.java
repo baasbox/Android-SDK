@@ -116,7 +116,7 @@ public class BaasBox {
     public final RestClient restClient;
     public final Config config;
 
-    public final BaasCredentialManager store;
+    final BaasCredentialManager store;
 
     private BaasBox(Context context, Config config) {
         if (context == null) {
@@ -124,8 +124,8 @@ public class BaasBox {
         }
         this.context = context.getApplicationContext();
         this.config = config == null ? new Config() : config;
-        this.store = new BaasCredentialManager(context);
-        restClient = new HttpUrlConnectionClient(this.config);
+        this.store = new BaasCredentialManager(this,context);
+        restClient = new HttpUrlConnectionClient(context,this.config);
         this.requestFactory = new RequestFactory(this.config, store);
         this.syncDispatcher = new ImmediateDispatcher();
         this.asyncDispatcher = new Dispatcher(this);// AsyncDefaultDispatcher(this, restClient);
