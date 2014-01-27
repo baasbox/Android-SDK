@@ -23,11 +23,12 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * This class extends {@link BaasException}. This is the root of all the
+ * A subclass of {@link BaasException}. This is the root of all the
  * exception thrown by the remote server; if it crashes or the request made is
  * invalid, a subclass of BaasApiException is thrown by the SDK.
  *
  * @author Davide Caroselli
+ * @since 0.7.3
  */
 public class BaasApiException extends BaasException {
 

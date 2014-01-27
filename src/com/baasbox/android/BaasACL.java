@@ -19,7 +19,10 @@ import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 
 /**
- * Created by eto on 19/01/14.
+ * The set of permission to use at the creation
+ * of a file.
+ * @author Andrea Tortorella
+ * @since 0.7.3
  */
 public class BaasACL {
 
@@ -31,6 +34,9 @@ public class BaasACL {
     private JsonArray rolesUpdateGrants;
 
 
+    /**
+     * Creates a new empty set of grants.
+     */
     public BaasACL() {
     }
 
@@ -76,6 +82,12 @@ public class BaasACL {
     }
 
 
+    /**
+     * Adds the given grant to the list of users
+     * @param grant a grant to add
+     * @param usrs the users to give the grant to
+     * @return this BaasAcl with the grants added
+     */
     public BaasACL grantUsers(Grant grant, String... usrs) {
         if (usrs == null) return this;
         Object[] users = (Object[])usrs;
@@ -112,9 +124,15 @@ public class BaasACL {
         return this;
     }
 
-    public BaasACL grantRoles(Grant grant, String... usrs) {
-        if (usrs == null) return this;
-        Object[] users = (Object[])usrs;
+    /**
+     * Adds the given grant to the list of roles passed in
+     * @param grant the grant to give
+     * @param roles one or more roles
+     * @return this BaasAcl with grants added
+     */
+    public BaasACL grantRoles(Grant grant, String... roles) {
+        if (roles == null) return this;
+        Object[] users = (Object[])roles;
         switch (grant) {
             case READ:
                 if (rolesReadGrants == null) {
@@ -139,15 +157,14 @@ public class BaasACL {
                 }
                 break;
             case ALL:
-                grantRoles(Grant.READ, usrs);
-                grantRoles(Grant.DELETE, usrs);
-                grantRoles(Grant.UPDATE, usrs);
+                grantRoles(Grant.READ, roles);
+                grantRoles(Grant.DELETE, roles);
+                grantRoles(Grant.UPDATE, roles);
                 break;
             default:
                 throw new Error("Invalid grant");
         }
         return this;
     }
-
 
 }

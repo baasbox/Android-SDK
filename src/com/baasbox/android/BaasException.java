@@ -16,7 +16,11 @@
 package com.baasbox.android;
 
 /**
- * Created by eto on 23/12/13.
+ * Base class of all the exceptions
+ * thrown by the BaasBox android sdk.
+ *
+ * @author Davide Caroselli
+ * @since 0.7.3
  */
 public class BaasException extends Exception {
     private static final long serialVersionUID = 1981606473384352072L;

@@ -29,19 +29,25 @@ import java.util.*;
 
 /**
  * Represents a BaasBox document.
+ * <p>
  * A document is a schema less JSON like entity that belongs to a given collection on the server.
- *
+ * </p>
+ * <p>
  * Documents can be created, stored and retrieved from the server, either synchronously or asynchronously,
  * through the provided methods.
- *
+ * </p>
+ * <p>
  * Unlike a raw JSON document, some key names at the top level are reserved: you cannot assign or create properties whose names begin with
  * an underscore or an at sign, the <em>id</em> field is also reserved.
- *
+ * </p>
+ * <p>
  * When a document is bound to an entity on the server it's 'id' can be retrieved through {@link #getId()}.
  * Documents are versioned by BaasBox and updates with incompatible versions will fail, uless you ignore the
  * versioning explicitly through {@link com.baasbox.android.SaveMode#IGNORE_VERSION}.
+ * </p>
  *
- * Created by Andrea Tortorella on 02/01/14.
+ * @since 0.7.3
+ * @author Andrea Tortorella
  */
 public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<Map.Entry<String, Object>>, Parcelable {
 

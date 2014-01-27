@@ -16,12 +16,33 @@
 package com.baasbox.android;
 
 /**
- * Created by eto on 16/01/14.
+ * An enumeration representing the possible access grants to
+ * {@link com.baasbox.android.BaasObject}.
+ *
+ * @since 0.7.3
+ * @author Andrea Tortorella
  */
 public enum Grant {
+
+    /**
+     * Read permission
+     */
     READ("read"),
+
+    /**
+     * Update permission
+     */
     UPDATE("update"),
+
+    /**
+     * Delete permission
+     */
     DELETE("delete"),
+
+    /**
+     * Permission to take any operation
+     * on the object.
+     */
     ALL("all");
 
     final String action;

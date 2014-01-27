@@ -24,12 +24,28 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Created by eto on 16/01/14.
+ * An input streams over the content of a response
+ * that gives access to the content type, the content length
+ * and the id of the associated BaasBox file.
+ * @author Andrea Tortorella
+ * @since 0.7.3
  */
 public final class BaasStream extends FilterInputStream {
     private final HttpEntity entity;
+
+    /**
+     * The content type of the stream
+     */
     public final String contentType;
+
+    /**
+     * The content length of the stream
+     */
     public final long contentLength;
+
+    /**
+     * The id of the file.
+     */
     public final String id;
 
     BaasStream(String id, HttpEntity entity) throws IOException {
@@ -52,7 +68,7 @@ public final class BaasStream extends FilterInputStream {
     }
 
 
-    public static BufferedInputStream getInput(HttpEntity entity) throws IOException {
+    static BufferedInputStream getInput(HttpEntity entity) throws IOException {
         InputStream in = entity.getContent();
         if (in instanceof BufferedInputStream) {
             return (BufferedInputStream) in;

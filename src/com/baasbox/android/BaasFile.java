@@ -16,7 +16,6 @@
 package com.baasbox.android;
 
 import android.webkit.MimeTypeMap;
-import com.baasbox.android.impl.AsyncStream;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
@@ -31,7 +30,24 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Created by eto on 09/01/14.
+ * Represents a BaasBox file.
+ * <p>
+ * A file is an entity that can be stored on the server.
+ * Unlike documents files do not dictate a format for their content, but they can
+ * have optionally json attached data.
+ *</p>
+ *
+ * <p>
+ * Files can be created, stored and retrieved from the server either synchronously or asynchronously,
+ * through the provided methods.
+ * </p>
+ * <p>
+ * A BaasFile does not represent the content of the file, but an handle to the actual content.
+ * The actual content can be obtained through a streaming api.
+ * </p>
+ *
+ * @author Andrea Tortorella
+ * @since 0.7.3
  */
 public class BaasFile extends BaasObject<BaasFile> {
 

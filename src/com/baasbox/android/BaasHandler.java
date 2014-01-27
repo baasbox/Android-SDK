@@ -17,14 +17,15 @@ package com.baasbox.android;
 
 /**
  * Interface definition for a callback to be invoked when BaasBox responds to an asynchronous
- * request
+ * request.
  *
  * @param <R> the expected response type
- *            Created by Andrea Tortorella on 20/01/14.
+ * @author Andrea Tortorella
+ * @since 0.7.3
  */
 public interface BaasHandler<R> {
     /**
-     * A NOOP handler, that simply discards the received response
+     * A no op handler, that simply discards the received response
      */
     public final static BaasHandler NOOP = new BaasHandler() {
         @Override

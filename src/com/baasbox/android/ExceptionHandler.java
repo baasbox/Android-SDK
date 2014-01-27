@@ -18,7 +18,11 @@ package com.baasbox.android;
 import com.baasbox.android.impl.Logger;
 
 /**
- * Created by eto on 20/01/14.
+ * This is invoked when an unexpected error happens during the execution
+ * of an asynchronous operation.
+ *
+ * @author Andrea Tortorella
+ * @since 0.7.3
  */
 public interface ExceptionHandler {
     public final static ExceptionHandler DEFAULT = new ExceptionHandler() {

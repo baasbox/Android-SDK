@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions andlimitations under the License.
  */
 
-package com.baasbox.android.impl;
+package com.baasbox.android;
 
-import com.baasbox.android.*;
+import com.baasbox.android.impl.Logger;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Created by Andrea Tortorella on 23/01/14.
  */
-public abstract class AsyncStream<R> extends NetworkTask<R> {
+abstract class AsyncStream<R> extends NetworkTask<R> {
 
     private final DataStreamHandler<R> dataStream;
 

@@ -233,7 +233,7 @@ public class BaasBox {
     }
 
     RequestToken submitAsync(Task<?> task) {
-        return asyncDispatcher.post(task);
+        return new RequestToken(asyncDispatcher.post(task));
     }
 
     <Resp> BaasResult<Resp> submitSync(Task<Resp> task) {
@@ -241,19 +241,19 @@ public class BaasBox {
     }
 
     boolean cancel(RequestToken token) {
-        return asyncDispatcher.cancel(token, false);
+        return asyncDispatcher.cancel(token.requestId, false);
     }
 
     boolean abort(RequestToken token) {
-        return asyncDispatcher.cancel(token, true);
+        return asyncDispatcher.cancel(token.requestId, true);
     }
 
     boolean suspend(RequestToken token) {
-        return asyncDispatcher.suspend(token);
+        return asyncDispatcher.suspend(token.requestId);
     }
 
     boolean resume(RequestToken token, BaasHandler<?> handler) {
-        return asyncDispatcher.resume(token, handler);
+        return asyncDispatcher.resume(token.requestId, handler);
     }
 
 

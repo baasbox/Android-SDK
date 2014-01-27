@@ -20,21 +20,38 @@ import android.os.Parcelable;
 
 /**
  * A handle to an asynchronous request.
- * Created by Andrea Tortorella on 10/01/14.
+ *
+ * @author Andrea Tortorella
+ * @since 0.7.3
  */
-public class RequestToken implements Parcelable, Comparable<RequestToken> {
-    public final int requestId;
+public final class RequestToken implements Parcelable, Comparable<RequestToken> {
 
+    final int requestId;
 
-    public RequestToken(int requestId) {
+    RequestToken(int requestId) {
         this.requestId = requestId;
     }
 
+    /**
+     * Tries to suspend the asynchronous request identified
+     * by this token.
+     * Suspended requests are executed normally but their associated
+     * callback is cleared.
+     *
+     * @return true if the attempt was successful
+     */
     public boolean suspend() {
         return BaasBox.getDefaultChecked().suspend(this);
     }
 
+    /**
+     * Resumes a suspended asynchronous request, with the new
+     * provided handler
+     * @param handler a handler to resume the request with.
+     * @return
+     */
     public boolean resume(BaasHandler<?> handler) {
+        handler = handler==null?BaasHandler.NOOP:handler;
         return BaasBox.getDefaultChecked().resume(this, handler);
     }
 

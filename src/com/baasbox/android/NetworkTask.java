@@ -29,7 +29,7 @@ import java.io.IOException;
 /**
  * Created by Andrea Tortorella on 20/01/14.
  */
-public abstract class NetworkTask<R> extends Task<R> {
+abstract class NetworkTask<R> extends Task<R> {
 
     private final BaasBox box;
     private boolean retryOnFailedLogin;

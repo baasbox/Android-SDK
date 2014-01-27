@@ -16,7 +16,8 @@
 package com.baasbox.android;
 
 /**
- * Created by eto on 20/01/14.
+ * A subclass of {@link com.baasbox.android.BaasException} that is
+ * thrown when the user tries to access the result of a cancelled request.
  */
 public class BaasCancellationException extends BaasException {
 }

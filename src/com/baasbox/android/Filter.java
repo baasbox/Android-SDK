@@ -18,7 +18,11 @@ package com.baasbox.android;
 import java.util.ArrayList;
 
 /**
- * Created by Andrea Tortorella on 15/01/14.
+ * This class represents a query filter that can be applied
+ * to batch requests on collections, users and files.
+ *
+ * @author Andrea Tortorella
+ * @since 0.7.3
  */
 public class Filter {
 
@@ -27,6 +31,9 @@ public class Filter {
     String orderBy;
     Paging paging;
 
+    /**
+     * A filter that does not apply any restriction to the request.
+     */
     public final static Filter ANY = new Filter() {
         @Override
         RequestFactory.Param[] toParams() {
@@ -40,6 +47,15 @@ public class Filter {
     }
 
 
+    /**
+     * Returns a new filter that applies pagination to the request using
+     * the given order, page number and records page.
+     * @param order the field to use for sorting
+     * @param asc true if sorting should be ascending false otherwise
+     * @param page the page number to retrieve
+     * @param records the number of entity to return per page
+     * @return a configured filter
+     */
     public static Filter paging(String order, boolean asc, int page, int records) {
         Filter f = new Filter();
         f.setOrderBy(order + (asc ? " ASC" : " DESC"));
@@ -47,16 +63,44 @@ public class Filter {
         return f;
     }
 
+    /**
+     * Returns a new filter that applies the given <code>where</code> condition to the request.
+     * Where condition can be parameterized using '?', params will be filled using
+     * the provided <code>params</code>.
+     * Where conditions are simply passed to the server database,
+     * their syntax is thus the same of OrientDB see:
+     * <a href="https://github.com/orientechnologies/orientdb/wiki/SQL-Where">Orient SQL Where reference</a>
+     * for a complete reference.
+     *
+     * @param where a string
+     * @param params params to fill in the condition
+     * @return a configured filter
+     */
     public static Filter where(String where, String... params) {
         Filter f = new Filter().setWhere(where, params);
         return f;
     }
 
+    /**
+     * Returns a new filter that applies the provided sort order to the request.
+     *
+     * @param order a field to use for sorting
+     * @param asc true if sorting should be ascending false otherwise
+     * @return a configured Filter
+     */
     public static Filter sort(String order, boolean asc) {
         Filter f = new Filter().setOrderBy(order + (asc ? " ASC" : " DESC"));
         return f;
     }
 
+    /**
+     * Sets the where condition for this filter,
+     * @see com.baasbox.android.Filter#where(String, String...)
+     *
+     * @param clause a string
+     * @param args arguments to use in the condition
+     * @return this filter with this where condition set
+     */
     public Filter setWhere(CharSequence clause, CharSequence... args) {
         where = null;
         if (clause == null) return this;
@@ -80,11 +124,23 @@ public class Filter {
         return this;
     }
 
+    /**
+     * Sets the sort order to use with this filter.
+     * @param name
+     * @return
+     */
     public Filter setOrderBy(String name) {
         this.orderBy = name;
         return this;
     }
 
+    /**
+     * Configures pagination for this filter.
+     * @param orderBy
+     * @param page
+     * @param numrecords
+     * @return
+     */
     public Filter setPaging(String orderBy, int page, int numrecords) {
         this.orderBy = orderBy;
         if (this.paging == null) {
@@ -95,6 +151,12 @@ public class Filter {
         return this;
     }
 
+    /**
+     * Configures pagination for this filter
+     * @param page
+     * @param numrecords
+     * @return
+     */
     public Filter setPaging(int page, int numrecords) {
         if (this.paging == null) {
             this.paging = new Paging();
@@ -104,6 +166,10 @@ public class Filter {
         return this;
     }
 
+    /**
+     * Removes the pagination from this filter
+     * @return
+     */
     public Filter clearPaging() {
         this.paging = null;
         return this;

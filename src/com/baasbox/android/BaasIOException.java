@@ -16,7 +16,10 @@
 package com.baasbox.android;
 
 /**
- * Created by eto on 24/12/13.
+ * A subclass of {@link com.baasbox.android.BaasException}
+ * that represents an I/O exception.
+ * @author Davide Caroselli
+ * @since 0.7.3
  */
 public class BaasIOException extends BaasException {
 

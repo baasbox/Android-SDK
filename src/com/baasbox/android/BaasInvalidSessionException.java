@@ -20,7 +20,7 @@ import com.baasbox.android.json.JsonObject;
 import java.util.HashMap;
 
 /**
- * This is a particular subclass of {@link BaasApiException} indicating an
+ * This is a particular subclass of {@link BaasClientException} indicating an
  * invalid state of the user session. This exception is thrown when the SDK
  * could not successfully authenticate the user; this could happen when the
  * session token is expired (if used) and the stored credentials are not valid

@@ -92,17 +92,17 @@ public final class Dispatcher {
         Logger.info("%s finished", req);
     }
 
-    public RequestToken post(Task<?> request) {
+    public int post(Task<?> request) {
         final int seqNumber = SEQUENCE.getAndIncrement();
         request.bind(seqNumber, this);
-        RequestToken token = new RequestToken(seqNumber);
+        //RequestToken token = new RequestToken(seqNumber);
         liveAsyncs.put(seqNumber, request);
         taskQueue.add(request);
-        return token;
+        return seqNumber;
     }
 
-    public <R> boolean resume(RequestToken token, BaasHandler<R> handler) {
-        Task<R> task = (Task<R>) liveAsyncs.get(token.requestId);
+    public <R> boolean resume(int requestId, BaasHandler<R> handler) {
+        Task<R> task = (Task<R>) liveAsyncs.get(requestId);
         if (task == null) {
             Task.st("not found");
             return false;
@@ -110,8 +110,8 @@ public final class Dispatcher {
         return task.resume(handler);
     }
 
-    public boolean cancel(RequestToken token, boolean immediate) {
-        Task<?> task = liveAsyncs.get(token.requestId);
+    public boolean cancel(int requestId, boolean immediate) {
+        Task<?> task = liveAsyncs.get(requestId);
         if (task == null) return false;
         if (immediate) {
             return task.abort();
@@ -120,8 +120,8 @@ public final class Dispatcher {
         }
     }
 
-    public boolean suspend(RequestToken token) {
-        Task<?> task = liveAsyncs.get(token.requestId);
+    public boolean suspend(int requestId) {
+        Task<?> task = liveAsyncs.get(requestId);
         return task != null && task.suspend();
     }
 
