@@ -24,8 +24,35 @@ import org.apache.http.HttpResponse;
 
 /**
  * This class represents the main context of BaasBox SDK.
- * <p/>
- * Created by Andrea Tortorella on 23/12/13.
+ * It must be initialized through {@link #initDefault(android.content.Context)}
+ * before using any other part of the sdk.
+ *<p>
+ * It's suggested to initialize the client in the Application:
+ *</p>
+ *
+ * <pre>
+ *     <code>
+ *     public class MyBaasBoxApp extends Application {
+ *
+ *         private BaasBox box;
+ *
+ *         &#64;Override
+ *         public void onCreate() {
+ *             super.onCreate();
+ *             BaasBox.Config config = new BaasBox.Config();
+ *             // set your configuration
+ *             box = BaasBox.initDefault(this,config);
+ *         }
+ *
+ *         public BaasBox getBaasBox(){
+ *             return box;
+ *         }
+ *     }
+ *     </code>
+ *</pre>
+ *
+ * @author Andrea Tortorella
+ * @since 0.7.3
  */
 public class BaasBox {
 
@@ -39,6 +66,8 @@ public class BaasBox {
 
     /**
      * The configuration for BaasBox client
+     * @author Andrea Tortorella
+     * @since 0.7.3
      */
     public final static class Config {
 
@@ -112,8 +141,12 @@ public class BaasBox {
     private final Dispatcher asyncDispatcher;
     private final ImmediateDispatcher syncDispatcher;
 
-    public final RequestFactory requestFactory;
-    public final RestClient restClient;
+    final RequestFactory requestFactory;
+    final RestClient restClient;
+
+    /**
+     * Configuration of this BaasBox client
+     */
     public final Config config;
 
     final BaasCredentialManager store;
@@ -125,32 +158,10 @@ public class BaasBox {
         this.context = context.getApplicationContext();
         this.config = config == null ? new Config() : config;
         this.store = new BaasCredentialManager(this,context);
-        restClient = new HttpUrlConnectionClient(context,this.config);
+        this.restClient = new HttpUrlConnectionClient(context,this.config);
         this.requestFactory = new RequestFactory(this.config, store);
         this.syncDispatcher = new ImmediateDispatcher();
         this.asyncDispatcher = new Dispatcher(this);// AsyncDefaultDispatcher(this, restClient);
-    }
-
-    /**
-     * Creates a client with default configuration
-     *
-     * @param context main context of the application
-     * @return a BaasBox client
-     */
-    private static BaasBox createClient(Context context) {
-        return createClient(context, null);
-
-    }
-
-    /**
-     * Creates a client with provided configuration.
-     *
-     * @param context main context of the application
-     * @param config  a {@link BaasBox.Config} for this client
-     * @return
-     */
-    private static BaasBox createClient(Context context, Config config) {
-        return createClient(context, config, null);
     }
 
     private static BaasBox createClient(Context context, Config config, String sessionToken) {
@@ -162,10 +173,11 @@ public class BaasBox {
     }
 
     /**
-     * Initialize BaasBox client with default configuration
+     * Initialize BaasBox client with default configuration.
+     * This must be invoked before any use of the api.
      *
-     * @param context
-     * @return
+     * @param context cannot be null.
+     * @return the singleton instance of the {@link com.baasbox.android.BaasBox} client
      */
     public static BaasBox initDefault(Context context) {
         return initDefault(context, null, null);
@@ -203,7 +215,7 @@ public class BaasBox {
     }
 
     /**
-     * Returns the single baasbox instance for this device if one has been
+     * Returns the baasbox instance for this device if one has been
      * initialized through {@link BaasBox#initDefault(android.content.Context)}
      * or null.
      *
@@ -212,6 +224,7 @@ public class BaasBox {
     public static BaasBox getDefault() {
         return sDefaultClient;
     }
+
 
     static BaasBox getDefaultChecked() {
         if (sDefaultClient == null)
@@ -227,11 +240,11 @@ public class BaasBox {
         return syncDispatcher.execute(task);
     }
 
-    public boolean cancel(RequestToken token) {
+    boolean cancel(RequestToken token) {
         return asyncDispatcher.cancel(token, false);
     }
 
-    public boolean abort(RequestToken token) {
+    boolean abort(RequestToken token) {
         return asyncDispatcher.cancel(token, true);
     }
 
@@ -359,4 +372,3 @@ public class BaasBox {
     }
 
 }
-

@@ -22,12 +22,15 @@ import org.apache.http.HttpResponse;
 /**
  * Base class for remote resources that can be saved and retrieved from
  * BaasBox.
- * Created by Andrea Tortorella on 13/01/14.
+ *
+ * @author Andrea Tortorella
+ * @since 0.7.3
  */
 public abstract class BaasObject<E extends BaasObject<E>> {
     // todo this should provide common interface among remote objects
     //      such as dirty tracking timestamps ecc
 
+    BaasObject(){}
 
     /**
      * Returns true if this object has no conunterpart on the BaasBox server.
