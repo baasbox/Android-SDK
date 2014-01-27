@@ -1,12 +1,15 @@
 package com.baasbox.android.json;
 
+import android.os.Parcelable;
+
 import java.io.IOException;
 import java.io.StringReader;
 
 /**
- * Represent JSON structured data.
+ * Represent JSON structured data, either a {@link com.baasbox.android.json.JsonObject}
+ * or a {@link com.baasbox.android.json.JsonArray}.
  *
- * Created by eto on 01/01/14.
+ * Created by Andrea Tortorella on 01/01/14.
  */
 public abstract class JsonStructure{
 
