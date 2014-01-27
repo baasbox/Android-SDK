@@ -28,8 +28,19 @@ import org.apache.http.HttpResponse;
 import java.util.*;
 
 /**
- * Represents a document entity that belong to a collection
- * on the server.
+ * Represents a BaasBox document.
+ * A document is a schema less JSON like entity that belongs to a given collection on the server.
+ *
+ * Documents can be created, stored and retrieved from the server, either synchronously or asynchronously,
+ * through the provided methods.
+ *
+ * Unlike a raw JSON document, some key names at the top level are reserved: you cannot assign or create properties whose names begin with
+ * an underscore or an at sign, the <em>id</em> field is also reserved.
+ *
+ * When a document is bound to an entity on the server it's 'id' can be retrieved through {@link #getId()}.
+ * Documents are versioned by BaasBox and updates with incompatible versions will fail, uless you ignore the
+ * versioning explicitly through {@link com.baasbox.android.SaveMode#IGNORE_VERSION}.
+ *
  * Created by Andrea Tortorella on 02/01/14.
  */
 public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<Map.Entry<String, Object>>, Parcelable {
@@ -78,20 +89,26 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
     }
 
     /**
-     * Creates a new local empty document belonging to <code>collection</code>
+     * Creates a new unbound empty document belonging to the given <code>collection</code>
      *
-     * @param collection
+     * @param collection a non empty collection name.
+     * @throws java.lang.IllegalArgumentException if collection name is empty
      */
     public BaasDocument(String collection) {
         this(collection, (JsonObject) null);
     }
 
     /**
-     * Creates a new local document with fields belonging to data.
-     * Note that data is copied in the collection.
+     * Creates a new unbound document that belongs to the given <code>collection</code>
+     * and with fields initialized from the <code>data</code> {@link com.baasbox.android.json.JsonObject}.
      *
-     * @param collection
-     * @param data
+     * Data cannot contain reserved property names at the top level.
+     * Note that the JSON data is copied in the document, so modifications to the original instance will
+     * not be reflected by the document.
+     *
+     * @param collection a non empty collection name.
+     * @param data a possibly null {@link com.baasbox.android.json.JsonObject}
+     * @throws java.lang.IllegalArgumentException if collection name is empty or data contains reserved fields
      */
     public BaasDocument(String collection, JsonObject data) {
         super();
@@ -103,21 +120,25 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         this.data = data == null ? new JsonObject() : data.copy();
     }
 
-    BaasDocument() {
+    /**
+     * Creates a new unbound document that belongs to the given <code>collection</code>
+     * and with fields initialized from the <code>values</code> {@link android.content.ContentValues}
+     * values are converted to a {@link com.baasbox.android.json.JsonObject}
+     * using {@link com.baasbox.android.json.JsonObject#from(android.content.ContentValues)}
+     *
+     * @param collection a non empty collection name.
+     * @param values a possibly null {@link android.content.ContentValues}
+     * @throws java.lang.IllegalArgumentException if collection name is empty or values contains reserved fields names
+     */
+    public BaasDocument(String collection, ContentValues values) {
         super();
-        Class<?> clazz = ((Object) this).getClass();
-        Baas baas = clazz.getAnnotation(Baas.class);
-        if (baas == null) {
-            this.collection = baas.value();
-        } else {
-            this.collection = clazz.getSimpleName();
-        }
-        this.data = new JsonObject();
+        if (collection== null||collection.length()==0)
+            throw new IllegalArgumentException("collection name cannot be null");
+        this.collection = collection;
+        this.data= values == null?new JsonObject():checkObject(JsonObject.from(values));
+
     }
 
-    public BaasDocument(String collection, ContentValues values) {
-        this(collection, JsonObject.from(values));
-    }
 
     private static JsonObject cleanObject(JsonObject data) {
         if (data == null) return new JsonObject();
@@ -164,7 +185,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * in this document.
      *
      * @param name  a non <code>null</code> key
-     * @param value a non <code>null</code> {@link java.lang.String}
+     * @param value a  {@link java.lang.String}
      * @return this document with the new mapping created
      */
     public BaasDocument putString(String name, String value) {
@@ -385,7 +406,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * in this document.
      *
      * @param name  a non <code>null</code> key
-     * @param value a non <code>null</code> {@link com.baasbox.android.json.JsonArray}
+     * @param value a {@link com.baasbox.android.json.JsonArray}
      * @return this document with the new mapping created
      */
     public BaasDocument putArray(String name, JsonArray value) {
@@ -424,7 +445,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * in this document.
      *
      * @param name  a non <code>null</code> key
-     * @param value a non <code>null</code> {@link com.baasbox.android.json.JsonObject}
+     * @param value a {@link com.baasbox.android.json.JsonObject}
      * @return this document with the new mapping created
      */
     public BaasDocument putObject(String name, JsonObject value) {
@@ -461,7 +482,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * in this document.
      *
      * @param name  a non <code>null</code> key
-     * @param value a non <code>null</code> {@link com.baasbox.android.json.JsonStructure}
+     * @param value a {@link com.baasbox.android.json.JsonStructure}
      * @return this document with the new mapping created
      * @see com.baasbox.android.BaasDocument#putArray(String, com.baasbox.android.json.JsonArray)
      * @see com.baasbox.android.BaasDocument#putObject(String, com.baasbox.android.json.JsonObject)
@@ -501,7 +522,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
      * Note that binary data is encoded using base64 and added as strings in the object.
      *
      * @param name  a non <code>null</code> key
-     * @param value a non <code>null</code> <code>byte[]</code> array
+     * @param value a  <code>byte[]</code> array
      * @return this document with the new mapping created
      */
     public BaasDocument putBinary(String name, byte[] value) {
@@ -617,51 +638,30 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         return data.iterator();
     }
 
-    /**
-     * Returns the id of this document
-     *
-     * @return
-     */
     @Override
     public final String getId() {
         return id;
     }
 
-    /**
-     * Returns the author of this document
-     *
-     * @return
-     */
     @Override
     public final String getAuthor() {
         return author;
     }
 
     /**
-     * Returns the collection to which this document belongs
+     * Returns the collection to which this document belongs.
      *
-     * @return
+     * @return the name of the collection
      */
     public final String getCollection() {
         return collection;
     }
 
-    /**
-     * The creation date of this document as a {@link java.lang.String}
-     *
-     * @return
-     */
     @Override
     public final String getCreationDate() {
         return creation_date;
     }
 
-
-    /**
-     * Returns the version number of this document
-     *
-     * @return a <code>long</code> representing the version of this data
-     */
     @Override
     public final long getVersion() {
         return version;

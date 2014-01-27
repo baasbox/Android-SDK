@@ -16,6 +16,7 @@
 package com.baasbox.android.json;
 
 import android.content.ContentValues;
+import android.content.Entity;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.baasbox.android.impl.Base64;
