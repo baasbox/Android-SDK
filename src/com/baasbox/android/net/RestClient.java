@@ -20,7 +20,7 @@ import org.apache.http.HttpResponse;
 
 /**
  * This interface represent an http client for Baasbox.
- * Created by eto on 23/12/13.
+ * Created by Andrea Tortorella on 23/12/13.
  */
 public interface RestClient {
 
