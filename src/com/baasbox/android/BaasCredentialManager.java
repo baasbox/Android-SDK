@@ -15,6 +15,7 @@
 
 package com.baasbox.android;
 
+import android.accounts.Account;
 import android.content.Context;
 import android.content.SharedPreferences;
 import com.baasbox.android.json.JsonObject;
@@ -62,6 +63,7 @@ class BaasCredentialManager {
     }
 
     public Credentials getCredentials() {
+
         return credentials.getReference();
 
     }

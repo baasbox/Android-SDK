@@ -20,7 +20,8 @@ import org.apache.http.HttpResponse;
 
 
 /**
- * Base class for remote objects
+ * Base class for remote resources that can be saved and retrieved from
+ * BaasBox.
  * Created by Andrea Tortorella on 13/01/14.
  */
 public abstract class BaasObject<E extends BaasObject<E>> {
@@ -28,46 +29,199 @@ public abstract class BaasObject<E extends BaasObject<E>> {
     //      such as dirty tracking timestamps ecc
 
 
+    /**
+     * Returns true if this object has no conunterpart on the BaasBox server.
+     *
+     * @return true if this object has no conunterpart on the BaasBox server
+     */
+    public final boolean isNew(){
+        return getId()==null;
+    }
+
+    /**
+     * The id of this object on the server. New objects created locally have no id.
+     *
+     * @return a uuid as a String or null.
+     */
     public abstract String getId();
 
+    /**
+     * The version number of this object.
+     * @return a long version number
+     */
     public abstract long getVersion();
 
+    /**
+     * The username of the owner of this object, or null if this object is new.
+     *
+     * @return a username as String or null
+     */
     public abstract String getAuthor();
 
+    /**
+     * The date this object was created on the server, or null if the object is new.
+     *
+     * @return a string representation of a date.
+     */
     public abstract String getCreationDate();
 
-    public abstract BaasResult<Void> revokeSync(Grant grant, String user);
+    /**
+     * Synchronously revokes the access <code>grant</code> to this object from <code>username</code>.
+     *
+     * @param grant a non null {@link com.baasbox.android.Grant}
+     * @param username a non null username
+     * @return the outcome of the request wrapped in a {@link com.baasbox.android.BaasResult}
+     */
+    public abstract BaasResult<Void> revokeSync(Grant grant, String username);
 
+    /**
+     * Synchronously revokes the acces <code>grant</code> to this object from all users in <code>role</code>
+     * @param grant a non null {@link com.baasbox.android.Grant}
+     * @param role a non null role
+     * @return the outcome of the request wrapped in a {@link com.baasbox.android.BaasResult}
+     */
     public abstract BaasResult<Void> revokeAllSync(Grant grant, String role);
 
-
+    /**
+     * Synchronously grants the access <code>grant</code> to this object to <code>username</code>.
+     *
+     * @param grant a non null {@link com.baasbox.android.Grant}
+     * @param user a non null username
+     * @return the outcome of the request wrapped in a {@link com.baasbox.android.BaasResult}
+     */
     public abstract BaasResult<Void> grantSync(Grant grant, String user);
 
+
+    /**
+     * Synchronously grants the acces <code>grant</code> to this object to all users in <code>role</code>
+     * @param grant a non null {@link com.baasbox.android.Grant}
+     * @param role a non null role
+     * @return the outcome of the request wrapped in a {@link com.baasbox.android.BaasResult}
+     */
     public abstract BaasResult<Void> grantAllSync(Grant grant, String role);
 
+
+    /**
+     * Asynchronously grants the access <code>grant</code> to this object to <code>username</code>.
+     * The outcome of the request is handed to the provided <code>handler</code>.
+     * The request is executed with the specified {@link com.baasbox.android.Priority}.
+     *
+     * @param grant a non null {@link com.baasbox.android.Grant}
+     * @param username a non null username
+     * @param priority a priority at which execute the request
+     * @param handler an handler that will receive the outcome of the request.
+     *
+     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
+     */
     public abstract RequestToken grant(Grant grant, String username, Priority priority, BaasHandler<Void> handler);
 
+
+    /**
+     * Asynchronously grants the access <code>grant</code> to this object to <code>username</code>.
+     * The outcome of the request is handed to the provided <code>handler</code>.
+     * The request is executed with default {@link com.baasbox.android.Priority}.
+     *
+     * @param grant a non null {@link com.baasbox.android.Grant}
+     * @param username a non null username
+     * @param handler an handler that will receive the outcome of the request.
+     *
+     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
+     */
     public final RequestToken grant(Grant grant, String username, BaasHandler<Void> handler) {
         return grant(grant, username, Priority.NORMAL, handler);
     }
 
+    /**
+     * Asynchronously grants the access <code>grant</code> to this object to users with <code>role</code>.
+     * The outcome of the request is handed to the provided <code>handler</code>.
+     * The request is executed with the specified {@link com.baasbox.android.Priority}.
+     *
+     * @param grant a non null {@link com.baasbox.android.Grant}
+     * @param role a non null username
+     * @param priority a priority at which execute the request
+     * @param handler an handler that will receive the outcome of the request.
+     *
+     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
+     */
     public abstract RequestToken grantAll(Grant grant, String role, Priority priority, BaasHandler<Void> handler);
 
 
+
+    /**
+     * Asynchronously grants the access <code>grant</code> to this object to users with <code>role</code>.
+     * The outcome of the request is handed to the provided <code>handler</code>.
+     * The request is executed with default {@link com.baasbox.android.Priority}.
+     *
+     * @param grant a non null {@link com.baasbox.android.Grant}
+     * @param role a non null username
+     * @param handler an handler that will receive the outcome of the request.
+     *
+     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
+     */
     public final RequestToken grantAll(Grant grant, String role, BaasHandler<Void> handler) {
         return grantAll(grant, role, Priority.NORMAL, handler);
     }
 
 
+
+    /**
+     * Asynchronously revoke the access <code>grant</code> to this object to <code>username</code>.
+     * The outcome of the request is handed to the provided <code>handler</code>.
+     * The request is executed with the specified {@link com.baasbox.android.Priority}.
+     *
+     * @param grant a non null {@link com.baasbox.android.Grant}
+     * @param username a non null username
+     * @param priority a priority at which execute the request
+     * @param handler an handler that will receive the outcome of the request.
+     *
+     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
+     */
     public abstract RequestToken revoke(Grant grant, String username, Priority priority, BaasHandler<Void> handler);
 
+
+    /**
+     * Asynchronously revoke the access <code>grant</code> to this object from <code>username</code>.
+     * The outcome of the request is handed to the provided <code>handler</code>.
+     * The request is executed with default {@link com.baasbox.android.Priority}.
+     *
+     * @param grant a non null {@link com.baasbox.android.Grant}
+     * @param username a non null username
+     * @param handler an handler that will receive the outcome of the request.
+     *
+     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
+     */
     public final RequestToken revoke(Grant grant, String username, BaasHandler<Void> handler) {
         return grant(grant, username, Priority.NORMAL, handler);
     }
 
+
+    /**
+     * Asynchronously revokes the access <code>grant</code> to this object from users with <code>role</code>.
+     * The outcome of the request is handed to the provided <code>handler</code>.
+     * The request is executed with the specified {@link com.baasbox.android.Priority}.
+     *
+     * @param grant a non null {@link com.baasbox.android.Grant}
+     * @param role a non null username
+     * @param priority a priority at which execute the request
+     * @param handler an handler that will receive the outcome of the request.
+     *
+     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
+     */
     public abstract RequestToken revokeAll(Grant grant, String role, Priority priority, BaasHandler<Void> handler);
 
 
+
+    /**
+     * Asynchronously revokes the access <code>grant</code> to this object from users with <code>role</code>.
+     * The outcome of the request is handed to the provided <code>handler</code>.
+     * The request is executed with default {@link com.baasbox.android.Priority}.
+     *
+     * @param grant a non null {@link com.baasbox.android.Grant}
+     * @param role a non null username
+     * @param handler an handler that will receive the outcome of the request.
+     *
+     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
+     */
     public final RequestToken revokeAll(Grant grant, String role, BaasHandler<Void> handler) {
         return grantAll(grant, role, Priority.NORMAL, handler);
     }

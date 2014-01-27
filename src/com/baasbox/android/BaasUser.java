@@ -17,6 +17,7 @@ package com.baasbox.android;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
@@ -26,22 +27,46 @@ import org.apache.http.HttpResponse;
 import java.util.*;
 
 /**
+ * Represents a User of the BaasBox service.
+ *
+ * You can create a new instance through the factory method
+ * {@link #withUserName(String)}
+ *
+ * Users have associated profile data with different levels of
+ * visibility as specified by {@link com.baasbox.android.BaasUser.Scope}.
+ *
+ * Accounts on BaasBox are managed through this class {@link #signup(BaasHandler)}
+ * {@link #login(String, BaasHandler)} and {@link #logout(BaasHandler)} family
+ * of methods, and their *sync counterpart.
+ *
+ * The currently logged in user can be retrieved through {@link #current()}, and
+ * it is the only one that is modifiable.
+ *
+ * BaasUser also exposes methods to handle friendship, through {@link #follow(BaasHandler)}/{@link #unfollow(BaasHandler)}
+ * and direct gcm messaging throuhg {@link #send(com.baasbox.android.json.JsonObject, BaasHandler)}
+ *
+ * In any other respect users are treated similarly to other resources
+ * exposed by the server.
+ *
  * Created by Andrea Tortorella on 02/01/14.
  */
 public class BaasUser implements Parcelable {
 
 
-    String username;
-    JsonObject privateData;
-    JsonObject friendVisibleData;
-    JsonObject registeredVisibleData;
-    JsonObject publicVisibleData;
+    private JsonObject privateData;
+    private JsonObject friendVisibleData;
+    private JsonObject registeredVisibleData;
+    private JsonObject publicVisibleData;
+    private String username;
+
+    private String password;
+    private String authToken;
     private String signupDate;
     private String status;
     private final Set<String> roles = new HashSet<String>();
 
     /**
-     * Scopes of user related data
+     * Scopes of visibility of  user related data.
      *
      * @see com.baasbox.android.BaasUser#getScope(com.baasbox.android.BaasUser.Scope)
      */
@@ -50,7 +75,6 @@ public class BaasUser implements Parcelable {
          * Scope used to access a {@link com.baasbox.android.json.JsonObject}
          * of user private data
          */
-
         PRIVATE("visibleByTheUser"),
 
         /**
@@ -91,9 +115,12 @@ public class BaasUser implements Parcelable {
     }
 
     /**
-     * Creates a new user bound to username
+     * Creates a new user bound to username.
+     * If the provided username is the same one of the currently logged in account
+     * the same instance of {@link #current()} is returned.
      *
-     * @param username
+     * @param username a non empty username
+     * @return a <code>BaasUser</code>
      */
     public static BaasUser withUserName(String username) {
         BaasUser current = current();
@@ -105,18 +132,18 @@ public class BaasUser implements Parcelable {
 
     /**
      * Returns the current logged in user if
-     * one is logged in
+     * one is logged in or <code>null</code>
      *
-     * @return
+     * @return the current logged in <code>BaasUser</code>
      */
     public static BaasUser current() {
         return BaasBox.getDefaultChecked().store.currentUser();
     }
 
     /**
-     * Checks if this user is the current one on this device
+     * Checks if this user is the currently logged in user on this device.
      *
-     * @return
+     * @return true if <code>this == BaasUser.current()</code>
      */
     public boolean isCurrent() {
         BaasUser current = current();
@@ -132,7 +159,7 @@ public class BaasUser implements Parcelable {
      */
     BaasUser(String username) {
         super();
-        if (username == null) throw new NullPointerException("username cannot be null");
+        if (TextUtils.isEmpty(username)) throw new IllegalArgumentException("username cannot be empty");
         this.username = username;
         this.privateData = new JsonObject();
         this.friendVisibleData = new JsonObject();
@@ -173,11 +200,16 @@ public class BaasUser implements Parcelable {
         return o;
     }
 
+    /**
+     * Verifies if there is a currently logged in user on this device
+     * @return
+     */
     public static boolean isAuthentcated() {
         BaasCredentialManager credentialManager = BaasBox.getDefault().store;
         Credentials credentials = credentialManager.getCredentials();
         return credentials != null && credentials.username != null && credentials.password != null;
     }
+
 
     private void init(JsonObject user) {
         JsonObject accountData = user.getObject("user");
@@ -195,6 +227,7 @@ public class BaasUser implements Parcelable {
     private void update(JsonObject user) {
         init(user);
     }
+
 
     public RequestToken send(JsonObject message, Priority priority, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
@@ -243,8 +276,12 @@ public class BaasUser implements Parcelable {
      * If the data is not visible to the current logged in user
      * returns null.
      *
-     * @param scope a scope {@link com.baasbox.android.BaasUser.Scope}
-     * @return {@link com.baasbox.android.json.JsonObject}
+     * The returned {@link com.baasbox.android.json.JsonObject} should be treated
+     * as read-only unless the user to whom belongs is the current user as per {@link #isCurrent()}.
+     *
+     * @param scope a scope {@link com.baasbox.android.BaasUser.Scope} not <code>null</code>
+     * @return {@link com.baasbox.android.json.JsonObject} or null if the data is not visible.
+     * @throws java.lang.NullPointerException if <code>scope</code> is <code>null</code>
      */
     public JsonObject getScope(Scope scope) {
         switch (scope) {
@@ -262,19 +299,18 @@ public class BaasUser implements Parcelable {
     }
 
     /**
-     * Returns the signupdate for this user
-     * if available as a string
+     * Returns the signupdate for this user if available or null.
      *
-     * @return
+     * @return the signup date
      */
     public String getSignupDate() {
         return signupDate;
     }
 
     /**
-     * Returns the registration status of the user
+     * Returns the registration status of the user if available or null.
      *
-     * @return
+     * @return a string representing the status of the user
      */
     public String getStatus() {
         return status;
@@ -282,28 +318,61 @@ public class BaasUser implements Parcelable {
 
     /**
      * Returns an unmodifialble set of the roles
-     * to which the user belongs
+     * to which the user belongs if it's available
      *
-     * @return
+     * @return a {@link java.util.Set} of role names
      */
     public Set<String> getRoles() {
         return Collections.unmodifiableSet(roles);
     }
 
     /**
+     * Returns the password of this user, if there is one.
+     * @return a {@link java.lang.String} representing the password of the user.
+     */
+    public String getPassword(){
+        return password;
+    }
+
+    /**
+     * Sets the password for this user.
+     * This should be called prior of any signup/login request, with
+     * a non null argument.
+     * Calling this with a null argument has the effect of erasing the password.
+     * @param password the password
+     * @return this user with the password set.
+     */
+    public BaasUser setPassword(String password){
+        this.password=password;
+        return this;
+    }
+
+    /**
+     * Returns the authtoken used by this user.
+     * This will be non null only if the user is the current one.
+     *
+     * @return a String token
+     */
+    public String getToken(){
+        return authToken;
+    }
+
+    /**
      * Checks if the user has a specific role
      *
-     * @param role
-     * @return
+     * @param role a role name
+     * @return true if the user is known to belong to <code>role</code>
+     * @throws java.lang.NullPointerException if <code>role</code> is <code>null</code>
      */
     public boolean hasRole(String role) {
+        if (role==null) throw new NullPointerException("role cannot be null");
         return roles.contains(role);
     }
 
     /**
      * Returns the name of the user.
      *
-     * @return
+     * @return the name of the user.
      */
     public String getName() {
         return username;
@@ -347,16 +416,13 @@ public class BaasUser implements Parcelable {
     }
 
     /**
-     * Synchronously signups this user to baasbox
-     * using the provided password.
-     *
-     * @param password a password cannot be null
+     * Synchronously signups this user to BaasBox.
      * @return
      */
-    public BaasResult<BaasUser> signupSync(String password) {
+    public BaasResult<BaasUser> signupSync() {
         BaasBox box = BaasBox.getDefaultChecked();
         if (password == null) throw new NullPointerException("password cannot be null");
-        SignupRequest signup = new SignupRequest(box, this, null, null, null);
+        SignupRequest signup = new SignupRequest(box, this, null, null);
         return box.submitSync(signup);
     }
 
@@ -364,38 +430,35 @@ public class BaasUser implements Parcelable {
      * Asynchronously signups this user to baasbox
      * using provided password and default {@link com.baasbox.android.Priority#NORMAL}
      *
-     * @param password a password cannot be null
      * @param handler  an handler to be invoked when the request completes
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
-    public RequestToken signup(String password, BaasHandler<BaasUser> handler) {
-        return signup(password, null, handler);
+    public RequestToken signup(BaasHandler<BaasUser> handler) {
+        return signup(null, handler);
     }
 
     /**
      * Asynchronously signups this user to baasbox
      * using provided password and priority
      *
-     * @param password a password cannot be null
      * @param priority a {@link com.baasbox.android.Priority}
      * @param handler  an handler to be invoked when the request completes
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
-    public RequestToken signup(String password, Priority priority, BaasHandler<BaasUser> handler) {
+    public RequestToken signup(Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (password == null) throw new NullPointerException("password cannot be null");
-        SignupRequest req = new SignupRequest(box, this, password, priority, handler);
+
+        SignupRequest req = new SignupRequest(box, this,priority, handler);
         return box.submitAsync(req);
     }
 
     private static final class SignupRequest extends NetworkTask<BaasUser> {
         private final BaasUser userSignUp;
-        private final String password;
 
-        protected SignupRequest(BaasBox box, BaasUser user, String password, Priority priority, BaasHandler<BaasUser> handler) {
+        protected SignupRequest(BaasBox box, BaasUser user, Priority priority, BaasHandler<BaasUser> handler) {
             super(box, priority, handler,false);
             this.userSignUp = user;
-            this.password = password;
         }
 
         @Override
@@ -404,9 +467,10 @@ public class BaasUser implements Parcelable {
             String token = content.getString("X-BB-SESSION");
             if (token == null) throw new BaasException("Could not parse server response, missing token");
             userSignUp.update(content);
+            userSignUp.authToken=token;
             Credentials credentials = new Credentials();
-            credentials.password = password;
             credentials.username = userSignUp.username;
+            credentials.password= userSignUp.password;
             credentials.sessionToken = token;
             credentials.userData = content.toString();
             box.store.storeCredentials(seq(), credentials, userSignUp);
@@ -415,33 +479,20 @@ public class BaasUser implements Parcelable {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            return box.requestFactory.post(box.requestFactory.getEndpoint("user"), userSignUp.toJsonBody(password));
+            return box.requestFactory.post(box.requestFactory.getEndpoint("user"), userSignUp.toJsonBody());
         }
-    }
-
-    /**
-     * Asynchronously logins this user with password, the handler
-     * will be invoked upon completion of the request.
-     *
-     * @param password a password cannot be null
-     * @param handler  an handler to be invoked when the request completes
-     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
-     */
-    public RequestToken login(String password, BaasHandler<BaasUser> handler) {
-        return login(password, null, null, handler);
     }
 
     /**
      * Asynchronously logins this user with password and registrationId obtained through
      * gcm. The handler will be invoked upon completion of the request.
      *
-     * @param password
      * @param registrationId
      * @param handler
      * @return
      */
-    public RequestToken login(String password, String registrationId, BaasHandler<BaasUser> handler) {
-        return login(password, registrationId, null, handler);
+    public RequestToken login(String registrationId, BaasHandler<BaasUser> handler) {
+        return login(registrationId, null, handler);
     }
 
     /**
@@ -449,51 +500,47 @@ public class BaasUser implements Parcelable {
      * The handler will be invoked upon completion of the request.
      * The request is executed at the gien priority.
      *
-     * @param password
      * @param regitrationId
      * @param priority
      * @param handler
      * @return
      */
-    public RequestToken login(String password, String regitrationId, Priority priority, BaasHandler<BaasUser> handler) {
+    public RequestToken login(String regitrationId, Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefault();
         if (password == null) throw new NullPointerException("password cannot be null");
-        NetworkTask<BaasUser> task = new LoginRequest(box, this, password, regitrationId, priority, handler);
+        NetworkTask<BaasUser> task = new LoginRequest(box, this, regitrationId, priority, handler);
         return box.submitAsync(task);
     }
 
     /**
      * Synchronously logins the user with password.
      *
-     * @param password
      * @return
      */
-    public BaasResult<BaasUser> loginSync(String password) {
-        return loginSync(password, null);
+    public BaasResult<BaasUser> loginSync() {
+        return loginSync(null);
     }
 
     /**
      * Synchronously logins the user with password and registrationId obtained through gcm.
      *
-     * @param password
      * @param registrationId
      * @return
      */
-    public BaasResult<BaasUser> loginSync(String password, String registrationId) {
+    public BaasResult<BaasUser> loginSync(String registrationId) {
         BaasBox box = BaasBox.getDefault();
         if (password == null) throw new NullPointerException("password cannot be null");
-        NetworkTask<BaasUser> task = new LoginRequest(box, this, password, registrationId, null, null);
+        NetworkTask<BaasUser> task = new LoginRequest(box, this, registrationId, null, null);
         return box.submitSync(task);
     }
 
     final static class LoginRequest extends NetworkTask<BaasUser> {
-        private final String password;
+
         private final String regId;
         private final BaasUser user;
 
-        protected LoginRequest(BaasBox box, BaasUser user, String password, String regId, Priority priority, BaasHandler<BaasUser> handler) {
+        protected LoginRequest(BaasBox box, BaasUser user, String regId, Priority priority, BaasHandler<BaasUser> handler) {
             super(box, priority, handler,false);
-            this.password = password;
             this.regId = regId;
             this.user = user;
         }
@@ -504,8 +551,9 @@ public class BaasUser implements Parcelable {
             String token = data.getString("X-BB-SESSION");
             if (token == null) throw new BaasException("Could not parse server response, missing token");
             user.update(data);
+            user.authToken=token;
             Credentials credentials = new Credentials();
-            credentials.password = password;
+            credentials.password = user.password;
             credentials.username = user.username;
             credentials.sessionToken = token;
             credentials.userData = data.toString();
@@ -516,7 +564,7 @@ public class BaasUser implements Parcelable {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            return box.store.loginRequest(user.username,password,regId);
+            return box.store.loginRequest(user.username,user.password,regId);
         }
 
     }
@@ -581,7 +629,7 @@ public class BaasUser implements Parcelable {
         @Override
         protected HttpRequest request(BaasBox box) {
             if (user.isCurrent()) {
-                HttpRequest request = box.requestFactory.put(box.requestFactory.getEndpoint("me"), user.toJson());
+                HttpRequest request = box.requestFactory.put(box.requestFactory.getEndpoint("me"), user.toJson(false));
                 return request;
             }
             return null;
@@ -1029,7 +1077,7 @@ public class BaasUser implements Parcelable {
         }
     }
 
-    JsonObject toJsonBody(String password) {
+    JsonObject toJsonBody() {
         JsonObject object = new JsonObject();
         if (password != null) {
             object.putString("username", username)
