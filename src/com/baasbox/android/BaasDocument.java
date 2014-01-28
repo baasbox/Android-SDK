@@ -19,6 +19,7 @@ package com.baasbox.android;
 import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
+import com.baasbox.android.impl.Logger;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.json.JsonStructure;
@@ -1161,6 +1162,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         @Override
         protected List<BaasDocument> onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             JsonArray data = parseJson(response, box).getArray("data");
+            Logger.debug("received: "+data);
             if (data == null) {
                 return Collections.emptyList();
             } else {

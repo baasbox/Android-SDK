@@ -21,6 +21,7 @@ import android.os.Process;
 import com.baasbox.android.*;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -88,6 +89,7 @@ public final class Dispatcher {
     }
 
     void finish(Task<?> req) {
+
         this.liveAsyncs.remove(req.seqNumber, req);
         Logger.info("%s finished", req);
     }
@@ -124,6 +126,20 @@ public final class Dispatcher {
         Task<?> task = liveAsyncs.get(requestId);
         return task != null && task.suspend();
     }
+
+    public <R> BaasResult<R> await(int requestId) {
+        Task<R> task = (Task<R>)liveAsyncs.get(requestId);
+        if (task==null){
+            return null;
+        }else if (task.result!=null){
+            return task.result;
+        } else {
+            task.await();
+            return task.result;
+
+        }
+    }
+
 
 
     private static final class Worker extends Thread {

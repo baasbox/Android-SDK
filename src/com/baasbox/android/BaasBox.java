@@ -64,6 +64,10 @@ public class BaasBox {
     private static volatile BaasBox sDefaultClient;
     private static final Object LOCK = new Object();
 
+    public <R> BaasResult<R> await(RequestToken requestToken) {
+        return asyncDispatcher.await(requestToken.requestId);
+    }
+
     /**
      * The configuration for BaasBox client
      * @author Andrea Tortorella

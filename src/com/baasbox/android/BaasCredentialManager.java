@@ -18,6 +18,7 @@ package com.baasbox.android;
 import android.accounts.Account;
 import android.content.Context;
 import android.content.SharedPreferences;
+import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -25,6 +26,7 @@ import org.apache.http.HttpResponse;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicStampedReference;
 
@@ -32,90 +34,116 @@ import java.util.concurrent.atomic.AtomicStampedReference;
  * Created by Andrea Tortorella on 22/01/14.
  */
 class BaasCredentialManager {
+    private final static Object NULL = new Object();
+
     private final static String DISK_PREFERENCES_NAME = "BAAS_USER_INFO_PREFERENCES";
     private final static String USER_NAME_KEY = "USER_NAME_KEY";
     private final static String PASSWORD_KEY = "PASSWORD_KEY";
-    private final static String PROFILE_KEY = "PROFILE_KEY";
     private final static String SESSION_KEY = "SESSION_KEY";
+    private final static String PROFILE_KEY = "PROFILE_DATA";
+    private final static String ROLES_KEY = "ROLES_KEY";
+    private final static String STATUS_KEY = "STATUS_KEY";
+    private final static String DATE_KEY = "SIGNUP_KEY";
 
     private final SharedPreferences diskCache;
 
-    private AtomicStampedReference<Credentials> credentials;
-    private AtomicReference<BaasUser> cachedCurrentUser = new AtomicReference<BaasUser>();
     private final BaasBox box;
+    private final Object lock = new Object();
+    private volatile boolean loaded = false;
+    private BaasUser current;
+
     public BaasCredentialManager(BaasBox box,Context context) {
         this.box =box;
         this.diskCache = context.getSharedPreferences(DISK_PREFERENCES_NAME, Context.MODE_PRIVATE);
-        this.credentials = new AtomicStampedReference<Credentials>(load(), -1);
+        current = load();
+        loaded=true;
     }
 
     public BaasUser currentUser() {
-        for (; ; ) {
-            BaasUser current = cachedCurrentUser.get();
-            if (current != null) return current;
-            Credentials credentials = getCredentials();
-            if (credentials == null) return null;
-            BaasUser cached = new BaasUser(JsonObject.decode(credentials.userData));
-            if (cachedCurrentUser.compareAndSet(null, cached)) {
-                return cached;
+        if (!loaded){
+            synchronized (lock){
+                if (!loaded){
+                    current=load();
+                    loaded=true;
+                }
             }
+        }
+        return current;
+    }
+
+    public void storeUser(BaasUser user) {
+        synchronized (lock){
+            current=user;
+            persist(user);
+            loaded = true;
         }
     }
 
-    public Credentials getCredentials() {
 
-        return credentials.getReference();
-
-    }
-
-
-    public void storeCredentials(int seq, Credentials creds) {
-        storeCredentials(seq, creds, null);
-    }
-
-
-    public void storeUser(int seq, String unparsed, BaasUser user) {
-        int[] stampHolder = new int[1];
-        for (; ; ) {
-            Credentials current = credentials.get(stampHolder);
-            int stamp = stampHolder[0];
-            if (current == null) {
-                // in this case there are no credentials stored so the users
-                // is logged out
-                return;
-            }
-
-            Credentials newCredentials = new Credentials();
-            newCredentials.password = current.password;
-            newCredentials.sessionToken = current.sessionToken;
-            newCredentials.username = current.username;
-            newCredentials.userData = unparsed;
-            if (credentials.compareAndSet(current, newCredentials, stamp, seq)) {
-                while (!store(newCredentials.sessionToken, newCredentials.password, newCredentials.username, newCredentials.userData))
-                    ;
-                cachedCurrentUser.set(user);
-                return;
-            }
-
+    public void clear() {
+        synchronized (lock){
+            current =null;
+            loaded=false;
+            erase();
         }
+    }
 
+    private void erase(){
+        while(!diskCache.edit().clear().commit());
+    }
+
+    private void persist(BaasUser user){
+        String username = user.getName();
+        String password = user.getPassword();
+        String status = user.getStatus();
+        String date = user.getSignupDate();
+        String token = user.getToken();
+        String profile = user.toJsonBody(false).toString();
+        Set<String> roles = user.getRoles();
+        JsonArray array = new JsonArray();
+        for(String role:roles){
+            array.add(role);
+        }
+        SharedPreferences.Editor edit = diskCache.edit()
+                .putString(USER_NAME_KEY,username)
+                .putString(PASSWORD_KEY,password)
+                .putString(STATUS_KEY,status)
+                .putString(DATE_KEY,date)
+                .putString(SESSION_KEY,token)
+                .putString(PROFILE_KEY,profile)
+                .putString(ROLES_KEY,array.toString());
+        while (!edit.commit());
+    }
+
+    private BaasUser load(){
+        Map<String,?> userMap = diskCache.getAll();
+        if (userMap==null)return null;
+        String username = (String)userMap.get(USER_NAME_KEY);
+        if (username==null) return null;
+        String password = (String)userMap.get(PASSWORD_KEY);
+        String signupDate = (String)userMap.get(DATE_KEY);
+        String status = (String)userMap.get(STATUS_KEY);
+        String token =(String)userMap.get(SESSION_KEY);
+        String rolesString = (String)userMap.get(ROLES_KEY);
+        JsonArray roles = JsonArray.decode(rolesString);
+        String profileString = (String)userMap.get(PROFILE_KEY);
+        JsonObject profile = JsonObject.decode(profileString);
+        BaasUser user = new BaasUser(username,password,signupDate,status,token,roles,profile);
+        return user;
     }
 
     final boolean refreshTokenRequest(int seq) throws BaasException {
-        Credentials c = getCredentials();
-        if (c!=null&&c.username!=null&&c.password!=null){
-            String user = c.username;
-            String pass= c.password;
+        BaasUser c = currentUser();
+        if (c!=null&&c.getName()!=null&&c.getPassword()!=null){
+            String user = c.getName();
+            String pass= c.getPassword();
             HttpRequest req = loginRequest(user, pass, null);
             HttpResponse resp = box.restClient.execute(req);
             if (resp.getStatusLine().getStatusCode()/100==2){
                 String session = NetworkTask.parseJson(resp, box).getObject("data").getString("X-BB-SESSION");
                 if (session!=null){
-                    Credentials newc = new Credentials();
-                    newc.password=pass;
-                    newc.username=user;
-                    newc.sessionToken=session;
-                    storeCredentials(seq,newc);
+                    c.setToken(session);
+                    storeUser(null);
                     return true;
                 }
                 return false;
@@ -137,68 +165,6 @@ class BaasCredentialManager {
             formBody.put("login_data", login_data);
         }
         return box.requestFactory.post(endpoint, formBody);
-    }
-
-    public void storeCredentials(int seq, Credentials creds, BaasUser user) {
-        int[] stampHolder = new int[1];
-        for (; ; ) {
-            Credentials current = credentials.get(stampHolder);
-            int stamp = stampHolder[0];
-            if (stamp > seq) {
-                // current credentials are newer than the one passed in
-                // do nothing
-                return;
-            } else if (credentials.compareAndSet(current, creds, stamp, seq)) {
-
-                // if we were able to set the credentials force store
-                // the new one on disk
-                while (!store(creds.sessionToken, creds.password, creds.username, creds.userData)) ;
-                cachedCurrentUser.set(user);
-                return;
-            }
-        }
-    }
-
-    public void clearCredentials(int seq) {
-        int[] stampHolder = new int[1];
-        cachedCurrentUser.set(null);
-        for (; ; ) {
-            Credentials current = credentials.get(stampHolder);
-            int stamp = stampHolder[0];
-            if (stamp > seq) {
-                // current credentials are newer than the clear request
-                return;
-            } else if (credentials.compareAndSet(current, null, stamp, seq)) {
-                // if we were able to clear the credentials in memory
-                // force clear the new one on disk
-                while (!clear()) ;
-                return;
-            }
-        }
-    }
-
-    private boolean store(String token, String password, String username, String profile) {
-        return diskCache.edit().putString(SESSION_KEY, token)
-                .putString(PASSWORD_KEY, password)
-                .putString(USER_NAME_KEY, username)
-                .putString(PROFILE_KEY, profile).commit();
-    }
-
-    private Credentials load() {
-        Map<String, ?> data = diskCache.getAll();
-        if (data != null && data.containsKey(USER_NAME_KEY)) {
-            Credentials credentials = new Credentials();
-            credentials.username = (String) data.get(USER_NAME_KEY);
-            credentials.password = (String) data.get(PASSWORD_KEY);
-            credentials.sessionToken = (String) data.get(SESSION_KEY);
-            credentials.userData = (String) data.get(PROFILE_KEY);
-            return credentials;
-        }
-        return null;
-    }
-
-    private boolean clear() {
-        return diskCache.edit().clear().commit();
     }
 
 }

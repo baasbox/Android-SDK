@@ -205,7 +205,7 @@ class RequestFactory {
     }
 
     public HttpRequest put(String uri, Map<String, String> headers, InputStream body) {
-        headers = fillHeaders(headers, config, credentials.getCredentials());
+        headers = fillHeaders(headers, config, credentials.currentUser());
         return new HttpRequest(HttpRequest.PUT, uri, headers, body);
     }
 
@@ -232,7 +232,7 @@ class RequestFactory {
     }
 
     public HttpRequest delete(String endpoint, Map<String, String> queryParams, Map<String, String> headers) {
-        headers = fillHeaders(headers, config, credentials.getCredentials());
+        headers = fillHeaders(headers, config, credentials.currentUser());
         if (queryParams != null) {
             String queryUrl = encodeParams(queryParams, config.HTTP_CHARSET);
             endpoint = endpoint + "?" + queryUrl;
@@ -241,7 +241,7 @@ class RequestFactory {
     }
 
     public HttpRequest get(String endpoint, Map<String, String> headers, Param... queryParams) {
-        headers = fillHeaders(headers, config, credentials.getCredentials());
+        headers = fillHeaders(headers, config, credentials.currentUser());
         if (queryParams != null) {
             String queryUrl = encodeQueryParams(queryParams, config.HTTP_CHARSET);
             endpoint = endpoint + "?" + queryUrl;
@@ -250,7 +250,7 @@ class RequestFactory {
     }
 
     public HttpRequest post(String uri, Map<String, String> headers, InputStream body) {
-        headers = fillHeaders(headers, config, credentials.getCredentials());
+        headers = fillHeaders(headers, config, credentials.currentUser());
         return new HttpRequest(HttpRequest.POST, uri, headers, body);
     }
 
@@ -261,7 +261,7 @@ class RequestFactory {
         return headers;
     }
 
-    private static Map<String, String> fillHeaders(Map<String, String> headers, BaasBox.Config config, Credentials credentials) {
+    private static Map<String, String> fillHeaders(Map<String, String> headers, BaasBox.Config config, BaasUser credentials) {
         headers = headers == null ? new HashMap<String, String>() : headers;
         headers.put(APPCODE_HEADER_NAME, config.APP_CODE);
         headers.put(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER);
@@ -269,15 +269,15 @@ class RequestFactory {
 //            BAASLogging.debug("updating credentials " + credentials.password + " " + credentials.username + " " + credentials.sessionToken);
             switch (config.AUTHENTICATION_TYPE) {
                 case BASIC_AUTHENTICATION:
-                    if (credentials.username != null && credentials.password != null) {
-                        String plain = credentials.username + ':' + credentials.password;
+                    if (credentials.getName() != null && credentials.getPassword() != null) {
+                        String plain = credentials.getName() + ':' + credentials.getPassword();
                         String encoded = Base64.encodeToString(plain.getBytes(), Base64.DEFAULT).trim();
                         headers.put(BASIC_AUTH_HEADER_NAME, "Basic " + encoded);
                     }
                     break;
                 case SESSION_TOKEN:
-                    if (credentials.sessionToken != null) {
-                        headers.put(BB_SESSION_HEADER_NAME, credentials.sessionToken);
+                    if (credentials.getToken() != null) {
+                        headers.put(BB_SESSION_HEADER_NAME, credentials.getToken());
                     }
                     break;
             }

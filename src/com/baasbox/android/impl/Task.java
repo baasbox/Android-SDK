@@ -21,6 +21,7 @@ import android.os.Looper;
 import android.util.Log;
 import com.baasbox.android.*;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -36,15 +37,14 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
 
 
     private AtomicBoolean taken = new AtomicBoolean(false);
-    private volatile BaasResult<R> result;
+    volatile BaasResult<R> result;
     int seqNumber;
     private Handler postOn;
     private Dispatcher dispatcher;
     private Priority priority;
     protected BaasBox box;
-    private int x;
     private final AtomicReference<BaasHandler<?>> suspendableHandler = new AtomicReference<BaasHandler<?>>();
-
+    volatile CountDownLatch latch;
 
     protected Task(Priority priority, BaasHandler<R> handler) {
         this.priority = priority == null ? Priority.NORMAL : priority;
@@ -63,6 +63,16 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
     public int seq() {
         return seqNumber;
     }
+
+    public void await(){
+        latch=new CountDownLatch(1);
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     private enum Signal implements BaasHandler {
         ABORTED,
@@ -86,11 +96,13 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
             // we can simply forcefully set the value
             // to ABORTED to let the resource been cleaned up
             suspendableHandler.set(Signal.ABORTED);
-            dispatcher.finish(this);
+            finish();
+//            dispatcher.finish(this);
             return true;
         }
         return false;
     }
+
 
     boolean resume(BaasHandler<R> handler) {
         for (; ; ) {
@@ -100,7 +112,8 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
                 //so we cannot resume it again
                 //but if we found it than it's still known to the dispatcher
                 //so we simply cleanup it
-                dispatcher.finish(this);
+                finish();
+//                dispatcher.finish(this);
                 st("not resuming: already committed");
                 return false;
             }
@@ -178,13 +191,19 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
                         st("handling");
                         ((BaasHandler<R>) curr).handle(result);
                     }
-                    dispatcher.finish(this);
+                    finish();
+//                    dispatcher.finish(this);
                 }
                 return;
 
             }
             st("exec repeat");
         }
+    }
+
+    private void finish(){
+        Logger.debug("FINISHING");
+        dispatcher.finish(this);
     }
 
     boolean suspend() {
@@ -244,16 +263,17 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
     }
 
     final void execute() {
-        try {
+        if (!takeAndVerifyCancel()) {
+            try {
+                R value = asyncCall();
+                result = BaasResult.success(value);
 
-            if (takeAndVerifyCancel()) {
-                return;
+            } catch (BaasException e) {
+                result = BaasResult.failure(e);
             }
-
-            R value = asyncCall();
-            result = BaasResult.success(value);
-        } catch (BaasException e) {
-            result = BaasResult.failure(e);
+        }
+        if (latch!=null){
+            latch.countDown();
         }
 
     }

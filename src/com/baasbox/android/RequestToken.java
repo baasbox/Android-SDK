@@ -55,6 +55,9 @@ public final class RequestToken implements Parcelable, Comparable<RequestToken> 
         return BaasBox.getDefaultChecked().resume(this, handler);
     }
 
+    public<R> BaasResult<R> await(){
+        return BaasBox.getDefaultChecked().await(this);
+    }
     public boolean abort() {
         return BaasBox.getDefaultChecked().abort(this);
     }
@@ -81,7 +84,6 @@ public final class RequestToken implements Parcelable, Comparable<RequestToken> 
         }
         return false;
     }
-
 
     @Override
     public int describeContents() {
