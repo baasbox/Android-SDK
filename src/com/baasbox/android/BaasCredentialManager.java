@@ -44,6 +44,7 @@ class BaasCredentialManager {
     private final static String ROLES_KEY = "ROLES_KEY";
     private final static String STATUS_KEY = "STATUS_KEY";
     private final static String DATE_KEY = "SIGNUP_KEY";
+    private final static String SOCIAL_NETWORK_KEY= "SOCIAL_KEY";
 
     private final SharedPreferences diskCache;
 
@@ -112,6 +113,9 @@ class BaasCredentialManager {
                 .putString(SESSION_KEY,token)
                 .putString(PROFILE_KEY,profile)
                 .putString(ROLES_KEY,array.toString());
+        if (user.social!=null){
+            edit.putString(SOCIAL_NETWORK_KEY,user.social);
+        }
         while (!edit.commit());
     }
 
@@ -127,8 +131,12 @@ class BaasCredentialManager {
         String rolesString = (String)userMap.get(ROLES_KEY);
         JsonArray roles = JsonArray.decode(rolesString);
         String profileString = (String)userMap.get(PROFILE_KEY);
+        String social = (String)userMap.get(SOCIAL_NETWORK_KEY);
         JsonObject profile = JsonObject.decode(profileString);
         BaasUser user = new BaasUser(username,password,signupDate,status,token,roles,profile);
+        if (social!=null){
+            user.social=social;
+        }
         return user;
     }
 

@@ -16,6 +16,7 @@
 package com.baasbox.android;
 
 import com.baasbox.android.impl.Base64;
+import com.baasbox.android.impl.Logger;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 
@@ -249,6 +250,17 @@ class RequestFactory {
         return new HttpRequest(HttpRequest.GET, endpoint, headers, null);
     }
 
+    public HttpRequest post(String endpoint,Param ... params){
+        return post(endpoint,null,params);
+    }
+    public HttpRequest post(String endpoint,Map<String,String>headers,Param ... params){
+        headers = fillHeaders(headers,config,credentials.currentUser());
+        if (params!=null){
+            String paramsUrl = encodeQueryParams(params,config.HTTP_CHARSET);
+            endpoint=endpoint+"?"+paramsUrl;
+        }
+        return new HttpRequest(HttpRequest.POST,endpoint,headers,null);
+    }
     public HttpRequest post(String uri, Map<String, String> headers, InputStream body) {
         headers = fillHeaders(headers, config, credentials.currentUser());
         return new HttpRequest(HttpRequest.POST, uri, headers, body);
@@ -265,8 +277,11 @@ class RequestFactory {
         headers = headers == null ? new HashMap<String, String>() : headers;
         headers.put(APPCODE_HEADER_NAME, config.APP_CODE);
         headers.put(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER);
+
+        Logger.debug("Format %s",credentials);
         if (credentials != null) {
-//            BAASLogging.debug("updating credentials " + credentials.password + " " + credentials.username + " " + credentials.sessionToken);
+            Logger.debug("Format2 %s",credentials);
+
             switch (config.AUTHENTICATION_TYPE) {
                 case BASIC_AUTHENTICATION:
                     if (credentials.getName() != null && credentials.getPassword() != null) {

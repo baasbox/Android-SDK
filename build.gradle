@@ -55,7 +55,6 @@ android {
         release.setRoot('build-types/release')
     }
 
-
 //    configurations {
 //        unitTestCompile.extendsFrom runtime
 //        unitTestRuntime.extendsFrom unitTestCompile
@@ -69,20 +68,22 @@ android {
             destinationDir = file('docs');
             exclude "**/impl/**";
             exclude "**/BuildConfig**";
-
+            options {
+               // stylesheetFile = rootProject.file('./gradle/docstyle.css')
+            }
             classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
         }
+    }
+
+
+    dependencies {
+        provided 'com.android.support:support-v4:19.0.0';
     }
 }
 
 
 
-dependencies {
-//    unitTestCompile files("$project.buildDir/classes/release")
-//    unitTestCompile 'junit:junit:4.10'
-//    unitTestCompile 'org.robolectric:robolectric:2.1.+'
-//    unitTestCompile 'com.google.android:android:4.4.+'
-}
+
 task coreLibJar(type: Jar) {
     from fileTree(dir: 'build/classes/release').matching { 'com/baasbox/android/**' }
 }

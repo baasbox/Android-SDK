@@ -365,7 +365,8 @@ public class BaasBox {
 
         @Override
         protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            Logger.debug("PUSH_ENABLED: %s", parseJson(response, box));
+            //JsonObject resp = parseJson(response,box);
+            Logger.debug("RESPONDED");
             return null;
         }
 

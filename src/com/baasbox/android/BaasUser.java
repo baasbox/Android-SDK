@@ -52,6 +52,11 @@ import java.util.*;
  */
 public class BaasUser implements Parcelable {
 
+    public final static class Social{
+        private Social(){}
+        public final static String GOOGLE = "google";
+        public final static String FACEBOOK = "facebook";
+    }
 
     private JsonObject privateData;
     private JsonObject friendVisibleData;
@@ -64,6 +69,7 @@ public class BaasUser implements Parcelable {
     private String signupDate;
     private String status;
     private final Set<String> roles = new HashSet<String>();
+    String social;
 
     void setToken(String session) {
         this.authToken=session;
@@ -213,6 +219,55 @@ public class BaasUser implements Parcelable {
         init(user);
     }
 
+    public static BaasResult<BaasUser> signupWithProviderSync(String provider,String token,String secret){
+        BaasBox box = BaasBox.getDefaultChecked();
+        SocialSignup socialSignup = new SocialSignup(box,provider,token,secret,null,null);
+        return box.submitSync(socialSignup);
+    }
+
+
+    public static RequestToken signupWithProvider(String provider,String token,String secret,BaasHandler<BaasUser> handler){
+        return signupWithProvider(provider, token, secret,null, handler);
+    }
+
+    public static RequestToken signupWithProvider(String provider,String token,String secret,Priority priority,BaasHandler<BaasUser> handler){
+        BaasBox box = BaasBox.getDefaultChecked();
+        SocialSignup socialSignup = new SocialSignup(box,provider,token,secret,priority,handler);
+        return box.submitAsync(socialSignup);
+    }
+
+    private static class SocialSignup extends NetworkTask<BaasUser>{
+        private String provider;
+        private String token;
+        private String secret;
+
+        protected SocialSignup(BaasBox box,String provider,String token,String secret, Priority priority, BaasHandler<BaasUser> handler) {
+            super(box, priority, handler);
+            this.provider=provider;
+            this.token=token;
+            this.secret=secret;
+        }
+
+        @Override
+        protected BaasUser onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
+            JsonObject data = parseJson(response, box).getObject("data");
+            Logger.debug("RECEIVED "+data.toString());
+            String token = data.getString("X-BB-SESSION");
+            if (token == null) throw new BaasException("Could not parse server response, missing token");
+            BaasUser user = new BaasUser(data);
+            user.authToken=token;
+            user.social = provider;
+            box.store.storeUser(user);
+            return user;
+        }
+
+        @Override
+        protected HttpRequest request(BaasBox box) {
+            String endpoint = box.requestFactory.getEndpoint("social/?",provider);
+            return box.requestFactory.post(endpoint, new RequestFactory.Param("oauth_token", token),
+                    new RequestFactory.Param("oauth_secret", secret));
+        }
+    }
 
     public RequestToken send(JsonObject message, Priority priority, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
@@ -242,9 +297,7 @@ public class BaasUser implements Parcelable {
         }
 
         @Override
-        protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            JsonObject ret = parseJson(response, box);
-            Logger.error("PUSH_OK %s", ret);
+        protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException{
             return null;
         }
 
@@ -589,6 +642,58 @@ public class BaasUser implements Parcelable {
      */
     public RequestToken save(BaasHandler<BaasUser> handler) {
         return save(null, handler);
+    }
+
+    public BaasResult<Void> changePasswordSync(String password){
+        BaasBox box = BaasBox.getDefaultChecked();
+        if(password==null) throw new NullPointerException("password cannot be null");
+        if (this.password==null) throw new NullPointerException("Current user has no password");
+        ChangePassword cp = new ChangePassword(box,this,password,null,null);
+        return box.submitSync(cp);
+    }
+
+    public RequestToken changePassword(String password,BaasHandler<Void> handler){
+        return changePassword(password,null, handler);
+    }
+
+    public RequestToken changePassword(String password,Priority priority,BaasHandler<Void> handler){
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (password==null) throw new NullPointerException("password cannot be null");
+        if (this.password==null) throw new NullPointerException("Current user has no password");
+        ChangePassword cp = new ChangePassword(box,this,password,priority,handler);
+        return box.submitAsync(cp);
+    }
+
+    private static class ChangePassword extends NetworkTask<Void>{
+        private HttpRequest request;
+        private BaasUser user;
+        private String password;
+
+        protected ChangePassword(BaasBox box,BaasUser user,String password,Priority priority, BaasHandler<Void> handler) {
+            super(box, priority, handler);
+            this.user= user;
+            request = box.requestFactory.put("me/password",new JsonObject().putString("old",user.getPassword()).putString("new",password));
+            this.password = password;
+        }
+
+        @Override
+        protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
+            user.setPassword(password);
+            box.store.storeUser(user);
+            return null;
+        }
+
+
+        @Override
+        protected Void onSkipRequest() throws BaasException {
+            throw new BaasException("not the current user");
+        }
+
+        @Override
+        protected HttpRequest request(BaasBox box) {
+            if(!user.isCurrent()) return null;
+            return request;
+        }
     }
 
     private static class SaveUser extends NetworkTask<BaasUser> {
