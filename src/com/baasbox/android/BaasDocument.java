@@ -50,7 +50,7 @@ import java.util.*;
  * @since 0.7.3
  * @author Andrea Tortorella
  */
-public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<Map.Entry<String, Object>>, Parcelable {
+public class BaasDocument extends BaasObject implements Iterable<Map.Entry<String, Object>>, Parcelable {
 
     private final JsonObject data;
     private final String collection;
@@ -992,6 +992,14 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
         return doc.save(SaveMode.IGNORE_VERSION, null, handler);
     }
 
+    public RequestToken save(BaasHandler<BaasDocument> handler){
+        return save(SaveMode.IGNORE_VERSION,null,handler);
+    }
+
+    public BaasResult<BaasDocument> saveSync(){
+        return saveSync(SaveMode.IGNORE_VERSION);
+    }
+
     public RequestToken save(SaveMode mode, BaasHandler<BaasDocument> handler) {
         return save(mode, null, handler);
     }
@@ -1144,7 +1152,7 @@ public class BaasDocument extends BaasObject<BaasDocument> implements Iterable<M
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("document/?/?", document.collection, document.id);
+            String endpoint = box.requestFactory.getEndpoint("document/?/?", document.getCollection(), document.getId());
             return box.requestFactory.get(endpoint);
         }
     }

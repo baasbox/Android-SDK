@@ -26,7 +26,7 @@ import org.apache.http.HttpResponse;
  * @author Andrea Tortorella
  * @since 0.7.3
  */
-public abstract class BaasObject<E extends BaasObject<E>> {
+public abstract class BaasObject {
     // todo this should provide common interface among remote objects
     //      such as dirty tracking timestamps ecc
 

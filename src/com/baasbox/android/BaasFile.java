@@ -49,7 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Andrea Tortorella
  * @since 0.7.3
  */
-public class BaasFile extends BaasObject<BaasFile> {
+public class BaasFile extends BaasObject {
 
     private JsonObject attachedData;
     private String mimeType;
