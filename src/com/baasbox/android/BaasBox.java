@@ -376,4 +376,81 @@ public class BaasBox {
         }
     }
 
+
+    public static <R> RequestToken streamAsset(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return stream(id, null, size, priority, data, handler);
+    }
+
+    public static <R> RequestToken streamAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return stream(id, null, size, null, data, handler);
+    }
+
+    public static <R> RequestToken streamAsset(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return stream(id, null, -1, null, data, handler);
+    }
+
+
+    public static <R> RequestToken streamAsset(String id, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
+        return stream(id, null, -1, priority, contentHandler, handler);
+    }
+
+    private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (id == null) throw new NullPointerException("id cannot be null");
+        StreamRequest synReq = new StreamRequest(box,"asset", id, spec, sizeId);
+        return box.submitSync(synReq);
+    }
+
+
+    public static BaasResult<BaasStream> streamAssetSync(String id, int sizeId) {
+        return streamSync(id, null, sizeId);
+    }
+
+    public static BaasResult<BaasStream> streamAssetSync(String id, String spec) {
+        return streamSync(id, spec, -1);
+    }
+
+
+    private static <R> RequestToken stream(String name,String sizeSpec, int sizeIdx,Priority priority,DataStreamHandler<R> dataStreamHandler,BaasHandler<R> handler){
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (dataStreamHandler == null) throw new NullPointerException("data handler cannot be null");
+        if (name == null) throw new NullPointerException("id cannot be null");
+        AsyncStream<R> stream = new AssetStream<R>(box, name, sizeSpec, sizeIdx, priority, dataStreamHandler, handler);
+        return box.submitAsync(stream);
+
+    }
+
+    private static class AssetStream<R> extends AsyncStream<R> {
+        private final String name;
+        private HttpRequest request;
+
+        protected AssetStream(BaasBox box, String name, String sizeSpec, int sizeId, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
+            super(box, priority, dataStream, handler,false);
+            this.name = name;
+            RequestFactory.Param param = null;
+            if (sizeSpec != null) {
+                param = new RequestFactory.Param("resize", sizeSpec);
+
+            } else if (sizeId >= 0) {
+                param = new RequestFactory.Param("sizeId", Integer.toString(sizeId));
+            }
+            String endpoint = box.requestFactory.getEndpoint("asset/?", name);
+            if (param != null) {
+                request = box.requestFactory.get(endpoint, param);
+            } else {
+                request = box.requestFactory.get(endpoint);
+            }
+        }
+
+        @Override
+        protected String streamId() {
+            return name;
+        }
+
+        @Override
+        protected HttpRequest request(BaasBox box) {
+            return request;
+        }
+    }
+
 }

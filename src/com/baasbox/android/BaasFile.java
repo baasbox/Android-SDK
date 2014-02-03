@@ -445,7 +445,7 @@ public class BaasFile extends BaasObject {
     private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null) throw new NullPointerException("id cannot be null");
-        StreamRequest synReq = new StreamRequest(box, id, spec, sizeId);
+        StreamRequest synReq = new StreamRequest(box,"file", id, spec, sizeId);
         return box.submitSync(synReq);
     }
 
