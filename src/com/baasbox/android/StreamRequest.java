@@ -15,6 +15,7 @@
 
 package com.baasbox.android;
 
+import com.baasbox.android.impl.DiskLruCache;
 import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -44,6 +45,11 @@ class StreamRequest extends NetworkTask<BaasStream> {
         } else {
             request = box.requestFactory.get(endpoint);
         }
+    }
+
+    @Override
+    protected BaasStream getFromCache(BaasBox box) throws BaasException {
+        return box.mCache.getStream(id);
     }
 
     @Override

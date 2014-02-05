@@ -144,6 +144,7 @@ public class BaasBox {
     private final Context context;
     private final Dispatcher asyncDispatcher;
     private final ImmediateDispatcher syncDispatcher;
+    final Cache mCache;
 
     final RequestFactory requestFactory;
     final RestClient restClient;
@@ -164,6 +165,7 @@ public class BaasBox {
         this.store = new BaasCredentialManager(this,context);
         this.restClient = new HttpUrlConnectionClient(context,this.config);
         this.requestFactory = new RequestFactory(this.config, store);
+        this.mCache = new Cache(context);
         this.syncDispatcher = new ImmediateDispatcher();
         this.asyncDispatcher = new Dispatcher(this);// AsyncDefaultDispatcher(this, restClient);
     }

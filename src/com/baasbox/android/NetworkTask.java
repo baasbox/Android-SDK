@@ -43,6 +43,9 @@ abstract class NetworkTask<R> extends Task<R> {
        this(box,priority,handler,box.config.AUTHENTICATION_TYPE== BaasBox.Config.AuthType.SESSION_TOKEN);
     }
 
+    protected R getFromCache(BaasBox box) throws BaasException{
+        return null;
+    }
 
     protected final R parseResponse(HttpResponse response, BaasBox box) throws BaasException {
         final int status = response.getStatusLine().getStatusCode();
@@ -142,6 +145,10 @@ abstract class NetworkTask<R> extends Task<R> {
         HttpRequest request = request(box);
         if (request == null) {
             return onSkipRequest();
+        }
+        R val = getFromCache(box);
+        if (val!=null){
+            return val;
         }
         Logger.info("requested %s", request);
         HttpResponse response = box.restClient.execute(request);

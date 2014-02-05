@@ -15,6 +15,7 @@
 
 package com.baasbox.android;
 
+import com.baasbox.android.impl.DiskLruCache;
 import com.baasbox.android.impl.Logger;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -43,9 +44,28 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
     protected abstract String streamId();
 
     @Override
+    protected R getFromCache(BaasBox box) throws BaasException{
+        try {
+
+            byte[] bytes = box.mCache.get(streamId());
+            if (bytes==null){
+                Logger.info("GOT FROM CACHE MISS");
+                return null;
+            } else {
+                Logger.info("GOT FROM CACHE HIT");
+                    dataStream.onData(bytes,bytes.length,bytes.length,streamId(),null);
+                    return dataStream.onData(null,0,bytes.length,streamId(),null);
+            }
+        } catch (Exception e) {
+            throw new BaasIOException("error while parsing content from cache",e);
+        }
+    }
+
+    @Override
     protected R onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
         HttpEntity entity = null;
         BufferedInputStream in = null;
+        Cache.CacheStream cacheStream = null;
         R result = null;
         try {
             entity = response.getEntity();
@@ -59,10 +79,13 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
             in = BaasStream.getInput(entity);
             int read = 0;
             long available = contentLength;
+            cacheStream = box.mCache.beginStream(streamId());
             while ((read = in.read(data, 0, Math.min((int) available, data.length))) > 0) {
                 available -= read;
+                cacheStream.write(data,0,read);
                 result = dataStream.onData(data, read, contentLength, streamId(), contentType);
             }
+            cacheStream.commit();
             result = dataStream.onData(null, 0, contentLength, streamId(), contentType);
         } catch (IOException e) {
             throw new BaasException(e);
@@ -75,7 +98,9 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
                 }
                 if (entity != null) {
                     entity.consumeContent();
-                    ;
+                }
+                if (cacheStream!=null){
+                    cacheStream.close();
                 }
             } catch (IOException e) {
                 Logger.error("Error while parsing stream");

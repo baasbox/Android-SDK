@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Represents a BaasBox file.
@@ -61,6 +62,8 @@ public class BaasFile extends BaasObject {
     private long contentLength;
     private long version;
     private final AtomicBoolean isBound = new AtomicBoolean();
+    private AtomicReference<byte[]> data = new AtomicReference<byte[]>();
+
 
     public BaasFile() {
         this(new JsonObject(), false);
@@ -90,6 +93,10 @@ public class BaasFile extends BaasObject {
         this.name = fromServer.getString("fileName");
         this.contentLength = fromServer.getLong("contentLength");
         this.version = fromServer.getLong("@version");
+    }
+
+    public byte[] getData(){
+        return data.get();
     }
 
     @Override
@@ -366,6 +373,45 @@ public class BaasFile extends BaasObject {
         return upload(in, null, handler);
     }
 
+
+    public RequestToken stream(BaasHandler<BaasFile> handler){
+        return doStream(-1, null, Priority.NORMAL, handler);
+    }
+
+    public RequestToken stream(int sizeIdx,BaasHandler<BaasFile> handler){
+        return doStream(sizeIdx,null,null,handler);
+    }
+
+    public RequestToken stream(String sizeSpec,BaasHandler<BaasFile> handler){
+        return doStream(-1,sizeSpec,null,handler);
+    }
+
+    public static RequestToken fetchStream(String id,BaasHandler<BaasFile> handler){
+        BaasFile f = new BaasFile();
+        f.id=id;
+        return f.doStream(-1,null,null,handler);
+    }
+
+
+    private RequestToken doStream(int size,String spec,Priority priority,BaasHandler<BaasFile> handler){
+        return stream(this.id,spec,size, priority,new FileStreamer(this), handler);
+    }
+
+    private static class FileStreamer extends StreamBody<BaasFile>{
+        BaasFile file;
+
+        FileStreamer(BaasFile file){
+            this.file=file;
+        }
+
+        @Override
+        protected BaasFile convert(byte[] body, String id, String contentType) {
+            file.data.set(body);
+            file.mimeType=contentType;
+            return file;
+        }
+    }
+
     public static <R> RequestToken stream(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
         return stream(id, null, size, priority, data, handler);
     }
@@ -391,10 +437,10 @@ public class BaasFile extends BaasObject {
         return box.submitAsync(stream);
     }
 
+
     private static class FileStream<R> extends AsyncStream<R> {
         private final String id;
         private HttpRequest request;
-
         protected FileStream(BaasBox box, String id, String sizeSpec, int sizeId, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
             super(box, priority, dataStream, handler);
             this.id = id;

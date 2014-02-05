@@ -15,13 +15,11 @@
 
 package com.baasbox.android;
 
+import com.baasbox.android.impl.DiskLruCache;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 
-import java.io.BufferedInputStream;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 /**
  * An input streams over the content of a response
@@ -32,6 +30,7 @@ import java.io.InputStream;
  */
 public final class BaasStream extends FilterInputStream {
     private final HttpEntity entity;
+    private final DiskLruCache.Snapshot snapshot;
 
     /**
      * The content type of the stream
@@ -48,9 +47,19 @@ public final class BaasStream extends FilterInputStream {
      */
     public final String id;
 
+    BaasStream(String id,DiskLruCache.Snapshot s){
+        super(s.getInputStream(0));
+        this.id=id;
+        this.contentLength=s.getLength(0);
+        this.contentType=null;
+        this.entity=null;
+        this.snapshot=null;
+    }
+
     BaasStream(String id, HttpEntity entity) throws IOException {
         super(getInput(entity));
         this.entity = entity;
+        this.snapshot=null;
         this.id = id;
         Header contentTypeHeader = entity.getContentType();
         String contentType = "application/octet-stream";
@@ -64,7 +73,10 @@ public final class BaasStream extends FilterInputStream {
     @Override
     public void close() throws IOException {
         super.close();
-        entity.consumeContent();
+        if(entity!=null){
+            entity.consumeContent();
+        }
+        if (snapshot!=null) snapshot.close();
     }
 
 
