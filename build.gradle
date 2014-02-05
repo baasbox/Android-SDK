@@ -104,7 +104,7 @@ uploadArchives {
             repository(url: "file:///home/eto/baasbox-android")
             pom.groupId = 'com.baasbox'
             pom.artifactId = 'baasbox-android'
-            pom.version = '0.7.3-alpha'
+            pom.version = '0.7.3'
         }
     }
 }

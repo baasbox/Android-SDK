@@ -263,6 +263,7 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
     }
 
     final void execute() {
+        st("taken");
         if (!takeAndVerifyCancel()) {
             try {
                 R value = asyncCall();
@@ -272,14 +273,19 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
                 result = BaasResult.failure(e);
             }
         }
-        if (latch!=null){
-            latch.countDown();
-        }
+//        if (latch!=null){
+//            latch.countDown();
+//        }
 
     }
 
     protected abstract R asyncCall() throws BaasException;
 
+    final void unlock(){
+        if (latch!=null){
+            latch.countDown();
+        }
+    }
     final void post() {
         postOn.post(this);
     }

@@ -165,6 +165,7 @@ public final class Dispatcher {
                 try {
                     task.execute();
                     task.post();
+                    task.unlock();
 
                 } catch (Throwable t) {
                     if (dispatcher.exceptionHandler.onError(t)) {

@@ -31,6 +31,7 @@ final class Util {
     private Util() {
     }
 
+
     static String readFully(Reader reader) throws IOException {
         try {
             StringWriter writer = new StringWriter();

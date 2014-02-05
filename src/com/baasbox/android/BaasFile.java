@@ -316,6 +316,14 @@ public class BaasFile extends BaasObject {
         return box.submitAsync(req);
     }
 
+
+    public RequestToken upload(BaasACL acl,InputStream stream, Priority priority, BaasHandler<BaasFile> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        RequestFactory factory = box.requestFactory;
+        Upload req = uploadRequest(box, stream, priority, handler, acl.toJson());
+        return box.submitAsync(req);
+    }
+
     public BaasResult<BaasFile> uploadSync(InputStream stream) {
         BaasBox box = BaasBox.getDefaultChecked();
         Upload req = uploadRequest(box, stream, null, null, new JsonObject());
@@ -324,10 +332,26 @@ public class BaasFile extends BaasObject {
 
     public RequestToken upload(InputStream stream, BaasHandler<BaasFile> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Upload upload = uploadRequest(box, stream, null, handler, null);
+        Upload upload = uploadRequest(box, stream, null, handler, new JsonObject());
         return box.submitAsync(upload);
     }
 
+    public RequestToken upload(BaasACL acl,InputStream stream, BaasHandler<BaasFile> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Upload upload = uploadRequest(box, stream, null, handler, acl.toJson());
+        return box.submitAsync(upload);
+    }
+
+    public RequestToken upload(BaasACL acl,File file, Priority priority, BaasHandler<BaasFile> handler) {
+        if (file == null) throw new NullPointerException("file cannot be null");
+        try {
+
+            FileInputStream fin = new FileInputStream(file);
+            return upload(acl,fin, priority, handler);
+        } catch (FileNotFoundException e) {
+            throw new IllegalArgumentException("file does not exists", e);
+        }
+    }
     public RequestToken upload(File file, Priority priority, BaasHandler<BaasFile> handler) {
         if (file == null) throw new NullPointerException("file cannot be null");
         try {
@@ -352,15 +376,23 @@ public class BaasFile extends BaasObject {
     }
 
 
+    public RequestToken upload(BaasACL acl,File file, BaasHandler<BaasFile> handler) {
+        return upload(acl,file, null, handler);
+    }
+
     public RequestToken upload(File file, BaasHandler<BaasFile> handler) {
         return upload(file, null, handler);
     }
 
 
     public RequestToken upload(byte[] bytes, Priority priority, BaasHandler<BaasFile> handler) {
+        return upload(new BaasACL(),bytes,priority,handler);
+    }
+
+    public RequestToken upload(BaasACL acl,byte[] bytes, Priority priority, BaasHandler<BaasFile> handler) {
         if (bytes == null) throw new NullPointerException("bytes cannot be null");
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        return upload(in, priority, handler);
+        return upload(acl,in, priority, handler);
     }
 
     public BaasResult<BaasFile> uploadSync(byte[] bytes) {
@@ -369,6 +401,13 @@ public class BaasFile extends BaasObject {
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         Upload req = uploadRequest(box, in, null, null, new JsonObject());
         return box.submitSync(req);
+    }
+
+
+    public RequestToken upload(BaasACL acl,byte[] bytes, BaasHandler<BaasFile> handler) {
+        if (bytes == null) throw new NullPointerException("bytes cannot be null");
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        return upload(acl,in, null, handler);
     }
 
     public RequestToken upload(byte[] bytes, BaasHandler<BaasFile> handler) {
