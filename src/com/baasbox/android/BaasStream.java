@@ -80,6 +80,7 @@ public final class BaasStream extends FilterInputStream {
     }
 
 
+
     static BufferedInputStream getInput(HttpEntity entity) throws IOException {
         InputStream in = entity.getContent();
         if (in instanceof BufferedInputStream) {

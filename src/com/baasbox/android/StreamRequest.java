@@ -58,6 +58,7 @@ class StreamRequest extends NetworkTask<BaasStream> {
         HttpEntity entity = null;
         try {
             entity = response.getEntity();
+
             BaasStream stream = new BaasStream(id, entity);
             close = false;
             return stream;

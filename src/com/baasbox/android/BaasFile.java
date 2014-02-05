@@ -99,6 +99,10 @@ public class BaasFile extends BaasObject {
         return data.get();
     }
 
+    public JsonObject getAttachedData(){
+        return attachedData;
+    }
+
     @Override
     public String getAuthor() {
         return author;

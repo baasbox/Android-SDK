@@ -46,7 +46,7 @@ public class BaasACL {
             r = JsonObject.of("users", userReadGrants);
         }
         if (rolesReadGrants != null) {
-            r = r == null ? JsonObject.of("roles", rolesDeleteGrants) : r.putArray("roles", rolesReadGrants);
+            r = r == null ? JsonObject.of("roles", rolesReadGrants) : r.putArray("roles", rolesReadGrants);
         }
 
         JsonObject u = null;
