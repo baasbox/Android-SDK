@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
@@ -80,12 +79,17 @@ class HttpUrlConnectionClient implements RestClient {
         this.config = config;
         this.mSSLSocketFactory = config.HTTPS ? trustAll() : null;
         this.mHostVerifier = config.HTTPS ? ACCEPT_ALL : null;
-        disableReuseConnectionIfNecessary();
+        if (config.HTTPS){
+            HttpsURLConnection.setDefaultSSLSocketFactory(mSSLSocketFactory);
+            HttpsURLConnection.setDefaultHostnameVerifier(mHostVerifier);
+        }
+        disableReuseConnectionIfNecessary(config.HTTPS);
+
         enableHttpCacheIfAvailable(context,HTTP_CACHE_SIZE);
     }
 
-    private void disableReuseConnectionIfNecessary(){
-        if (Build.VERSION.SDK_INT<Build.VERSION_CODES.FROYO){
+    private void disableReuseConnectionIfNecessary(boolean https){
+        if (https || Build.VERSION.SDK_INT<Build.VERSION_CODES.FROYO){
             System.setProperty("http.keepAlive","false");
         }
     }
@@ -103,7 +107,7 @@ class HttpUrlConnectionClient implements RestClient {
     }
     private static SSLSocketFactory trustAll() {
         try {
-            SSLContext ssl = SSLContext.getInstance("SSL");
+            SSLContext ssl = SSLContext.getInstance("TLS");
             ssl.init(null, TRUST_MANAGERS, null);
             return ssl.getSocketFactory();
         } catch (NoSuchAlgorithmException e) {
@@ -124,7 +128,14 @@ class HttpUrlConnectionClient implements RestClient {
             }
             setupConnectionForRequest(connection, request);
             connection.connect();
-            int responseCode = connection.getResponseCode();
+
+            int responseCode = -1;
+            try{
+                responseCode =connection.getResponseCode();
+            }catch (IOException e){
+                responseCode = connection.getResponseCode();
+            }
+            Logger.info("Connection response received");
             if (responseCode == -1) {
                 throw new IOException("Connection failed");
             }
@@ -173,17 +184,16 @@ class HttpUrlConnectionClient implements RestClient {
         connection.setInstanceFollowRedirects(true);
         connection.setDoInput(true);
 
-        if (config.HTTPS) {
-            ((HttpsURLConnection) connection).setSSLSocketFactory(mSSLSocketFactory);
-            ((HttpsURLConnection) connection).setHostnameVerifier(mHostVerifier);
-        }
+//        if (config.HTTPS) {
+//            ((HttpsURLConnection) connection).setSSLSocketFactory(mSSLSocketFactory);
+//            ((HttpsURLConnection) connection).setHostnameVerifier(mHostVerifier);
+//        }
 
         return connection;
     }
 
     private void setupConnectionForRequest(HttpURLConnection connection, HttpRequest request) throws IOException {
         try {
-
             switch (request.method) {
                 case HttpRequest.GET:
                     connection.setRequestMethod("GET");

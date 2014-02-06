@@ -96,7 +96,10 @@ abstract class NetworkTask<R> extends Task<R> {
 
     protected R onClientError(int status, HttpResponse response, BaasBox box) throws BaasException {
         JsonObject json = parseJson(response,box);
-        if (status==401&&json.getInt("bb_code",-1)==BaasInvalidSessionException.INVALID_SESSION_TOKEN_CODE){
+        if (json.contains("bb_code")){
+
+        }
+        if (status==401&&Integer.parseInt(json.getString("bb_code","-1"))==BaasInvalidSessionException.INVALID_SESSION_TOKEN_CODE){
            throw new BaasInvalidSessionException(json);
         }else {
            throw new BaasClientException(status, json);

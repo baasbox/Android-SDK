@@ -15,6 +15,7 @@
 
 package com.baasbox.android;
 
+import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -42,6 +43,45 @@ public final class RequestToken implements Parcelable, Comparable<RequestToken> 
      */
     public boolean suspend() {
         return BaasBox.getDefaultChecked().suspend(this);
+    }
+
+    /**
+     * Suspends a request and immediately save it in a bundle
+     * @param bundle a non null bundle
+     * @param name the key to save the token with
+     * @return true if the token was suspended
+     */
+    public boolean suspendAndSave(Bundle bundle,String name){
+        if (bundle==null)
+            throw new IllegalArgumentException("bunlde cannot be null");
+        if (name==null)
+            throw new IllegalArgumentException("name cannot be null");
+        if (suspend()){
+            bundle.putParcelable(name,this);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Loads a request token from the bundle
+     * and immediately tries to resume the request with handler
+     * @param bundle a non null bundle
+     * @param name the key of the saved token
+     * @param handler a handler to resume the request with.
+     * @return the token if resumed, null otherwise
+     */
+    public static RequestToken loadAndResume(Bundle bundle,String name,BaasHandler<?> handler){
+        if (bundle==null)
+            throw new IllegalArgumentException("bunlde cannot be null");
+        if (name==null)
+            throw new IllegalArgumentException("name cannot be null");
+        RequestToken token = bundle.getParcelable(name);
+        if(token!=null && token.resume(handler)){
+            return token;
+        }
+        return null;
     }
 
     /**

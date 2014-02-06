@@ -15,9 +15,9 @@
 
 package com.baasbox.android;
 
-import android.accounts.Account;
 import android.content.Context;
 import android.content.SharedPreferences;
+import com.baasbox.android.impl.Logger;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
@@ -27,8 +27,6 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.atomic.AtomicStampedReference;
 
 /**
  * Created by Andrea Tortorella on 22/01/14.
@@ -75,7 +73,11 @@ class BaasCredentialManager {
     public void storeUser(BaasUser user) {
         synchronized (lock){
             current=user;
-            persist(user);
+            if(user==null){
+                erase();
+            }else {
+                persist(user);
+            }
             loaded = true;
         }
     }
@@ -148,10 +150,12 @@ class BaasCredentialManager {
             HttpRequest req = loginRequest(user, pass, null);
             HttpResponse resp = box.restClient.execute(req);
             if (resp.getStatusLine().getStatusCode()/100==2){
-                String session = NetworkTask.parseJson(resp, box).getObject("data").getString("X-BB-SESSION");
+                JsonObject sessionObject = NetworkTask.parseJson(resp, box);
+                Logger.debug("!!!! %s !!!!!",sessionObject.toString());
+                String session=sessionObject.getObject("data").getString("X-BB-SESSION");
                 if (session!=null){
                     c.setToken(session);
-                    storeUser(null);
+                    storeUser(c);
                     return true;
                 }
                 return false;
