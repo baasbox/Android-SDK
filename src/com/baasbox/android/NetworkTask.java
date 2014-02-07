@@ -40,7 +40,7 @@ abstract class NetworkTask<R> extends Task<R> {
         retryOnFailedLogin=retryLogin;
     }
     protected NetworkTask(BaasBox box, Priority priority, BaasHandler<R> handler) {
-       this(box,priority,handler,box.config.AUTHENTICATION_TYPE== BaasBox.Config.AuthType.SESSION_TOKEN);
+       this(box,priority,handler,box.config.authenticationType == BaasBox.Config.AuthType.SESSION_TOKEN);
     }
 
     protected R getFromCache(BaasBox box) throws BaasException{
@@ -117,7 +117,7 @@ abstract class NetworkTask<R> extends Task<R> {
             String content = null;
             try {
                 JsonObject decoded;
-                content = EntityUtils.toString(entity, box.config.HTTP_CHARSET);
+                content = EntityUtils.toString(entity, box.config.httpCharset);
                 if (content == null) {
                     decoded = new JsonObject();
                 } else {

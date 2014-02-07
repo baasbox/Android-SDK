@@ -21,7 +21,6 @@ import android.os.Process;
 import com.baasbox.android.*;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,15 +42,15 @@ public final class Dispatcher {
 
     public Dispatcher(BaasBox box) {
         this.box = box;
-        this.exceptionHandler = setHandler(box.config.EXCEPTION_HANDLER);
-        this.workers = createWorkers(box.config.NUM_THREADS);
+        this.exceptionHandler = setHandler(box.config.exceptionHandler);
+        this.workers = createWorkers(box.config.workerThreads);
         this.taskQueue = new PriorityBlockingQueue<Task<?>>(16);
         this.liveAsyncs = new ConcurrentHashMap<Integer, Task<?>>(16, 0.75f, 1);
     }
 
     private static ExceptionHandler setHandler(ExceptionHandler handler) {
         if (handler == null) {
-            Logger.warn("EXCEPTION_HANDLER is null: set using default");
+            Logger.warn("exceptionHandler is null: set using default");
             return ExceptionHandler.DEFAULT;
         }
         return handler;
@@ -59,7 +58,7 @@ public final class Dispatcher {
 
     private static Worker[] createWorkers(int threads) {
         if (threads < 0) {
-            Logger.warn("Ignoring NUM_THREADS: less than 0 threads, default will be used");
+            Logger.warn("Ignoring workerThreads: less than 0 threads, default will be used");
             threads = 0;
         }
         if (threads == 0) {

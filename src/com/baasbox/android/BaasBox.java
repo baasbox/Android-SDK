@@ -75,7 +75,7 @@ public class BaasBox {
      */
     public final static class Config {
 
-        public ExceptionHandler EXCEPTION_HANDLER = ExceptionHandler.DEFAULT;
+        public ExceptionHandler exceptionHandler = ExceptionHandler.DEFAULT;
 
         /**
          * The supported authentication types.
@@ -88,57 +88,57 @@ public class BaasBox {
          * if <code>true</code> the SDK use HTTPs protocol. Default is
          * <code>false</code>.
          */
-        public boolean HTTPS = false;
+        public boolean useHttps = false;
 
         /**
          * The charset used for the HTTP connection, default is <code>UTF-8</code>.
          */
-        public String HTTP_CHARSET = "UTF-8";
+        public String httpCharset = "UTF-8";
 
         /**
          * The port number of the server connection, default is <code>9000</code>.
          */
-        public int HTTP_PORT = 9000;
+        public int httpPort = 9000;
 
         /**
          * Sets the timeout until a connection is established. A value of zero means
          * the timeout is not used. The default value is 6000.
          */
-        public int HTTP_CONNECTION_TIMEOUT = 6000;
+        public int httpConnectionTimeout = 6000;
 
         /**
          * Sets the default socket timeout (SO_TIMEOUT) in milliseconds which is the
          * timeout for waiting for data. A timeout value of zero is interpreted as
          * an infinite timeout. The default value is zero.
          */
-        public int HTTP_SOCKET_TIMEOUT = 10000;
+        public int httpSocketTimeout = 10000;
 
         /**
          * The domain name of the server, default is <code>"10.0.2.2</code> -refers to the localhost from emulator.
          */
-        public String API_DOMAIN = "10.0.2.2";
+        public String apiDomain = "10.0.2.2";
 
         /**
          * The relative path of the server, default is <code>/</code>.
          */
-        public String API_BASEPATH = "/";
+        public String apiBasepath = "/";
 
         /**
          * The BaasBox app code, default is <code>1234567890</code>.
          */
-        public String APP_CODE = "1234567890";
+        public String appCode = "1234567890";
 
         /**
          * The authentication type used by the SDK, default is
          * <code>BASIC_AUTHENTICATION</code>.
          */
-        public AuthType AUTHENTICATION_TYPE = AuthType.BASIC_AUTHENTICATION;
+        public AuthType authenticationType = AuthType.BASIC_AUTHENTICATION;
 
         /**
          * Number of threads to use for asynchronous requests.
          * If it's <code>0</code> it uses a computed default value.
          */
-        public int NUM_THREADS = 0;
+        public int workerThreads = 0;
     }
 
     private final Context context;

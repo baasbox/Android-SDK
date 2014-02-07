@@ -58,18 +58,18 @@ class RequestFactory {
 
     private static String initApiRoot(BaasBox.Config config) {
         StringBuilder api = new StringBuilder();
-        api.append(config.HTTPS ? "https://" : "http://");
-        api.append(config.API_DOMAIN);
+        api.append(config.useHttps ? "https://" : "http://");
+        api.append(config.apiDomain);
         api.append(":");
-        api.append(config.HTTP_PORT);
-        if (config.API_BASEPATH == null
-                || config.API_BASEPATH.length() == 0) {
+        api.append(config.httpPort);
+        if (config.apiBasepath == null
+                || config.apiBasepath.length() == 0) {
             api.append('/');
-        } else if (config.API_BASEPATH.startsWith("/")) {
-            api.append(config.API_BASEPATH);
+        } else if (config.apiBasepath.startsWith("/")) {
+            api.append(config.apiBasepath);
         } else {
             api.append('/');
-            api.append(config.API_BASEPATH);
+            api.append(config.apiBasepath);
         }
 
         return api.toString();
@@ -157,9 +157,9 @@ class RequestFactory {
         if (form_params != null) {
             byte[] bytes = null;
             try {
-                String params = encodeParams(form_params, config.HTTP_CHARSET);
+                String params = encodeParams(form_params, config.httpCharset);
 //                BAASLogging.debug("PARAMS: " + params);
-                bytes = params.getBytes(config.HTTP_CHARSET);
+                bytes = params.getBytes(config.httpCharset);
             } catch (UnsupportedEncodingException e) {
                 throw new Error(e);
             }
@@ -175,7 +175,7 @@ class RequestFactory {
         if (object != null) {
             byte[] bytes = null;
             try {
-                bytes = object.toString().getBytes(config.HTTP_CHARSET);
+                bytes = object.toString().getBytes(config.httpCharset);
             } catch (UnsupportedEncodingException e) {
                 throw new Error(e);
             }
@@ -195,7 +195,7 @@ class RequestFactory {
         if (object != null) {
             byte[] bytes = null;
             try {
-                bytes = object.toString().getBytes(config.HTTP_CHARSET);
+                bytes = object.toString().getBytes(config.httpCharset);
             } catch (UnsupportedEncodingException e) {
                 throw new Error(e);
             }
@@ -235,7 +235,7 @@ class RequestFactory {
     public HttpRequest delete(String endpoint, Map<String, String> queryParams, Map<String, String> headers) {
         headers = fillHeaders(headers, config, credentials.currentUser());
         if (queryParams != null) {
-            String queryUrl = encodeParams(queryParams, config.HTTP_CHARSET);
+            String queryUrl = encodeParams(queryParams, config.httpCharset);
             endpoint = endpoint + "?" + queryUrl;
         }
         return new HttpRequest(HttpRequest.DELETE, endpoint, headers, null);
@@ -244,7 +244,7 @@ class RequestFactory {
     public HttpRequest get(String endpoint, Map<String, String> headers, Param... queryParams) {
         headers = fillHeaders(headers, config, credentials.currentUser());
         if (queryParams != null) {
-            String queryUrl = encodeQueryParams(queryParams, config.HTTP_CHARSET);
+            String queryUrl = encodeQueryParams(queryParams, config.httpCharset);
             endpoint = endpoint + "?" + queryUrl;
         }
         return new HttpRequest(HttpRequest.GET, endpoint, headers, null);
@@ -256,7 +256,7 @@ class RequestFactory {
     public HttpRequest post(String endpoint,Map<String,String>headers,Param ... params){
         headers = fillHeaders(headers,config,credentials.currentUser());
         if (params!=null){
-            String paramsUrl = encodeQueryParams(params,config.HTTP_CHARSET);
+            String paramsUrl = encodeQueryParams(params,config.httpCharset);
             endpoint=endpoint+"?"+paramsUrl;
         }
         return new HttpRequest(HttpRequest.POST,endpoint,headers,null);
@@ -268,21 +268,21 @@ class RequestFactory {
 
     private static Map<String, String> setContentType(Map<String, String> headers, BaasBox.Config config, String contentType, int length) {
         headers = headers == null ? new HashMap<String, String>() : headers;
-        headers.put(CONTENT_HEADER, contentType + config.HTTP_CHARSET);
+        headers.put(CONTENT_HEADER, contentType + config.httpCharset);
         headers.put(CONTENT_LENGTH, Integer.toString(length));
         return headers;
     }
 
     private static Map<String, String> fillHeaders(Map<String, String> headers, BaasBox.Config config, BaasUser credentials) {
         headers = headers == null ? new HashMap<String, String>() : headers;
-        headers.put(APPCODE_HEADER_NAME, config.APP_CODE);
+        headers.put(APPCODE_HEADER_NAME, config.appCode);
         headers.put(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER);
 
         Logger.debug("Format %s",credentials);
         if (credentials != null) {
             Logger.debug("Format2 %s",credentials);
 
-            switch (config.AUTHENTICATION_TYPE) {
+            switch (config.authenticationType) {
                 case BASIC_AUTHENTICATION:
                     if (credentials.getName() != null && credentials.getPassword() != null) {
                         String plain = credentials.getName() + ':' + credentials.getPassword();
@@ -311,11 +311,11 @@ class RequestFactory {
         ins.add(inputStream);
         if (metaData != null) {
             ins.add(metaDataStream(boundary, "attachedData", config));
-            ins.add(jsonInputStream(metaData, config.HTTP_CHARSET));
+            ins.add(jsonInputStream(metaData, config.httpCharset));
         }
         if (acl != null) {
             ins.add(metaDataStream(boundary, "acl", config));
-            ins.add(jsonInputStream(acl, config.HTTP_CHARSET));
+            ins.add(jsonInputStream(acl, config.httpCharset));
         }
         ins.add(trail(boundary, config));
         SequenceInputStream body = new SequenceInputStream(Collections.enumeration(ins));
@@ -326,9 +326,9 @@ class RequestFactory {
     private InputStream metaDataStream(String boundary, String type, BaasBox.Config config) {
         String header = String.format(Locale.US, "\r\n--%s\r\n" +
                 "Content-Disposition: form-data; name=\"%s\"\r\n" +
-                "Content-Type: " + JSON_CONTENT + "%s\r\n\r\n", boundary, type, config.HTTP_CHARSET);
+                "Content-Type: " + JSON_CONTENT + "%s\r\n\r\n", boundary, type, config.httpCharset);
         try {
-            return new ByteArrayInputStream(header.getBytes(config.HTTP_CHARSET));
+            return new ByteArrayInputStream(header.getBytes(config.httpCharset));
         } catch (UnsupportedEncodingException e) {
             throw new Error(e);
         }
@@ -339,7 +339,7 @@ class RequestFactory {
                 "Content-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\n" +
                 "Content-Type: %s\r\n%s\r\n", boundary, name, contentType, binary ? "Content-Transfer-Encoding: binary\r\n" : "");
         try {
-            return new ByteArrayInputStream(header.getBytes(config.HTTP_CHARSET));
+            return new ByteArrayInputStream(header.getBytes(config.httpCharset));
         } catch (UnsupportedEncodingException e) {
             throw new Error(e);
         }
@@ -348,7 +348,7 @@ class RequestFactory {
 
     private InputStream trail(String boundary, BaasBox.Config config) {
         try {
-            byte[] trail = String.format(Locale.US, "\r\n--%s--\r\n", boundary).getBytes(config.HTTP_CHARSET);
+            byte[] trail = String.format(Locale.US, "\r\n--%s--\r\n", boundary).getBytes(config.httpCharset);
             ByteArrayInputStream in = new ByteArrayInputStream(trail);
             return in;
         } catch (UnsupportedEncodingException e) {

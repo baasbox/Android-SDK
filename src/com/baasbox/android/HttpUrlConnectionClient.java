@@ -77,13 +77,13 @@ class HttpUrlConnectionClient implements RestClient {
 
     HttpUrlConnectionClient(Context context,BaasBox.Config config) {
         this.config = config;
-        this.mSSLSocketFactory = config.HTTPS ? trustAll() : null;
-        this.mHostVerifier = config.HTTPS ? ACCEPT_ALL : null;
-        if (config.HTTPS){
+        this.mSSLSocketFactory = config.useHttps ? trustAll() : null;
+        this.mHostVerifier = config.useHttps ? ACCEPT_ALL : null;
+        if (config.useHttps){
             HttpsURLConnection.setDefaultSSLSocketFactory(mSSLSocketFactory);
             HttpsURLConnection.setDefaultHostnameVerifier(mHostVerifier);
         }
-        disableReuseConnectionIfNecessary(config.HTTPS);
+        disableReuseConnectionIfNecessary(config.useHttps);
 
         enableHttpCacheIfAvailable(context,HTTP_CACHE_SIZE);
     }
@@ -179,12 +179,12 @@ class HttpUrlConnectionClient implements RestClient {
             throw new BaasIOException("Error while parsing url " + urlString, e);
         }
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setConnectTimeout(config.HTTP_CONNECTION_TIMEOUT);
-        connection.setReadTimeout(config.HTTP_SOCKET_TIMEOUT);
+        connection.setConnectTimeout(config.httpConnectionTimeout);
+        connection.setReadTimeout(config.httpSocketTimeout);
         connection.setInstanceFollowRedirects(true);
         connection.setDoInput(true);
 
-//        if (config.HTTPS) {
+//        if (config.useHttps) {
 //            ((HttpsURLConnection) connection).setSSLSocketFactory(mSSLSocketFactory);
 //            ((HttpsURLConnection) connection).setHostnameVerifier(mHostVerifier);
 //        }

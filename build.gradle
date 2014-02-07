@@ -18,20 +18,11 @@ repositories {
     mavenCentral()
 }
 
-//sourceSets {
-//
-//}
-
 android {
     compileSdkVersion 19
     buildToolsVersion "19.0.1"
     sourceSets {
 
-
-//        unitTest {
-//            java.srcDirs =['test/java']
-//            resources.srcDir file('test/res')
-//        }
         main {
             manifest.srcFile 'AndroidManifest.xml'
             java.srcDirs = ['src']
@@ -55,11 +46,6 @@ android {
         release.setRoot('build-types/release')
     }
 
-//    configurations {
-//        unitTestCompile.extendsFrom runtime
-//        unitTestRuntime.extendsFrom unitTestCompile
-//    }
-
     libraryVariants.all { variant ->
         task("generate${variant.name}Javadoc", type: Javadoc) {
             description "Generates Javadoc for $variant.name."
@@ -69,7 +55,6 @@ android {
             exclude "**/impl/**";
             exclude "**/BuildConfig**";
             options {
-               // stylesheetFile = rootProject.file('./gradle/docstyle.css')
             }
             classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
         }
@@ -87,12 +72,6 @@ android {
 task coreLibJar(type: Jar) {
     from fileTree(dir: 'build/classes/release').matching { 'com/baasbox/android/**' }
 }
-
-//task unitTest(type : Test, dependsOn: assemble) {
-//    testClassesDir = android.sourceSets.unitTest.output.classesDir
-//    classpath = android.sourceSets.unitTest.runtimeClasspath
-//}
-//check.dependsOn unitTest
 
 artifacts {
     archives coreLibJar

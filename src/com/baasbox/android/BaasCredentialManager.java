@@ -170,7 +170,7 @@ class BaasCredentialManager {
         Map<String, String> formBody = new LinkedHashMap<String, String>();
         formBody.put("username", username);
         formBody.put("password", password);
-        formBody.put("appcode", box.config.APP_CODE);
+        formBody.put("appcode", box.config.appCode);
         if (regId != null) {
             String login_data = String.format(Locale.US,
                     "{\"os\":\"android\",\"deviceId\":\"%s\"}", regId);

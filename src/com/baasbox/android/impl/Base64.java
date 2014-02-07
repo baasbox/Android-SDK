@@ -36,7 +36,7 @@ public class Base64 {
     public static final int NO_PADDING = 1;
 
     /**
-     * Encoder flag bit to omit all line terminators (i.e., the output will be
+     * Encoder flag bit to omit all line terminators (i.exceptionHandler., the output will be
      * on one long line).
      */
     public static final int NO_WRAP = 2;
