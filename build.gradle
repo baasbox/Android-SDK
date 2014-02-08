@@ -18,10 +18,16 @@ repositories {
     mavenCentral()
 }
 
+
 def majorVersion = 0
 def minorVersion = 7
 def patchVersion = 4
 def sdkRevision  = 0 // sdk revision of a release
+
+
+def minMajorVersion = majorVersion
+def minMinorVersion = minorVersion
+def minPatchVersion = 3
 
 def releaseType = "SNAPSHOT";
 
@@ -43,6 +49,7 @@ android {
         versionCode = majorVersion*10000+minorVersion*1000+patchVersion*100+sdkRevision
         versionName = version
         buildConfigField "String", "API_VERSION", "\"${majorVersion}.${minorVersion}.${patchVersion}\""
+        buildConfigField "String", "MIN_API_VERSION", "\"${minMajorVersion}.${minMinorVersion}.${minPatchVersion}\""
         buildConfigField "String", "GIT_SHA", "\"${gitSha}\""
         buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
     }

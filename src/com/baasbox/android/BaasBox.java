@@ -57,9 +57,19 @@ import org.apache.http.HttpResponse;
 public class BaasBox {
 
     /**
-     * Version of the baasbox api.
+     * Version of the baasbox sdk.
      */
-    public final static String SDK_VERSION = "0.7.3-SNAPSHOT";
+    public final static String SDK_VERSION = BuildConfig.VERSION_NAME;
+
+    /**
+     * Version of the supported server api
+     */
+    public final static String API_VERSION = BuildConfig.API_VERSION;
+
+    /**
+     * Minimum supported baasbox server api
+     */
+    public static final String MIN_API_VERSION = BuildConfig.MIN_API_VERSION;
 
     private static volatile BaasBox sDefaultClient;
     private static final Object LOCK = new Object();
