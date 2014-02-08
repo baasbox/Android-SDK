@@ -77,7 +77,7 @@ class HttpUrlConnectionClient implements RestClient {
 
     HttpUrlConnectionClient(Context context,BaasBox.Config config) {
         this.config = config;
-        this.mSSLSocketFactory = config.useHttps ? trustAll() : null;
+         this.mSSLSocketFactory = config.useHttps ? trustAll() : null;
         this.mHostVerifier = config.useHttps ? ACCEPT_ALL : null;
         if (config.useHttps){
             HttpsURLConnection.setDefaultSSLSocketFactory(mSSLSocketFactory);
