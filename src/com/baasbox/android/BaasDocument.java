@@ -713,7 +713,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      */
     public static RequestToken fetchAll(String collection, Filter filter, Priority priority, BaasHandler<List<BaasDocument>> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (collection == null) throw new NullPointerException("collection cannot be null");
+        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         Fetch f = new Fetch(box, collection, filter, priority, handler);
         return box.submitAsync(f);
     }
@@ -731,7 +731,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      */
     public static BaasResult<List<BaasDocument>> fetchAllSync(String collection, Filter filter) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (collection == null) throw new NullPointerException("collection cannot be null");
+        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         Fetch f = new Fetch(box, collection, filter, null, null);
         return box.submitSync(f);
     }
@@ -787,7 +787,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      */
     private static RequestToken count(String collection, Filter filter, Priority priority, BaasHandler<Long> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (collection == null) throw new NullPointerException("collection cannot be null");
+        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         Count count = new Count(box, collection, filter, priority, handler);
         return box.submitAsync(count);
     }
@@ -813,7 +813,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      */
     public static BaasResult<Long> countSync(String collection, Filter filter) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (collection == null) throw new NullPointerException("collection cannot be null");
+        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         Count request = new Count(box, collection, filter, null, null);
         return box.submitSync(request);
     }
@@ -832,7 +832,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     }
 
     private static RequestToken fetch(String collection, String id, Priority priority, BaasHandler<BaasDocument> handler) {
-        if (collection == null) throw new NullPointerException("collection cannot be null");
+        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
         BaasDocument doc = new BaasDocument(collection);
@@ -860,7 +860,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      */
     private RequestToken refresh(Priority priority, BaasHandler<BaasDocument> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (handler == null) throw new NullPointerException("handler cannot be null");
+        if (handler == null) throw new IllegalArgumentException("handler cannot be null");
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
         Refresh refresh = new Refresh(box, this, priority, handler);
@@ -875,8 +875,8 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * @return the result of the request
      */
     public static BaasResult<BaasDocument> fetchSync(String collection, String id) {
-        if (collection == null) throw new NullPointerException("collection cannot be null");
-        if (id == null) throw new NullPointerException("id cannot be null");
+        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
         BaasDocument doc = new BaasDocument(collection);
         doc.id = id;
         return doc.refreshSync();
@@ -916,8 +916,8 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
 
     public static RequestToken delete(String collection, String id, Priority priority, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (collection == null) throw new NullPointerException("collection cannot be null");
-        if (id == null) throw new NullPointerException("id cannot be null");
+        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
         Delete delete = new Delete(box, collection, id, priority, handler);
         return box.submitAsync(delete);
     }
@@ -931,8 +931,8 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     }
 
     public static BaasResult<Void> deleteSync(String collection, String id) {
-        if (collection == null) throw new NullPointerException("collection cannot be null");
-        if (id == null) throw new NullPointerException("id cannot be null");
+        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
         Delete delete = new Delete(box, collection, id, null, null);
         return box.submitSync(delete);
@@ -981,13 +981,13 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     }
 
     public static RequestToken create(String collection, Priority priority, BaasHandler<BaasDocument> handler) {
-        if (collection == null) throw new NullPointerException("collection cannot be null");
+        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         BaasDocument doc = new BaasDocument(collection);
         return doc.save(SaveMode.IGNORE_VERSION, priority, handler);
     }
 
     public static RequestToken create(String collection, BaasHandler<BaasDocument> handler) {
-        if (collection == null) throw new NullPointerException("collection cannot be null");
+        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         BaasDocument doc = new BaasDocument(collection);
         return doc.save(SaveMode.IGNORE_VERSION, null, handler);
     }
@@ -1006,14 +1006,14 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
 
     public RequestToken save(SaveMode mode, Priority priority, BaasHandler<BaasDocument> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (mode == null) throw new NullPointerException("mode cannot be null");
+        if (mode == null) throw new IllegalArgumentException("mode cannot be null");
         Save save = new Save(box, mode, this, priority, handler);
         return box.submitAsync(save);
     }
 
     public BaasResult<BaasDocument> saveSync(SaveMode mode) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (mode == null) throw new NullPointerException("mode cannot be null");
+        if (mode == null) throw new IllegalArgumentException("mode cannot be null");
         Save save = new Save(box, mode, this, null, null);
         return box.submitSync(save);
     }

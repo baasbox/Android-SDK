@@ -90,7 +90,7 @@ public abstract class JsonStructure {
      * @throws com.baasbox.android.json.JsonException if the text cannot be parsed as json.
      */
     public static JsonStructure decode(String text) {
-        if (text == null) throw new NullPointerException("text cannot be null");
+        if (text == null) throw new IllegalArgumentException("text cannot be null");
         StringReader sr = new StringReader(text);
         JsonReader r = new JsonReader(sr);
         return decodeFully(r);

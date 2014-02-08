@@ -54,7 +54,7 @@ public final class Role {
      * @return the role of friends of user
      */
     public static String friendsOf(String user) {
-        if (user == null) throw new NullPointerException("user cannot be null");
+        if (user == null) throw new IllegalArgumentException("user cannot be null");
         return ("friends_of_" + user);
     }
 }

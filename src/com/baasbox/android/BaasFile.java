@@ -161,7 +161,7 @@ public class BaasFile extends BaasObject {
 
     public static RequestToken fetch(String id, Priority priority, BaasHandler<BaasFile> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (id == null) throw new NullPointerException("id cannot be null");
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
         BaasFile file = new BaasFile();
         file.id = id;
         Details details = new Details(box, file, priority, handler);
@@ -170,7 +170,7 @@ public class BaasFile extends BaasObject {
 
     public static BaasResult<BaasFile> fetchSync(String id) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (id == null) throw new NullPointerException("id cannot be null");
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
         BaasFile file = new BaasFile();
         file.id = id;
         Details details = new Details(box, file, null, null);
@@ -180,7 +180,7 @@ public class BaasFile extends BaasObject {
     public BaasResult<BaasFile> refreshSync() {
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
-            throw new NullPointerException("this file is not bound to an entity on the server");
+            throw new IllegalStateException("this file is not bound to an entity on the server");
         Details details = new Details(box, this, null, null);
         return box.submitSync(details);
     }
@@ -206,7 +206,7 @@ public class BaasFile extends BaasObject {
 
     public static BaasResult<Void> deleteSync(String id) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (id == null) throw new NullPointerException("id cannot be null");
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
         Delete delete = new Delete(box, id, null, null);
         return box.submitSync(delete);
     }
@@ -221,7 +221,7 @@ public class BaasFile extends BaasObject {
 
     public static RequestToken delete(String id, Priority priority, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (id == null) throw new NullPointerException("id cannot be null");
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
         Delete delete = new Delete(box, id, priority, handler);
         return box.submitAsync(delete);
     }
@@ -343,7 +343,7 @@ public class BaasFile extends BaasObject {
     }
 
     public RequestToken upload(BaasACL acl, File file, Priority priority, BaasHandler<BaasFile> handler) {
-        if (file == null) throw new NullPointerException("file cannot be null");
+        if (file == null) throw new IllegalArgumentException("file cannot be null");
         try {
 
             FileInputStream fin = new FileInputStream(file);
@@ -354,7 +354,7 @@ public class BaasFile extends BaasObject {
     }
 
     public RequestToken upload(File file, Priority priority, BaasHandler<BaasFile> handler) {
-        if (file == null) throw new NullPointerException("file cannot be null");
+        if (file == null) throw new IllegalArgumentException("file cannot be null");
         try {
 
             FileInputStream fin = new FileInputStream(file);
@@ -366,7 +366,7 @@ public class BaasFile extends BaasObject {
 
     public BaasResult<BaasFile> uploadSync(BaasACL acl, File file) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (file == null) throw new NullPointerException("file cannot be null");
+        if (file == null) throw new IllegalArgumentException("file cannot be null");
         try {
             FileInputStream in = new FileInputStream(file);
             Upload req = uploadRequest(box, in, null, null, acl == null ? null : acl.toJson());
@@ -391,14 +391,14 @@ public class BaasFile extends BaasObject {
     }
 
     public RequestToken upload(BaasACL acl, byte[] bytes, Priority priority, BaasHandler<BaasFile> handler) {
-        if (bytes == null) throw new NullPointerException("bytes cannot be null");
+        if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         return upload(acl, in, priority, handler);
     }
 
     public BaasResult<BaasFile> uploadSync(byte[] bytes) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (bytes == null) throw new NullPointerException("bytes cannot be null");
+        if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         Upload req = uploadRequest(box, in, null, null, new JsonObject());
         return box.submitSync(req);
@@ -406,13 +406,13 @@ public class BaasFile extends BaasObject {
 
 
     public RequestToken upload(BaasACL acl, byte[] bytes, BaasHandler<BaasFile> handler) {
-        if (bytes == null) throw new NullPointerException("bytes cannot be null");
+        if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         return upload(acl, in, null, handler);
     }
 
     public RequestToken upload(byte[] bytes, BaasHandler<BaasFile> handler) {
-        if (bytes == null) throw new NullPointerException("bytes cannot be null");
+        if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         return upload(in, null, handler);
     }
@@ -475,8 +475,8 @@ public class BaasFile extends BaasObject {
 
     private static <R> RequestToken stream(String id, String sizeSpec, int sizeIdx, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (contentHandler == null) throw new NullPointerException("data handler cannot be null");
-        if (id == null) throw new NullPointerException("id cannot be null");
+        if (contentHandler == null) throw new IllegalArgumentException("data handler cannot be null");
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
         AsyncStream<R> stream = new FileStream<R>(box, id, sizeSpec, sizeIdx, priority, contentHandler, handler);
         return box.submitAsync(stream);
     }
@@ -535,7 +535,7 @@ public class BaasFile extends BaasObject {
 
     private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (id == null) throw new NullPointerException("id cannot be null");
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
         StreamRequest synReq = new StreamRequest(box, "file", id, spec, sizeId);
         return box.submitSync(synReq);
     }
@@ -551,18 +551,18 @@ public class BaasFile extends BaasObject {
 
 
     public BaasResult<BaasStream> streamSync(String spec) {
-        if (id == null) throw new NullPointerException("this is not bound to a remote entity");
+        if (id == null) throw new IllegalStateException("this is not bound to a remote entity");
         return streamSync(id, spec, -1);
     }
 
 
     public BaasResult<BaasStream> streamSync(int sizeId) {
-        if (id == null) throw new NullPointerException("this is not bound to a remote entity");
+        if (id == null) throw new IllegalStateException("this is not bound to a remote entity");
         return streamSync(id, null, sizeId);
     }
 
     public BaasResult<BaasStream> streamSync() {
-        if (id == null) throw new NullPointerException("this is not bound to a remote entity");
+        if (id == null) throw new IllegalStateException("this is not bound to a remote entity");
         return streamSync(id, null, -1);
     }
 
@@ -572,7 +572,7 @@ public class BaasFile extends BaasObject {
         if (!isBound.compareAndSet(false, true)) {
             throw new IllegalArgumentException("you cannot upload new content for this file");
         }
-        if (stream == null) throw new NullPointerException("stream cannot be null");
+        if (stream == null) throw new IllegalArgumentException("stream cannot be null");
         boolean tryGuessExtension = false;
         if (this.mimeType == null) {
             try {

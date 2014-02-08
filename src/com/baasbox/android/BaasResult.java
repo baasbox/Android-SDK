@@ -82,7 +82,7 @@ public abstract class BaasResult<T> {
         private final BaasException error;
 
         Error(BaasException e) {
-            if (e == null) throw new NullPointerException("error cannot be null");
+            if (e == null) throw new IllegalArgumentException("error cannot be null");
             this.error = e;
         }
 

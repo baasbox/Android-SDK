@@ -181,7 +181,7 @@ public class BaasUser implements Parcelable {
 
     public static BaasResult<Void> requestPasswordResetSync(String username) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (username == null) throw new NullPointerException("username cannot be null");
+        if (username == null) throw new IllegalArgumentException("username cannot be null");
         return box.submitSync(new PasswordReset(box, username, null, null));
     }
 
@@ -191,7 +191,7 @@ public class BaasUser implements Parcelable {
 
     public static RequestToken requestPasswordReset(String username, Priority priority, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (username == null) throw new NullPointerException("username cannot be null");
+        if (username == null) throw new IllegalArgumentException("username cannot be null");
         return box.submitAsync(new PasswordReset(box, username, priority, handler));
     }
 
@@ -398,7 +398,7 @@ public class BaasUser implements Parcelable {
             case PUBLIC:
                 return publicVisibleData;
             default:
-                throw new NullPointerException("scope cannot be null");
+                throw new IllegalArgumentException("scope cannot be null");
         }
     }
 
@@ -475,7 +475,7 @@ public class BaasUser implements Parcelable {
      * @throws java.lang.NullPointerException if <code>role</code> is <code>null</code>
      */
     public boolean hasRole(String role) {
-        if (role == null) throw new NullPointerException("role cannot be null");
+        if (role == null) throw new IllegalArgumentException("role cannot be null");
         return roles.contains(role);
     }
 
@@ -495,7 +495,7 @@ public class BaasUser implements Parcelable {
      */
     public BaasResult<BaasUser> signupSync() {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (password == null) throw new NullPointerException("password cannot be null");
+        if (password == null) throw new IllegalStateException("password cannot be null");
         SignupRequest signup = new SignupRequest(box, this, null, null);
         return box.submitSync(signup);
     }
@@ -521,7 +521,7 @@ public class BaasUser implements Parcelable {
      */
     public RequestToken signup(Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (password == null) throw new NullPointerException("password cannot be null");
+        if (password == null) throw new IllegalStateException("password cannot be null");
 
         SignupRequest req = new SignupRequest(box, this, priority, handler);
         return box.submitAsync(req);
@@ -562,7 +562,7 @@ public class BaasUser implements Parcelable {
      */
     public RequestToken login(String regitrationId, Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefault();
-        if (password == null) throw new NullPointerException("password cannot be null");
+        if (password == null) throw new IllegalStateException("password cannot be null");
         NetworkTask<BaasUser> task = new LoginRequest(box, this, regitrationId, priority, handler);
         return box.submitAsync(task);
     }
@@ -584,7 +584,7 @@ public class BaasUser implements Parcelable {
      */
     public BaasResult<BaasUser> loginSync(String registrationId) {
         BaasBox box = BaasBox.getDefault();
-        if (password == null) throw new NullPointerException("password cannot be null");
+        if (password == null) throw new IllegalStateException("password cannot be null");
         NetworkTask<BaasUser> task = new LoginRequest(box, this, registrationId, null, null);
         return box.submitSync(task);
     }
@@ -625,8 +625,8 @@ public class BaasUser implements Parcelable {
 
     public BaasResult<Void> changePasswordSync(String password) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (password == null) throw new NullPointerException("password cannot be null");
-        if (this.password == null) throw new NullPointerException("Current user has no password");
+        if (password == null) throw new IllegalArgumentException("password cannot be null");
+        if (this.password == null) throw new IllegalStateException("Current user has no password");
         ChangePassword cp = new ChangePassword(box, this, password, null, null);
         return box.submitSync(cp);
     }
@@ -637,8 +637,8 @@ public class BaasUser implements Parcelable {
 
     public RequestToken changePassword(String password, Priority priority, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (password == null) throw new NullPointerException("password cannot be null");
-        if (this.password == null) throw new NullPointerException("Current user has no password");
+        if (password == null) throw new IllegalArgumentException("password cannot be null");
+        if (this.password == null) throw new IllegalStateException("Current user has no password");
         ChangePassword cp = new ChangePassword(box, this, password, priority, handler);
         return box.submitAsync(cp);
     }

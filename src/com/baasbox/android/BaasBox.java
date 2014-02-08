@@ -340,7 +340,7 @@ public class BaasBox {
     }
 
     public BaasResult<Void> registerPushSync(String registrationId) {
-        if (registrationId == null) throw new NullPointerException("registrationId cannot be null");
+        if (registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
         RegisterPush req = new RegisterPush(this, registrationId, null, null);
         return submitSync(req);
     }
@@ -452,7 +452,7 @@ public class BaasBox {
 
     private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (id == null) throw new NullPointerException("id cannot be null");
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
         StreamRequest synReq = new StreamRequest(box, "asset", id, spec, sizeId);
         return box.submitSync(synReq);
     }
@@ -483,8 +483,8 @@ public class BaasBox {
 
     private static <R> RequestToken stream(String name, String sizeSpec, int sizeIdx, Priority priority, DataStreamHandler<R> dataStreamHandler, BaasHandler<R> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (dataStreamHandler == null) throw new NullPointerException("data handler cannot be null");
-        if (name == null) throw new NullPointerException("id cannot be null");
+        if (dataStreamHandler == null) throw new IllegalArgumentException("data handler cannot be null");
+        if (name == null) throw new IllegalArgumentException("id cannot be null");
         AsyncStream<R> stream = new AssetStream<R>(box, name, sizeSpec, sizeIdx, priority, dataStreamHandler, handler);
         return box.submitAsync(stream);
 
