@@ -18,11 +18,35 @@ repositories {
     mavenCentral()
 }
 
+def majorVersion = 0
+def minorVersion = 7
+def patchVersion = 3
+def sdkRevision  = 0 // sdk revision of a release
+
+def releaseType = "final";
+
+def gitSha ={
+    'git rev-parse --short HEAD'.execute().text.trim()
+}()
+
+
+def buildTime ={
+    new Date().format("yyyy-MM-dd'T'HH:m'Z'", TimeZone.getTimeZone("UTC"))
+}()
+
 android {
     compileSdkVersion 19
     buildToolsVersion "19.0.1"
-    sourceSets {
 
+    defaultConfig {
+        versionCode = majorVersion*10000+minorVersion*1000+patchVersion*100+sdkRevision
+        versionName = "${majorVersion}.${minorVersion}.${patchVersion}.${sdkRevision}-${releaseType}"
+        buildConfigField "String", "API_VERSION", "\"${majorVersion}.${minorVersion}.${patchVersion}\""
+        buildConfigField "String", "GIT_SHA", "\"${gitSha}\""
+        buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
+    }
+
+    sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
             java.srcDirs = ['src']
@@ -59,7 +83,6 @@ android {
             classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
         }
     }
-
 
     dependencies {
         provided 'com.android.support:support-v4:19.0.0';
