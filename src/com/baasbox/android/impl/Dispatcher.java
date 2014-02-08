@@ -99,7 +99,6 @@ public final class Dispatcher {
     public int post(Task<?> request) {
         final int seqNumber = SEQUENCE.getAndIncrement();
         request.bind(seqNumber, this);
-        //RequestToken token = new RequestToken(seqNumber);
         liveAsyncs.put(seqNumber, request);
         taskQueue.add(request);
         return seqNumber;

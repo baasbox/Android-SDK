@@ -93,15 +93,6 @@ public class BaasUser implements Parcelable {
         super();
         init(user);
     }
-//
-//    BaasUser(String username, JsonObject data) {
-//        super();
-//        this.username = username;
-//        this.privateData = data.getObject(Scope.PRIVATE.visibility, new JsonObject());
-//        this.friendVisibleData = data.getObject(Scope.FRIEND.visibility, new JsonObject());
-//        this.registeredVisibleData = data.getObject(Scope.REGISTERED.visibility, new JsonObject());
-//        this.publicVisibleData = data.getObject(Scope.PUBLIC.visibility, new JsonObject());
-//    }
 
     BaasUser(String username, String password, String signupDate, String status, String token, JsonArray roles, JsonObject profile) {
         this.username = username;

@@ -114,7 +114,6 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
             // to ABORTED to let the resource been cleaned up
             suspendableHandler.set(Signal.ABORTED);
             finish();
-//            dispatcher.finish(this);
             return true;
         }
         return false;
@@ -130,7 +129,6 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
                 //but if we found it than it's still known to the dispatcher
                 //so we simply cleanup it
                 finish();
-//                dispatcher.finish(this);
                 st("not resuming: already committed");
                 return false;
             }

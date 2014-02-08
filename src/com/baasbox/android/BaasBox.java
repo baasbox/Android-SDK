@@ -181,12 +181,11 @@ public class BaasBox {
         this.requestFactory = new RequestFactory(this.config, store);
         this.mCache = new Cache(context);
         this.syncDispatcher = new ImmediateDispatcher();
-        this.asyncDispatcher = new Dispatcher(this);// AsyncDefaultDispatcher(this, restClient);
+        this.asyncDispatcher = new Dispatcher(this);
     }
 
     private static BaasBox createClient(Context context, Config config, String sessionToken) {
         BaasBox box = new BaasBox(context, config);
-//        if (sessionToken != null) box.store.updateToken(sessionToken);
         //todo update token work
         box.asyncDispatcher.start();
         return box;
@@ -380,8 +379,6 @@ public class BaasBox {
 
         @Override
         protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            //JsonObject resp = parseJson(response,box);
-            Logger.debug("RESPONDED");
             return null;
         }
 

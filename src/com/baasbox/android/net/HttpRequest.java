@@ -23,6 +23,7 @@ import java.util.Map;
  * Created by eto on 23/12/13.
  */
 public class HttpRequest {
+
     public final static int GET = 1;
     public final static int POST = 2;
     public final static int PUT = 3;
@@ -42,20 +43,27 @@ public class HttpRequest {
     }
 
     private static String methodToString(int method) {
+        String methodName;
         switch (method) {
             case GET:
-                return "GET";
+                methodName = "GET";
+                break;
             case POST:
-                return "POST";
+                methodName =  "POST";
+                break;
             case PUT:
-                return "PUT";
+                methodName = "PUT";
+                break;
             case DELETE:
-                return "DELETE";
+                methodName = "DELETE";
+                break;
             case PATCH:
-                return "PATCH";
+                methodName = "PATCH";
+                break;
             default:
-                return "";
+                throw new IllegalArgumentException("Invalid http method identifier");
         }
+        return methodName;
     }
 
     @Override

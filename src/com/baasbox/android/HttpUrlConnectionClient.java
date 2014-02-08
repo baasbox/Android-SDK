@@ -185,11 +185,6 @@ class HttpUrlConnectionClient implements RestClient {
         connection.setInstanceFollowRedirects(true);
         connection.setDoInput(true);
 
-//        if (config.useHttps) {
-//            ((HttpsURLConnection) connection).setSSLSocketFactory(mSSLSocketFactory);
-//            ((HttpsURLConnection) connection).setHostnameVerifier(mHostVerifier);
-//        }
-
         return connection;
     }
 

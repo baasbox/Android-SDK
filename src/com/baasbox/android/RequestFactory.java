@@ -43,8 +43,6 @@ class RequestFactory {
 
     static final String CONTENT_LENGTH = "Content-Length";
 
-    //baasbox Android SDK @version
-
     private final BaasBox.Config config;
     private final BaasCredentialManager credentials;
     private final String apiRoot;
@@ -158,7 +156,6 @@ class RequestFactory {
             byte[] bytes = null;
             try {
                 String params = encodeParams(form_params, config.httpCharset);
-//                BAASLogging.debug("PARAMS: " + params);
                 bytes = params.getBytes(config.httpCharset);
             } catch (UnsupportedEncodingException e) {
                 throw new Error(e);
@@ -298,8 +295,6 @@ class RequestFactory {
                     }
                     break;
             }
-        } else {
-//            BAASLogging.debug("no credentials");
         }
         return headers;
     }
