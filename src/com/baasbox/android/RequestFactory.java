@@ -250,17 +250,19 @@ class RequestFactory {
         return new HttpRequest(HttpRequest.GET, endpoint, headers, null);
     }
 
-    public HttpRequest post(String endpoint,Param ... params){
-        return post(endpoint,null,params);
+    public HttpRequest post(String endpoint, Param... params) {
+        return post(endpoint, null, params);
     }
-    public HttpRequest post(String endpoint,Map<String,String>headers,Param ... params){
-        headers = fillHeaders(headers,config,credentials.currentUser());
-        if (params!=null){
-            String paramsUrl = encodeQueryParams(params,config.httpCharset);
-            endpoint=endpoint+"?"+paramsUrl;
+
+    public HttpRequest post(String endpoint, Map<String, String> headers, Param... params) {
+        headers = fillHeaders(headers, config, credentials.currentUser());
+        if (params != null) {
+            String paramsUrl = encodeQueryParams(params, config.httpCharset);
+            endpoint = endpoint + "?" + paramsUrl;
         }
-        return new HttpRequest(HttpRequest.POST,endpoint,headers,null);
+        return new HttpRequest(HttpRequest.POST, endpoint, headers, null);
     }
+
     public HttpRequest post(String uri, Map<String, String> headers, InputStream body) {
         headers = fillHeaders(headers, config, credentials.currentUser());
         return new HttpRequest(HttpRequest.POST, uri, headers, body);
@@ -278,9 +280,9 @@ class RequestFactory {
         headers.put(APPCODE_HEADER_NAME, config.appCode);
         headers.put(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER);
 
-        Logger.debug("Format %s",credentials);
+        Logger.debug("Format %s", credentials);
         if (credentials != null) {
-            Logger.debug("Format2 %s",credentials);
+            Logger.debug("Format2 %s", credentials);
 
             switch (config.authenticationType) {
                 case BASIC_AUTHENTICATION:

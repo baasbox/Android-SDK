@@ -34,23 +34,24 @@ abstract class NetworkTask<R> extends Task<R> {
     private final BaasBox box;
     private boolean retryOnFailedLogin;
 
-    protected NetworkTask(BaasBox box,Priority priority,BaasHandler<R> handler,boolean retryLogin){
-        super(priority,handler);
-        this.box=box;
-        retryOnFailedLogin=retryLogin;
-    }
-    protected NetworkTask(BaasBox box, Priority priority, BaasHandler<R> handler) {
-       this(box,priority,handler,box.config.authenticationType == BaasBox.Config.AuthType.SESSION_TOKEN);
+    protected NetworkTask(BaasBox box, Priority priority, BaasHandler<R> handler, boolean retryLogin) {
+        super(priority, handler);
+        this.box = box;
+        retryOnFailedLogin = retryLogin;
     }
 
-    protected R getFromCache(BaasBox box) throws BaasException{
+    protected NetworkTask(BaasBox box, Priority priority, BaasHandler<R> handler) {
+        this(box, priority, handler, box.config.authenticationType == BaasBox.Config.AuthType.SESSION_TOKEN);
+    }
+
+    protected R getFromCache(BaasBox box) throws BaasException {
         return null;
     }
 
     protected final R parseResponse(HttpResponse response, BaasBox box) throws BaasException {
         final int status = response.getStatusLine().getStatusCode();
         final int statusClass = status / 100;
-        try{
+        try {
             switch (statusClass) {
                 case 1:
                     return onContinue(status, response, box);
@@ -65,10 +66,10 @@ abstract class NetworkTask<R> extends Task<R> {
                 default:
                     throw new Error("unexpected status code: " + status);
             }
-        }catch (BaasInvalidSessionException e){
-            if (retryOnFailedLogin){
-                retryOnFailedLogin=false;
-                if (attemptRefreshToken(box)){
+        } catch (BaasInvalidSessionException e) {
+            if (retryOnFailedLogin) {
+                retryOnFailedLogin = false;
+                if (attemptRefreshToken(box)) {
                     return asyncCall();
                 } else {
                     throw e;
@@ -79,13 +80,15 @@ abstract class NetworkTask<R> extends Task<R> {
         }
     }
 
-    private boolean attemptRefreshToken(BaasBox box){
+    private boolean attemptRefreshToken(BaasBox box) {
         try {
             return box.store.refreshTokenRequest(seq());
-        } catch (BaasException e){
+        } catch (BaasException e) {
+            Logger.info(e,"Unable to refresh token");
             return false;
         }
     }
+
     protected R onContinue(int status, HttpResponse response, BaasBox box) throws BaasException {
         throw new BaasException("unexpected status " + status);
     }
@@ -95,14 +98,14 @@ abstract class NetworkTask<R> extends Task<R> {
     }
 
     protected R onClientError(int status, HttpResponse response, BaasBox box) throws BaasException {
-        JsonObject json = parseJson(response,box);
-        if (json.contains("bb_code")){
+        JsonObject json = parseJson(response, box);
+        if (json.contains("bb_code")) {
 
         }
-        if (status==401&&Integer.parseInt(json.getString("bb_code","-1"))==BaasInvalidSessionException.INVALID_SESSION_TOKEN_CODE){
-           throw new BaasInvalidSessionException(json);
-        }else {
-           throw new BaasClientException(status, json);
+        if (status == 401 && Integer.parseInt(json.getString("bb_code", "-1")) == BaasInvalidSessionException.INVALID_SESSION_TOKEN_CODE) {
+            throw new BaasInvalidSessionException(json);
+        } else {
+            throw new BaasClientException(status, json);
         }
     }
 
@@ -150,7 +153,7 @@ abstract class NetworkTask<R> extends Task<R> {
             return onSkipRequest();
         }
         R val = getFromCache(box);
-        if (val!=null){
+        if (val != null) {
             return val;
         }
         Logger.info("requested %s", request);

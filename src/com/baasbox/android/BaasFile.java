@@ -36,8 +36,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * A file is an entity that can be stored on the server.
  * Unlike documents files do not dictate a format for their content, but they can
  * have optionally json attached data.
- *</p>
- *
+ * </p>
+ * <p/>
  * <p>
  * Files can be created, stored and retrieved from the server either synchronously or asynchronously,
  * through the provided methods.
@@ -95,11 +95,11 @@ public class BaasFile extends BaasObject {
         this.version = fromServer.getLong("@version");
     }
 
-    public byte[] getData(){
+    public byte[] getData() {
         return data.get();
     }
 
-    public JsonObject getAttachedData(){
+    public JsonObject getAttachedData() {
         return attachedData;
     }
 
@@ -317,7 +317,7 @@ public class BaasFile extends BaasObject {
     }
 
 
-    public RequestToken upload(BaasACL acl,InputStream stream, Priority priority, BaasHandler<BaasFile> handler) {
+    public RequestToken upload(BaasACL acl, InputStream stream, Priority priority, BaasHandler<BaasFile> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         RequestFactory factory = box.requestFactory;
         Upload req = uploadRequest(box, stream, priority, handler, acl.toJson());
@@ -336,22 +336,23 @@ public class BaasFile extends BaasObject {
         return box.submitAsync(upload);
     }
 
-    public RequestToken upload(BaasACL acl,InputStream stream, BaasHandler<BaasFile> handler) {
+    public RequestToken upload(BaasACL acl, InputStream stream, BaasHandler<BaasFile> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         Upload upload = uploadRequest(box, stream, null, handler, acl.toJson());
         return box.submitAsync(upload);
     }
 
-    public RequestToken upload(BaasACL acl,File file, Priority priority, BaasHandler<BaasFile> handler) {
+    public RequestToken upload(BaasACL acl, File file, Priority priority, BaasHandler<BaasFile> handler) {
         if (file == null) throw new NullPointerException("file cannot be null");
         try {
 
             FileInputStream fin = new FileInputStream(file);
-            return upload(acl,fin, priority, handler);
+            return upload(acl, fin, priority, handler);
         } catch (FileNotFoundException e) {
             throw new IllegalArgumentException("file does not exists", e);
         }
     }
+
     public RequestToken upload(File file, Priority priority, BaasHandler<BaasFile> handler) {
         if (file == null) throw new NullPointerException("file cannot be null");
         try {
@@ -376,8 +377,8 @@ public class BaasFile extends BaasObject {
     }
 
 
-    public RequestToken upload(BaasACL acl,File file, BaasHandler<BaasFile> handler) {
-        return upload(acl,file, null, handler);
+    public RequestToken upload(BaasACL acl, File file, BaasHandler<BaasFile> handler) {
+        return upload(acl, file, null, handler);
     }
 
     public RequestToken upload(File file, BaasHandler<BaasFile> handler) {
@@ -386,13 +387,13 @@ public class BaasFile extends BaasObject {
 
 
     public RequestToken upload(byte[] bytes, Priority priority, BaasHandler<BaasFile> handler) {
-        return upload(new BaasACL(),bytes,priority,handler);
+        return upload(new BaasACL(), bytes, priority, handler);
     }
 
-    public RequestToken upload(BaasACL acl,byte[] bytes, Priority priority, BaasHandler<BaasFile> handler) {
+    public RequestToken upload(BaasACL acl, byte[] bytes, Priority priority, BaasHandler<BaasFile> handler) {
         if (bytes == null) throw new NullPointerException("bytes cannot be null");
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        return upload(acl,in, priority, handler);
+        return upload(acl, in, priority, handler);
     }
 
     public BaasResult<BaasFile> uploadSync(byte[] bytes) {
@@ -404,10 +405,10 @@ public class BaasFile extends BaasObject {
     }
 
 
-    public RequestToken upload(BaasACL acl,byte[] bytes, BaasHandler<BaasFile> handler) {
+    public RequestToken upload(BaasACL acl, byte[] bytes, BaasHandler<BaasFile> handler) {
         if (bytes == null) throw new NullPointerException("bytes cannot be null");
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        return upload(acl,in, null, handler);
+        return upload(acl, in, null, handler);
     }
 
     public RequestToken upload(byte[] bytes, BaasHandler<BaasFile> handler) {
@@ -417,40 +418,40 @@ public class BaasFile extends BaasObject {
     }
 
 
-    public RequestToken stream(BaasHandler<BaasFile> handler){
+    public RequestToken stream(BaasHandler<BaasFile> handler) {
         return doStream(-1, null, Priority.NORMAL, handler);
     }
 
-    public RequestToken stream(int sizeIdx,BaasHandler<BaasFile> handler){
-        return doStream(sizeIdx,null,null,handler);
+    public RequestToken stream(int sizeIdx, BaasHandler<BaasFile> handler) {
+        return doStream(sizeIdx, null, null, handler);
     }
 
-    public RequestToken stream(String sizeSpec,BaasHandler<BaasFile> handler){
-        return doStream(-1,sizeSpec,null,handler);
+    public RequestToken stream(String sizeSpec, BaasHandler<BaasFile> handler) {
+        return doStream(-1, sizeSpec, null, handler);
     }
 
-    public static RequestToken fetchStream(String id,BaasHandler<BaasFile> handler){
+    public static RequestToken fetchStream(String id, BaasHandler<BaasFile> handler) {
         BaasFile f = new BaasFile();
-        f.id=id;
-        return f.doStream(-1,null,null,handler);
+        f.id = id;
+        return f.doStream(-1, null, null, handler);
     }
 
 
-    private RequestToken doStream(int size,String spec,Priority priority,BaasHandler<BaasFile> handler){
-        return stream(this.id,spec,size, priority,new FileStreamer(this), handler);
+    private RequestToken doStream(int size, String spec, Priority priority, BaasHandler<BaasFile> handler) {
+        return stream(this.id, spec, size, priority, new FileStreamer(this), handler);
     }
 
-    private static class FileStreamer extends StreamBody<BaasFile>{
+    private static class FileStreamer extends StreamBody<BaasFile> {
         BaasFile file;
 
-        FileStreamer(BaasFile file){
-            this.file=file;
+        FileStreamer(BaasFile file) {
+            this.file = file;
         }
 
         @Override
         protected BaasFile convert(byte[] body, String id, String contentType) {
             file.data.set(body);
-            file.mimeType=contentType;
+            file.mimeType = contentType;
             return file;
         }
     }
@@ -484,6 +485,7 @@ public class BaasFile extends BaasObject {
     private static class FileStream<R> extends AsyncStream<R> {
         private final String id;
         private HttpRequest request;
+
         protected FileStream(BaasBox box, String id, String sizeSpec, int sizeId, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
             super(box, priority, dataStream, handler);
             this.id = id;
@@ -534,7 +536,7 @@ public class BaasFile extends BaasObject {
     private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null) throw new NullPointerException("id cannot be null");
-        StreamRequest synReq = new StreamRequest(box,"file", id, spec, sizeId);
+        StreamRequest synReq = new StreamRequest(box, "file", id, spec, sizeId);
         return box.submitSync(synReq);
     }
 

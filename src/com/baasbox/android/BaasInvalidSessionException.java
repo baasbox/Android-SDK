@@ -38,8 +38,8 @@ public class BaasInvalidSessionException extends BaasClientException {
 
     private static final long serialVersionUID = -6923343849646015698L;
 
-    public BaasInvalidSessionException(JsonObject object){
-        super(401,object);
+    public BaasInvalidSessionException(JsonObject object) {
+        super(401, object);
     }
 
     public BaasInvalidSessionException(String resource, String method,

@@ -116,6 +116,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
     /**
      * Returns the String at index or null if not found.
+     *
      * @param index
      * @return the value at index or null if not found
      * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
@@ -126,6 +127,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
     /**
      * Returns the String at index or otherwise if not found
+     *
      * @param index
      * @param otherwise
      * @return the value at index or otherwise
@@ -141,6 +143,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
     /**
      * Sets the content at index to the value passed as parameter
+     *
      * @param index
      * @param value
      * @return the array with the new mapping
@@ -165,6 +168,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
     /**
      * Returns the {@link java.lang.Boolean} at index or null if not found.
+     *
      * @param index
      * @return the value at index or null if not found
      * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
@@ -179,6 +183,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
     /**
      * Returns the <code>boolean</code> at index or otherwise if not found.
+     *
      * @param index
      * @return the value at index or null if not found
      * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
@@ -191,6 +196,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
     /**
      * Sets the content at index to the value passed as parameter
+     *
      * @param index
      * @param value
      * @return the array with the new mapping
@@ -214,6 +220,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
     /**
      * Returns the {@link java.lang.Long} at index or null if not found.
+     *
      * @param index
      * @return the value at index or null if not found
      * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
@@ -228,6 +235,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
     /**
      * Returns the <code>long</code> at index or otherwise if not found.
+     *
      * @param index
      * @return the value at index or null if not found
      * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
@@ -239,6 +247,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
     /**
      * Sets the content at index to the value passed as parameter
+     *
      * @param index
      * @param value
      * @return the array with the new mapping
@@ -374,7 +383,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
 
     public JsonArray addBinary(byte[] v) {
-        list.add(v == null ? null : Base64.encode(v,Base64.DEFAULT));
+        list.add(v == null ? null : Base64.encode(v, Base64.DEFAULT));
         return this;
     }
 
@@ -397,7 +406,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     }
 
     public JsonArray setBinary(int index, byte[] value) {
-        list.set(index, value == null ? null : Base64.encode(value,Base64.DEFAULT));
+        list.set(index, value == null ? null : Base64.encode(value, Base64.DEFAULT));
         return this;
     }
 
@@ -405,7 +414,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         if (o == null) {
             list.add(null);
         } else if ((o instanceof String) ||
-                (o instanceof JsonStructure)||
+                (o instanceof JsonStructure) ||
                 (o instanceof Boolean) ||
                 (o instanceof Long) ||
                 (o instanceof Double)) {
@@ -490,7 +499,6 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
                 try {
                     jw.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
         }
@@ -626,7 +634,6 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
                 try {
                     r.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
         }

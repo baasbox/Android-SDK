@@ -21,6 +21,7 @@ import com.baasbox.android.json.JsonObject;
 /**
  * The set of permission to use at the creation
  * of a file.
+ *
  * @author Andrea Tortorella
  * @since 0.7.3
  */
@@ -84,13 +85,14 @@ public class BaasACL {
 
     /**
      * Adds the given grant to the list of users
+     *
      * @param grant a grant to add
-     * @param usrs the users to give the grant to
+     * @param usrs  the users to give the grant to
      * @return this BaasAcl with the grants added
      */
     public BaasACL grantUsers(Grant grant, String... usrs) {
         if (usrs == null) return this;
-        Object[] users = (Object[])usrs;
+        Object[] users = (Object[]) usrs;
         switch (grant) {
             case READ:
                 if (userReadGrants == null) {
@@ -126,17 +128,18 @@ public class BaasACL {
 
     /**
      * Adds the given grant to the list of roles passed in
+     *
      * @param grant the grant to give
      * @param roles one or more roles
      * @return this BaasAcl with grants added
      */
     public BaasACL grantRoles(Grant grant, String... roles) {
         if (roles == null) return this;
-        Object[] users = (Object[])roles;
+        Object[] users = (Object[]) roles;
         switch (grant) {
             case READ:
                 if (rolesReadGrants == null) {
-                    rolesReadGrants = JsonArray.of((Object[])users);
+                    rolesReadGrants = JsonArray.of((Object[]) users);
                 } else {
                     rolesReadGrants.append(JsonArray.of(users));
                 }

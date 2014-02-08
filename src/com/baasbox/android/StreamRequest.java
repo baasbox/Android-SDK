@@ -15,7 +15,6 @@
 
 package com.baasbox.android;
 
-import com.baasbox.android.impl.DiskLruCache;
 import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -29,10 +28,10 @@ class StreamRequest extends NetworkTask<BaasStream> {
     private final String id;
     private final HttpRequest request;
 
-    protected StreamRequest(BaasBox box,String resource, String id, String sizeSpec, int sizeId) {
+    protected StreamRequest(BaasBox box, String resource, String id, String sizeSpec, int sizeId) {
         super(box, null, null);
         this.id = id;
-        String endpoint = box.requestFactory.getEndpoint("?/?",resource, id);
+        String endpoint = box.requestFactory.getEndpoint("?/?", resource, id);
         RequestFactory.Param param = null;
         if (sizeSpec != null) {
             param = new RequestFactory.Param("resize", sizeSpec);

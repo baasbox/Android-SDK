@@ -18,7 +18,10 @@ package com.baasbox.android.impl;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
-import com.baasbox.android.*;
+import com.baasbox.android.BaasBox;
+import com.baasbox.android.BaasHandler;
+import com.baasbox.android.BaasResult;
+import com.baasbox.android.ExceptionHandler;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -127,10 +130,10 @@ public final class Dispatcher {
     }
 
     public <R> BaasResult<R> await(int requestId) {
-        Task<R> task = (Task<R>)liveAsyncs.get(requestId);
-        if (task==null){
+        Task<R> task = (Task<R>) liveAsyncs.get(requestId);
+        if (task == null) {
             return null;
-        }else if (task.result!=null){
+        } else if (task.result != null) {
             return task.result;
         } else {
             task.await();
@@ -138,7 +141,6 @@ public final class Dispatcher {
 
         }
     }
-
 
 
     private static final class Worker extends Thread {
@@ -168,6 +170,7 @@ public final class Dispatcher {
 
                 } catch (Throwable t) {
                     if (dispatcher.exceptionHandler.onError(t)) {
+                        Logger.error(t,"Dispatcher error");
                         continue;
                     }
                 }

@@ -19,8 +19,8 @@ package com.baasbox.android;
  * An enumeration representing the possible access grants to
  * {@link com.baasbox.android.BaasObject}.
  *
- * @since 0.7.3
  * @author Andrea Tortorella
+ * @since 0.7.3
  */
 public enum Grant {
 

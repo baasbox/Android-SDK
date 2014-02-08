@@ -47,17 +47,18 @@ public final class RequestToken implements Parcelable, Comparable<RequestToken> 
 
     /**
      * Suspends a request and immediately save it in a bundle
+     *
      * @param bundle a non null bundle
-     * @param name the key to save the token with
+     * @param name   the key to save the token with
      * @return true if the token was suspended
      */
-    public boolean suspendAndSave(Bundle bundle,String name){
-        if (bundle==null)
+    public boolean suspendAndSave(Bundle bundle, String name) {
+        if (bundle == null)
             throw new IllegalArgumentException("bunlde cannot be null");
-        if (name==null)
+        if (name == null)
             throw new IllegalArgumentException("name cannot be null");
-        if (suspend()){
-            bundle.putParcelable(name,this);
+        if (suspend()) {
+            bundle.putParcelable(name, this);
             return true;
         } else {
             return false;
@@ -67,18 +68,19 @@ public final class RequestToken implements Parcelable, Comparable<RequestToken> 
     /**
      * Loads a request token from the bundle
      * and immediately tries to resume the request with handler
-     * @param bundle a non null bundle
-     * @param name the key of the saved token
+     *
+     * @param bundle  a non null bundle
+     * @param name    the key of the saved token
      * @param handler a handler to resume the request with.
      * @return the token if resumed, null otherwise
      */
-    public static RequestToken loadAndResume(Bundle bundle,String name,BaasHandler<?> handler){
-        if (bundle==null)
+    public static RequestToken loadAndResume(Bundle bundle, String name, BaasHandler<?> handler) {
+        if (bundle == null)
             throw new IllegalArgumentException("bunlde cannot be null");
-        if (name==null)
+        if (name == null)
             throw new IllegalArgumentException("name cannot be null");
         RequestToken token = bundle.getParcelable(name);
-        if(token!=null && token.resume(handler)){
+        if (token != null && token.resume(handler)) {
             return token;
         }
         return null;
@@ -87,17 +89,19 @@ public final class RequestToken implements Parcelable, Comparable<RequestToken> 
     /**
      * Resumes a suspended asynchronous request, with the new
      * provided handler
+     *
      * @param handler a handler to resume the request with.
      * @return
      */
     public boolean resume(BaasHandler<?> handler) {
-        handler = handler==null?BaasHandler.NOOP:handler;
+        handler = handler == null ? BaasHandler.NOOP : handler;
         return BaasBox.getDefaultChecked().resume(this, handler);
     }
 
-    public<R> BaasResult<R> await(){
+    public <R> BaasResult<R> await() {
         return BaasBox.getDefaultChecked().await(this);
     }
+
     public boolean abort() {
         return BaasBox.getDefaultChecked().abort(this);
     }

@@ -50,9 +50,10 @@ public class Filter {
     /**
      * Returns a new filter that applies pagination to the request using
      * the given order, page number and records page.
-     * @param order the field to use for sorting
-     * @param asc true if sorting should be ascending false otherwise
-     * @param page the page number to retrieve
+     *
+     * @param order   the field to use for sorting
+     * @param asc     true if sorting should be ascending false otherwise
+     * @param page    the page number to retrieve
      * @param records the number of entity to return per page
      * @return a configured filter
      */
@@ -72,7 +73,7 @@ public class Filter {
      * <a href="https://github.com/orientechnologies/orientdb/wiki/SQL-Where">Orient SQL Where reference</a>
      * for a complete reference.
      *
-     * @param where a string
+     * @param where  a string
      * @param params params to fill in the condition
      * @return a configured filter
      */
@@ -85,7 +86,7 @@ public class Filter {
      * Returns a new filter that applies the provided sort order to the request.
      *
      * @param order a field to use for sorting
-     * @param asc true if sorting should be ascending false otherwise
+     * @param asc   true if sorting should be ascending false otherwise
      * @return a configured Filter
      */
     public static Filter sort(String order, boolean asc) {
@@ -95,11 +96,11 @@ public class Filter {
 
     /**
      * Sets the where condition for this filter,
-     * @see com.baasbox.android.Filter#where(String, String...)
      *
      * @param clause a string
-     * @param args arguments to use in the condition
+     * @param args   arguments to use in the condition
      * @return this filter with this where condition set
+     * @see com.baasbox.android.Filter#where(String, String...)
      */
     public Filter setWhere(CharSequence clause, CharSequence... args) {
         where = null;
@@ -126,6 +127,7 @@ public class Filter {
 
     /**
      * Sets the sort order to use with this filter.
+     *
      * @param name
      * @return
      */
@@ -136,6 +138,7 @@ public class Filter {
 
     /**
      * Configures pagination for this filter.
+     *
      * @param orderBy
      * @param page
      * @param numrecords
@@ -153,6 +156,7 @@ public class Filter {
 
     /**
      * Configures pagination for this filter
+     *
      * @param page
      * @param numrecords
      * @return
@@ -168,6 +172,7 @@ public class Filter {
 
     /**
      * Removes the pagination from this filter
+     *
      * @return
      */
     public Filter clearPaging() {

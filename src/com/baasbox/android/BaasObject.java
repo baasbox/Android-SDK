@@ -30,7 +30,8 @@ public abstract class BaasObject {
     // todo this should provide common interface among remote objects
     //      such as dirty tracking timestamps ecc
 
-    BaasObject(){}
+    BaasObject() {
+    }
 
     /**
      * Returns true if this object has no conunterpart on the BaasBox server.

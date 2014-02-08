@@ -75,27 +75,27 @@ class HttpUrlConnectionClient implements RestClient {
     private SSLSocketFactory mSSLSocketFactory;
     private HostnameVerifier mHostVerifier;
 
-    HttpUrlConnectionClient(Context context,BaasBox.Config config) {
+    HttpUrlConnectionClient(Context context, BaasBox.Config config) {
         this.config = config;
-         this.mSSLSocketFactory = config.useHttps ? trustAll() : null;
+        this.mSSLSocketFactory = config.useHttps ? trustAll() : null;
         this.mHostVerifier = config.useHttps ? ACCEPT_ALL : null;
-        if (config.useHttps){
+        if (config.useHttps) {
             HttpsURLConnection.setDefaultSSLSocketFactory(mSSLSocketFactory);
             HttpsURLConnection.setDefaultHostnameVerifier(mHostVerifier);
         }
         disableReuseConnectionIfNecessary(config.useHttps);
 
-        enableHttpCacheIfAvailable(context,HTTP_CACHE_SIZE);
+        enableHttpCacheIfAvailable(context, HTTP_CACHE_SIZE);
     }
 
-    private void disableReuseConnectionIfNecessary(boolean https){
-        if (https || Build.VERSION.SDK_INT<Build.VERSION_CODES.FROYO){
-            System.setProperty("http.keepAlive","false");
+    private void disableReuseConnectionIfNecessary(boolean https) {
+        if (https || Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
+            System.setProperty("http.keepAlive", "false");
         }
     }
 
-    private void enableHttpCacheIfAvailable(Context context,long cacheSize){
-        File httpCacheDir = new File(context.getCacheDir(),"baashttpcache");
+    private void enableHttpCacheIfAvailable(Context context, long cacheSize) {
+        File httpCacheDir = new File(context.getCacheDir(), "baashttpcache");
         try {
             Class.forName("android.net.http.HttpResponseCache")
                     .getMethod("install", File.class, long.class)
@@ -105,6 +105,7 @@ class HttpUrlConnectionClient implements RestClient {
             Logger.debug("HttpResponseCache not available");
         }
     }
+
     private static SSLSocketFactory trustAll() {
         try {
             SSLContext ssl = SSLContext.getInstance("TLS");
@@ -130,9 +131,9 @@ class HttpUrlConnectionClient implements RestClient {
             connection.connect();
 
             int responseCode = -1;
-            try{
-                responseCode =connection.getResponseCode();
-            }catch (IOException e){
+            try {
+                responseCode = connection.getResponseCode();
+            } catch (IOException e) {
                 responseCode = connection.getResponseCode();
             }
             Logger.info("Connection response received");
@@ -150,7 +151,7 @@ class HttpUrlConnectionClient implements RestClient {
                 }
             }
             return response;
-        }catch (IOException e) {
+        } catch (IOException e) {
             throw new BaasIOException(e);
         }
     }

@@ -16,7 +16,6 @@
 package com.baasbox.android.json;
 
 import android.content.ContentValues;
-import android.content.Entity;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.baasbox.android.impl.Base64;
@@ -109,7 +108,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
                 Object v = keyValues[i + 1];
                 o.put(key, v);
             } catch (ClassCastException e) {
-                throw new IllegalArgumentException("even parameters must be strings");
+                throw new IllegalArgumentException("even parameters must be strings",e);
             }
         }
         return o;
@@ -383,7 +382,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      */
     public boolean isNull(String name) {
         if (name == null) throw new NullPointerException("name cannot be null");
-        return map.containsKey(name) && map.get(name) ==null;
+        return map.containsKey(name) && map.get(name) == null;
     }
 
 
@@ -568,7 +567,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
             try {
                 return Base64.decode((String) o, Base64.DEFAULT);
             } catch (IllegalArgumentException e) {
-                throw new JsonException("not a binary");
+                throw new JsonException("not a binary",e);
             }
         }
         throw new JsonException("not a binary");
@@ -673,6 +672,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
 
     /**
      * Returns the number of mappings in this object
+     *
      * @return the size of this object
      */
     public int size() {
@@ -681,6 +681,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
 
     /**
      * Merges the mappings of <code>other</code> in this object.
+     *
      * @param other an object to merge in
      * @return this object with the mappings of other
      */
@@ -724,7 +725,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
                 try {
                     jw.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
         }
@@ -796,6 +796,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
 
     /**
      * Decodes the <code>json</code> string passed as parameter.
+     *
      * @param json the string to decode
      * @return a new JsonObject representation of the string
      * @throws com.baasbox.android.json.JsonException if an error happens during parsing of the string
@@ -820,7 +821,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
                 try {
                     r.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
         }
@@ -892,6 +892,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     /**
      * Returns an {@link java.util.Iterator} of the mappings contained
      * in this object
+     *
      * @return an iterator of the mappings
      */
     @Override

@@ -27,6 +27,7 @@ public abstract class BaasResult<T> {
 
     /**
      * Returns a new failed BaasResult
+     *
      * @param t
      * @param <T>
      * @return
@@ -37,6 +38,7 @@ public abstract class BaasResult<T> {
 
     /**
      * Returns a new canceled BaasResult
+     *
      * @param <T>
      * @return
      */
@@ -46,6 +48,7 @@ public abstract class BaasResult<T> {
 
     /**
      * Returns a new successful BaasResult
+     *
      * @param result
      * @param <T>
      * @return
@@ -79,7 +82,7 @@ public abstract class BaasResult<T> {
         private final BaasException error;
 
         Error(BaasException e) {
-            if (e==null)throw new NullPointerException("error cannot be null");
+            if (e == null) throw new NullPointerException("error cannot be null");
             this.error = e;
         }
 
@@ -115,7 +118,7 @@ public abstract class BaasResult<T> {
 
         @Override
         public String toString() {
-            return "Error{error=" + error +'}';
+            return "Error{error=" + error + '}';
         }
 
         @Override
@@ -175,7 +178,7 @@ public abstract class BaasResult<T> {
 
         @Override
         public String toString() {
-            return "Success{value=" + value +'}';
+            return "Success{value=" + value + '}';
         }
 
         @Override
@@ -194,21 +197,23 @@ public abstract class BaasResult<T> {
     }
 
 
-
     /**
      * True if this result represents a failure
+     *
      * @return true if this result is a failure
      */
     public abstract boolean isFailed();
 
     /**
      * True if the result represent a success
+     *
      * @return true if this result is a success
      */
     public abstract boolean isSuccess();
 
     /**
      * True if this result represent a cancelled request
+     *
      * @return true if this result is canceled
      */
     public abstract boolean isCanceled();
@@ -216,6 +221,7 @@ public abstract class BaasResult<T> {
     /**
      * Returns the error represented by this result
      * or null if this result is not an error.
+     *
      * @return a {@link com.baasbox.android.BaasException}
      */
     public abstract BaasException error();
@@ -223,6 +229,7 @@ public abstract class BaasResult<T> {
     /**
      * Returns the value represented by this result
      * if there was no error, null otherwise
+     *
      * @return a value
      */
     public abstract T value();

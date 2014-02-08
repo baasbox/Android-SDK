@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import com.baasbox.android.impl.DiskLruCache;
+import com.baasbox.android.impl.Logger;
 
 import java.io.*;
 
@@ -17,37 +18,38 @@ final class Cache {
     private final DiskLruCache mLruCache;
 
     Cache(Context context) {
-        try{
+        try {
             mLruCache = DiskLruCache.open(getCacheDir(context),
-                                          appVersion(context),
-                                          1,
-                                          MAX_CACHE_SIZE);
-        } catch (IOException e){
+                    appVersion(context),
+                    1,
+                    MAX_CACHE_SIZE);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public CacheStream beginStream(String id) throws BaasException{
+    public CacheStream beginStream(String id) throws BaasException {
         DiskLruCache.Editor editor = null;
         OutputStream out = null;
         try {
-            editor=mLruCache.edit(id);
+            editor = mLruCache.edit(id);
             out = editor.newOutputStream(0);
-            return new CacheStream(out,editor);
-        } catch (IOException e){
+            return new CacheStream(out, editor);
+        } catch (IOException e) {
             throw new BaasIOException(e);
         }
     }
 
-    static class CacheStream extends FilterOutputStream{
+    static class CacheStream extends FilterOutputStream {
         private final DiskLruCache.Editor editor;
-        CacheStream(OutputStream out,DiskLruCache.Editor editor){
+
+        CacheStream(OutputStream out, DiskLruCache.Editor editor) {
             super(out);
-            this.editor=editor;
+            this.editor = editor;
 
         }
 
-        public void commit() throws BaasException{
+        public void commit() throws BaasException {
             try {
                 editor.commit();
             } catch (IOException e) {
@@ -59,83 +61,84 @@ final class Cache {
         @Override
         public void close() throws IOException {
             super.close();
-            if (editor!=null){
+            if (editor != null) {
                 editor.abortUnlessCommitted();
             }
         }
     }
-    public void put(String id,byte[] data){
+
+    public void put(String id, byte[] data) {
         DiskLruCache.Editor edit = null;
         OutputStream out = null;
         try {
-            edit =mLruCache.edit(id);
+            edit = mLruCache.edit(id);
             out = edit.newOutputStream(0);
             out.write(data);
             out.flush();
             edit.commit();
         } catch (IOException e) {
-
-            e.printStackTrace();
+            Logger.error(e, "Error using cache");
         } finally {
-            if (out!=null){
+            if (out != null) {
                 try {
                     out.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+
                 }
             }
-          if (edit!=null){
-            edit.abortUnlessCommitted();
-          }
+            if (edit != null) {
+                edit.abortUnlessCommitted();
+            }
         }
     }
 
-    public BaasStream getStream(String id) throws BaasIOException{
+    public BaasStream getStream(String id) throws BaasIOException {
         DiskLruCache.Snapshot s = null;
-        InputStream in = null;
         try {
             s = mLruCache.get(id);
-            if (s==null) return null;
-            return new BaasStream(id,s);
-        } catch (IOException e){
-            throw new BaasIOException("Error while reading from cache",e);
+            if (s == null) return null;
+            return new BaasStream(id, s);
+        } catch (IOException e) {
+            throw new BaasIOException("Error while reading from cache", e);
         }
     }
 
-    public byte[] get(String id){
+    public byte[] get(String id) {
         DiskLruCache.Snapshot s = null;
-        InputStream in =null;
+        DataInputStream din = null;
+
         try {
             s = mLruCache.get(id);
-            if (s==null)return null;
-            int len = (int)s.getLength(0);
+            if (s == null) return null;
+            int len = (int) s.getLength(0);
             byte[] bytes = new byte[len];
-            in = s.getInputStream(0);
-            DataInputStream din = new DataInputStream(in);
+            din = new DataInputStream(s.getInputStream(0));
             din.readFully(bytes);
             return bytes;
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            if(in!=null){
+            if (din != null) {
                 try {
-                    in.close();
-                }catch (IOException e){}
+                    din.close();
+                } catch (IOException e) {
+                }
             }
 
-            if(s!=null){
+
+            if (s != null) {
                 s.close();
             }
         }
 
     }
 
-    private static File getCacheDir(Context context){
-        File cacheDir = new File(context.getCacheDir(),BAASBOX_CACHE_DIR);
+    private static File getCacheDir(Context context) {
+        File cacheDir = new File(context.getCacheDir(), BAASBOX_CACHE_DIR);
         return cacheDir;
     }
 
-    private static int appVersion(Context context){
+    private static int appVersion(Context context) {
         try {
             PackageInfo pi = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             return pi.versionCode;

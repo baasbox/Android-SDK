@@ -16,7 +16,10 @@
 package com.baasbox.android;
 
 import android.content.Context;
-import com.baasbox.android.impl.*;
+import com.baasbox.android.impl.Dispatcher;
+import com.baasbox.android.impl.ImmediateDispatcher;
+import com.baasbox.android.impl.Logger;
+import com.baasbox.android.impl.Task;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
@@ -26,10 +29,10 @@ import org.apache.http.HttpResponse;
  * This class represents the main context of BaasBox SDK.
  * It must be initialized through {@link #initDefault(android.content.Context)}
  * before using any other part of the sdk.
- *<p>
+ * <p>
  * It's suggested to initialize the client in the Application:
- *</p>
- *
+ * </p>
+ * <p/>
  * <pre>
  *     <code>
  *     public class MyBaasBoxApp extends Application {
@@ -49,7 +52,7 @@ import org.apache.http.HttpResponse;
  *         }
  *     }
  *     </code>
- *</pre>
+ * </pre>
  *
  * @author Andrea Tortorella
  * @since 0.7.3
@@ -80,6 +83,7 @@ public class BaasBox {
 
     /**
      * The configuration for BaasBox client
+     *
      * @author Andrea Tortorella
      * @since 0.7.3
      */
@@ -172,8 +176,8 @@ public class BaasBox {
         }
         this.context = context.getApplicationContext();
         this.config = config == null ? new Config() : config;
-        this.store = new BaasCredentialManager(this,context);
-        this.restClient = new HttpUrlConnectionClient(context,this.config);
+        this.store = new BaasCredentialManager(this, context);
+        this.restClient = new HttpUrlConnectionClient(context, this.config);
         this.requestFactory = new RequestFactory(this.config, store);
         this.mCache = new Cache(context);
         this.syncDispatcher = new ImmediateDispatcher();
@@ -390,12 +394,12 @@ public class BaasBox {
     /**
      * Streams the file using the provided data stream handler.
      *
-     * @param id the name of the asset to download
-     * @param size a size spec to specify the resize of an image asset
+     * @param id       the name of the asset to download
+     * @param size     a size spec to specify the resize of an image asset
      * @param priority a priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
-     * @param data the data stream handler {@link com.baasbox.android.DataStreamHandler}
-     * @param handler the completion handler
-     * @param <R> the type to transform the bytes to.
+     * @param data     the data stream handler {@link com.baasbox.android.DataStreamHandler}
+     * @param handler  the completion handler
+     * @param <R>      the type to transform the bytes to.
      * @return a request token to handle the request
      */
     public static <R> RequestToken streamAsset(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
@@ -406,11 +410,11 @@ public class BaasBox {
     /**
      * Streams the file using the provided data stream handler.
      *
-     * @param id the name of the asset to download
-     * @param size a size spec to specify the resize of an image asset
-     * @param data the data stream handler {@link com.baasbox.android.DataStreamHandler}
+     * @param id      the name of the asset to download
+     * @param size    a size spec to specify the resize of an image asset
+     * @param data    the data stream handler {@link com.baasbox.android.DataStreamHandler}
      * @param handler the completion handler
-     * @param <R> the type to transform the bytes to.
+     * @param <R>     the type to transform the bytes to.
      * @return a request token to handle the request
      */
     public static <R> RequestToken streamAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
@@ -421,10 +425,10 @@ public class BaasBox {
     /**
      * Streams the file using the provided data stream handler.
      *
-     * @param id the name of the asset to download
-     * @param data the data stream handler {@link com.baasbox.android.DataStreamHandler}
+     * @param id      the name of the asset to download
+     * @param data    the data stream handler {@link com.baasbox.android.DataStreamHandler}
      * @param handler the completion handler
-     * @param <R> the type to transform the bytes to.
+     * @param <R>     the type to transform the bytes to.
      * @return a request token to handle the request
      */
     public static <R> RequestToken streamAsset(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
@@ -432,14 +436,13 @@ public class BaasBox {
     }
 
 
-
     /**
      * Streams the file using the provided data stream handler.
      *
-     * @param id the name of the asset to download
+     * @param id       the name of the asset to download
      * @param priority a priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
-     * @param handler the completion handler
-     * @param <R> the type to transform the bytes to.
+     * @param handler  the completion handler
+     * @param <R>      the type to transform the bytes to.
      * @return a request token to handle the request
      */
     public static <R> RequestToken streamAsset(String id, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
@@ -450,14 +453,15 @@ public class BaasBox {
     private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null) throw new NullPointerException("id cannot be null");
-        StreamRequest synReq = new StreamRequest(box,"asset", id, spec, sizeId);
+        StreamRequest synReq = new StreamRequest(box, "asset", id, spec, sizeId);
         return box.submitSync(synReq);
     }
 
 
     /**
      * Synchronously streams the asset.
-     * @param id the name of the asset to download
+     *
+     * @param id     the name of the asset to download
      * @param sizeId the size index if the asset is an image
      * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
      */
@@ -467,7 +471,8 @@ public class BaasBox {
 
     /**
      * Synchronously streams the asset.
-     * @param id the name of the asset to download
+     *
+     * @param id   the name of the asset to download
      * @param spec a size spec to specify the resize of an image asset
      * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
      */
@@ -476,7 +481,7 @@ public class BaasBox {
     }
 
 
-    private static <R> RequestToken stream(String name,String sizeSpec, int sizeIdx,Priority priority,DataStreamHandler<R> dataStreamHandler,BaasHandler<R> handler){
+    private static <R> RequestToken stream(String name, String sizeSpec, int sizeIdx, Priority priority, DataStreamHandler<R> dataStreamHandler, BaasHandler<R> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (dataStreamHandler == null) throw new NullPointerException("data handler cannot be null");
         if (name == null) throw new NullPointerException("id cannot be null");
@@ -490,7 +495,7 @@ public class BaasBox {
         private HttpRequest request;
 
         protected AssetStream(BaasBox box, String name, String sizeSpec, int sizeId, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
-            super(box, priority, dataStream, handler,false);
+            super(box, priority, dataStream, handler, false);
             this.name = name;
             RequestFactory.Param param = null;
             if (sizeSpec != null) {

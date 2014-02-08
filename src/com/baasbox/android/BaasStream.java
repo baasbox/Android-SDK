@@ -19,12 +19,16 @@ import com.baasbox.android.impl.DiskLruCache;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * An input streams over the content of a response
  * that gives access to the content type, the content length
  * and the id of the associated BaasBox file.
+ *
  * @author Andrea Tortorella
  * @since 0.7.3
  */
@@ -47,19 +51,19 @@ public final class BaasStream extends FilterInputStream {
      */
     public final String id;
 
-    BaasStream(String id,DiskLruCache.Snapshot s){
+    BaasStream(String id, DiskLruCache.Snapshot s) {
         super(s.getInputStream(0));
-        this.id=id;
-        this.contentLength=s.getLength(0);
-        this.contentType=null;
-        this.entity=null;
-        this.snapshot=null;
+        this.id = id;
+        this.contentLength = s.getLength(0);
+        this.contentType = null;
+        this.entity = null;
+        this.snapshot = null;
     }
 
     BaasStream(String id, HttpEntity entity) throws IOException {
         super(getInput(entity));
         this.entity = entity;
-        this.snapshot=null;
+        this.snapshot = null;
         this.id = id;
         Header contentTypeHeader = entity.getContentType();
         String contentType = "application/octet-stream";
@@ -73,12 +77,11 @@ public final class BaasStream extends FilterInputStream {
     @Override
     public void close() throws IOException {
         super.close();
-        if(entity!=null){
+        if (entity != null) {
             entity.consumeContent();
         }
-        if (snapshot!=null) snapshot.close();
+        if (snapshot != null) snapshot.close();
     }
-
 
 
     static BufferedInputStream getInput(HttpEntity entity) throws IOException {

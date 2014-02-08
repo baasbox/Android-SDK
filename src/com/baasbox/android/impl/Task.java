@@ -60,12 +60,29 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
                 you.ordinal() - me.ordinal();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Task)) return false;
+
+        Task task = (Task) o;
+
+        if (seqNumber != task.seqNumber) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return seqNumber;
+    }
+
     public int seq() {
         return seqNumber;
     }
 
-    public void await(){
-        latch=new CountDownLatch(1);
+    public void await() {
+        latch = new CountDownLatch(1);
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -192,7 +209,6 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
                         ((BaasHandler<R>) curr).handle(result);
                     }
                     finish();
-//                    dispatcher.finish(this);
                 }
                 return;
 
@@ -201,7 +217,7 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
         }
     }
 
-    private void finish(){
+    private void finish() {
         Logger.debug("FINISHING");
         dispatcher.finish(this);
     }
@@ -273,19 +289,16 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
                 result = BaasResult.failure(e);
             }
         }
-//        if (latch!=null){
-//            latch.countDown();
-//        }
-
     }
 
     protected abstract R asyncCall() throws BaasException;
 
-    final void unlock(){
-        if (latch!=null){
+    final void unlock() {
+        if (latch != null) {
             latch.countDown();
         }
     }
+
     final void post() {
         postOn.post(this);
     }

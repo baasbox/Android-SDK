@@ -1,17 +1,15 @@
 package com.baasbox.android.json;
 
-import android.os.Parcelable;
-
 import java.io.IOException;
 import java.io.StringReader;
 
 /**
  * Represent JSON structured data, either a {@link com.baasbox.android.json.JsonObject}
  * or a {@link com.baasbox.android.json.JsonArray}.
- *
+ * <p/>
  * Created by Andrea Tortorella on 01/01/14.
  */
-public abstract class JsonStructure{
+public abstract class JsonStructure {
 
     public final static int ABSENT = 0;
     public final static int OBJECT = 1;
@@ -29,7 +27,7 @@ public abstract class JsonStructure{
      *
      * @return true if this is a {@link JsonArray} false otherwise
      */
-    public final boolean isArray(){
+    public final boolean isArray() {
         return this instanceof JsonArray;
     }
 
@@ -38,7 +36,7 @@ public abstract class JsonStructure{
      *
      * @return true if this is {@link JsonObject} false otherwise
      */
-    public final boolean isObject(){
+    public final boolean isObject() {
         return this instanceof JsonObject;
     }
 
@@ -72,20 +70,22 @@ public abstract class JsonStructure{
 
     /**
      * Encodes this structure to it's json representation
+     *
      * @return a string representation of this structure
      */
     public abstract String encode();
 
     /**
      * Creates a deeep copy of this structure.
+     *
      * @return a new JsonStructure with the same content
      */
     public abstract JsonStructure copy();
 
     /**
      * Decodes a string into a {@link JsonStructure}
-     * @param text the string to decode cannot be null
      *
+     * @param text the string to decode cannot be null
      * @return a JsonStructure representation of the string
      * @throws com.baasbox.android.json.JsonException if the text cannot be parsed as json.
      */
@@ -98,6 +98,7 @@ public abstract class JsonStructure{
 
     /**
      * Returns the values contained in this structure as a {@link JsonArray}
+     *
      * @return the values of this structure
      */
     public abstract JsonArray values();

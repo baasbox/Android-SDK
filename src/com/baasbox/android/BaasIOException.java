@@ -18,6 +18,7 @@ package com.baasbox.android;
 /**
  * A subclass of {@link com.baasbox.android.BaasException}
  * that represents an I/O exception.
+ *
  * @author Davide Caroselli
  * @since 0.7.3
  */
