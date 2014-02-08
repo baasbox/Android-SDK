@@ -20,11 +20,12 @@ repositories {
 
 def majorVersion = 0
 def minorVersion = 7
-def patchVersion = 3
+def patchVersion = 4
 def sdkRevision  = 0 // sdk revision of a release
 
-def releaseType = "final";
+def releaseType = "SNAPSHOT";
 
+ext.version = "${majorVersion}.${minorVersion}.${patchVersion}.${sdkRevision}-${releaseType}"
 def gitSha ={
     'git rev-parse --short HEAD'.execute().text.trim()
 }()
@@ -40,7 +41,7 @@ android {
 
     defaultConfig {
         versionCode = majorVersion*10000+minorVersion*1000+patchVersion*100+sdkRevision
-        versionName = "${majorVersion}.${minorVersion}.${patchVersion}.${sdkRevision}-${releaseType}"
+        versionName = version
         buildConfigField "String", "API_VERSION", "\"${majorVersion}.${minorVersion}.${patchVersion}\""
         buildConfigField "String", "GIT_SHA", "\"${gitSha}\""
         buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
@@ -106,13 +107,13 @@ uploadArchives {
             repository(url: "file:///home/eto/baasbox-android")
             pom.groupId = 'com.baasbox'
             pom.artifactId = 'baasbox-android'
-            pom.version = '0.7.3'
+            pom.version = version
         }
     }
 }
 install {
     repositories.mavenInstaller {
-        pom.version = "0.7.3-SNAPSHOT"
+        pom.version = version
         pom.groupId = "com.baasbox"
         pom.artifactId = "baasbox-android"
     }
