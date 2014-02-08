@@ -23,7 +23,6 @@ package com.baasbox.android;
  * @since 0.7.3
  */
 public enum Grant {
-
     /**
      * Read permission
      */
@@ -45,10 +44,13 @@ public enum Grant {
      */
     ALL("all");
 
+// ------------------------------ FIELDS ------------------------------
+
     final String action;
+
+// --------------------------- CONSTRUCTORS ---------------------------
 
     Grant(String action) {
         this.action = action;
     }
-
 }

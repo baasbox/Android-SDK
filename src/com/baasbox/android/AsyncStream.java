@@ -27,25 +27,27 @@ import java.io.IOException;
  * Created by Andrea Tortorella on 23/01/14.
  */
 abstract class AsyncStream<R> extends NetworkTask<R> {
+// ------------------------------ FIELDS ------------------------------
 
     private final DataStreamHandler<R> dataStream;
 
-    protected AsyncStream(BaasBox box, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler, boolean login) {
-        super(box, priority, handler, login);
-        this.dataStream = dataStream;
-    }
+// --------------------------- CONSTRUCTORS ---------------------------
 
     protected AsyncStream(BaasBox box, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
         super(box, priority, handler);
         this.dataStream = dataStream;
     }
 
-    protected abstract String streamId();
+    protected AsyncStream(BaasBox box, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler, boolean login) {
+        super(box, priority, handler, login);
+        this.dataStream = dataStream;
+    }
+
+// -------------------------- OTHER METHODS --------------------------
 
     @Override
     protected R getFromCache(BaasBox box) throws BaasException {
         try {
-
             byte[] bytes = box.mCache.get(streamId());
             if (bytes == null) {
                 Logger.info("GOT FROM CACHE MISS");
@@ -59,6 +61,8 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
             throw new BaasIOException("error while parsing content from cache", e);
         }
     }
+
+    protected abstract String streamId();
 
     @Override
     protected R onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
@@ -107,6 +111,4 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
         }
         return result;
     }
-
-
 }

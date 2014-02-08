@@ -45,8 +45,10 @@ import java.util.Map;
  * Created by eto on 23/12/13.
  */
 class HttpUrlConnectionClient implements RestClient {
-    private final static long HTTP_CACHE_SIZE = 10 * 1024 * 1024;
-    private final static HostnameVerifier ACCEPT_ALL =
+// ------------------------------ FIELDS ------------------------------
+
+    private static final long HTTP_CACHE_SIZE = 10 * 1024 * 1024;
+    private static final HostnameVerifier ACCEPT_ALL =
             new HostnameVerifier() {
                 @Override
                 public boolean verify(String hostname, SSLSession session) {
@@ -54,7 +56,7 @@ class HttpUrlConnectionClient implements RestClient {
                 }
             };
 
-    private final static TrustManager[] TRUST_MANAGERS = new TrustManager[]{
+    private static final TrustManager[] TRUST_MANAGERS = new TrustManager[]{
             new X509TrustManager() {
                 @Override
                 public void checkClientTrusted(X509Certificate[] chain, String authType) {
@@ -75,6 +77,8 @@ class HttpUrlConnectionClient implements RestClient {
     private SSLSocketFactory mSSLSocketFactory;
     private HostnameVerifier mHostVerifier;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+
     HttpUrlConnectionClient(Context context, BaasBox.Config config) {
         this.config = config;
         this.mSSLSocketFactory = config.useHttps ? trustAll() : null;
@@ -86,6 +90,18 @@ class HttpUrlConnectionClient implements RestClient {
         disableReuseConnectionIfNecessary(config.useHttps);
 
         enableHttpCacheIfAvailable(context, HTTP_CACHE_SIZE);
+    }
+
+    private static SSLSocketFactory trustAll() {
+        try {
+            SSLContext ssl = SSLContext.getInstance("TLS");
+            ssl.init(null, TRUST_MANAGERS, null);
+            return ssl.getSocketFactory();
+        } catch (NoSuchAlgorithmException e) {
+            throw new Error(e);
+        } catch (KeyManagementException e) {
+            throw new Error(e);
+        }
     }
 
     private void disableReuseConnectionIfNecessary(boolean https) {
@@ -106,18 +122,10 @@ class HttpUrlConnectionClient implements RestClient {
         }
     }
 
-    private static SSLSocketFactory trustAll() {
-        try {
-            SSLContext ssl = SSLContext.getInstance("TLS");
-            ssl.init(null, TRUST_MANAGERS, null);
-            return ssl.getSocketFactory();
-        } catch (NoSuchAlgorithmException e) {
-            throw new Error(e);
-        } catch (KeyManagementException e) {
-            throw new Error(e);
-        }
-    }
+// ------------------------ INTERFACE METHODS ------------------------
 
+
+// --------------------- Interface RestClient ---------------------
 
     @Override
     public HttpResponse execute(HttpRequest request) throws BaasException {
@@ -156,6 +164,7 @@ class HttpUrlConnectionClient implements RestClient {
         }
     }
 
+// -------------------------- OTHER METHODS --------------------------
 
     private HttpEntity asEntity(HttpURLConnection connection) {
         BasicHttpEntity entity = new BasicHttpEntity();

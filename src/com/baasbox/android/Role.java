@@ -21,30 +21,29 @@ package com.baasbox.android;
  * Created by Andrea Tortorella on 18/01/14.
  */
 public final class Role {
-
-    private Role() {
-    }
+// ------------------------------ FIELDS ------------------------------
 
     /**
      * Role of anonymous users
      */
-    public final static String ANONYMOUS = "anonymous";
+    public static final String ANONYMOUS = "anonymous";
 
     /**
      * Role of registered users
      */
-    public final static String REGISTERED = "registered";
+    public static final String REGISTERED = "registered";
 
     /**
      * Role of administrators
      */
-    public final static String ADMIN = "administrator";
+    public static final String ADMIN = "administrator";
 
     /**
      * Role of backoffice users
      */
-    public final static String BACKOFFICE = "backoffice";
+    public static final String BACKOFFICE = "backoffice";
 
+// -------------------------- STATIC METHODS --------------------------
 
     /**
      * Returns the role to whom belong all users
@@ -56,5 +55,10 @@ public final class Role {
     public static String friendsOf(String user) {
         if (user == null) throw new IllegalArgumentException("user cannot be null");
         return ("friends_of_" + user);
+    }
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    private Role() {
     }
 }

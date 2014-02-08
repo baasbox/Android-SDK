@@ -38,6 +38,8 @@ import java.nio.charset.Charset;
  * The default charset is US_ASCII.
  */
 class StrictLineReader implements Closeable {
+// ------------------------------ FIELDS ------------------------------
+
     private static final byte CR = (byte) '\r';
     private static final byte LF = (byte) '\n';
 
@@ -53,6 +55,8 @@ class StrictLineReader implements Closeable {
     private byte[] buf;
     private int pos;
     private int end;
+
+// --------------------------- CONSTRUCTORS ---------------------------
 
     /**
      * Constructs a new {@code LineReader} with the specified charset and the default capacity.
@@ -94,6 +98,11 @@ class StrictLineReader implements Closeable {
         buf = new byte[capacity];
     }
 
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface AutoCloseable ---------------------
+
     /**
      * Closes the reader by closing the underlying {@code InputStream} and
      * marking this reader as closed.
@@ -108,6 +117,8 @@ class StrictLineReader implements Closeable {
             }
         }
     }
+
+// -------------------------- OTHER METHODS --------------------------
 
     /**
      * Reads the next line. A line ends with {@code "\n"} or {@code "\r\n"},

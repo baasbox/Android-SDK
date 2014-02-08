@@ -10,35 +10,54 @@ import java.io.StringReader;
  * Created by Andrea Tortorella on 01/01/14.
  */
 public abstract class JsonStructure {
+// ------------------------------ FIELDS ------------------------------
 
-    public final static int ABSENT = 0;
-    public final static int OBJECT = 1;
-    public final static int ARRAY = 2;
-    public final static int STRING = 3;
-    public final static int BOOLEAN = 4;
-    public final static int NUMBER = 5;
-    public final static int NULL = 6;
+    public static final int ABSENT = 0;
+    public static final int OBJECT = 1;
+    public static final int ARRAY = 2;
+    public static final int STRING = 3;
+    public static final int BOOLEAN = 4;
+    public static final int NUMBER = 5;
+    public static final int NULL = 6;
+
+// -------------------------- STATIC METHODS --------------------------
+
+    /**
+     * Decodes a string into a {@link JsonStructure}
+     *
+     * @param text the string to decode cannot be null
+     * @return a JsonStructure representation of the string
+     * @throws com.baasbox.android.json.JsonException if the text cannot be parsed as json.
+     */
+    public static JsonStructure decode(String text) {
+        if (text == null) throw new IllegalArgumentException("text cannot be null");
+        StringReader sr = new StringReader(text);
+        JsonReader r = new JsonReader(sr);
+        return decodeFully(r);
+    }
+
+    static JsonStructure decodeFully(JsonReader jr) {
+        try {
+            JsonToken t = jr.peek();
+            switch (t) {
+                case BEGIN_OBJECT:
+                    return JsonObject.decodeFully(jr);
+                case BEGIN_ARRAY:
+                    return JsonArray.decodeFully(jr);
+                default:
+                    throw new JsonException("invalid json");
+            }
+        } catch (IOException e) {
+            throw new JsonException("incalid json", e);
+        }
+    }
+
+// --------------------------- CONSTRUCTORS ---------------------------
 
     JsonStructure() {
     }
 
-    /**
-     * Checks if this structure is a {@link JsonArray}
-     *
-     * @return true if this is a {@link JsonArray} false otherwise
-     */
-    public final boolean isArray() {
-        return this instanceof JsonArray;
-    }
-
-    /**
-     * Checks if this structure is {@link JsonObject}
-     *
-     * @return true if this is {@link JsonObject} false otherwise
-     */
-    public final boolean isObject() {
-        return this instanceof JsonObject;
-    }
+// -------------------------- OTHER METHODS --------------------------
 
     /**
      * Casts this structure to a {@link JsonArray}
@@ -69,13 +88,6 @@ public abstract class JsonStructure {
     }
 
     /**
-     * Encodes this structure to it's json representation
-     *
-     * @return a string representation of this structure
-     */
-    public abstract String encode();
-
-    /**
      * Creates a deeep copy of this structure.
      *
      * @return a new JsonStructure with the same content
@@ -83,17 +95,28 @@ public abstract class JsonStructure {
     public abstract JsonStructure copy();
 
     /**
-     * Decodes a string into a {@link JsonStructure}
+     * Encodes this structure to it's json representation
      *
-     * @param text the string to decode cannot be null
-     * @return a JsonStructure representation of the string
-     * @throws com.baasbox.android.json.JsonException if the text cannot be parsed as json.
+     * @return a string representation of this structure
      */
-    public static JsonStructure decode(String text) {
-        if (text == null) throw new IllegalArgumentException("text cannot be null");
-        StringReader sr = new StringReader(text);
-        JsonReader r = new JsonReader(sr);
-        return decodeFully(r);
+    public abstract String encode();
+
+    /**
+     * Checks if this structure is a {@link JsonArray}
+     *
+     * @return true if this is a {@link JsonArray} false otherwise
+     */
+    public final boolean isArray() {
+        return this instanceof JsonArray;
+    }
+
+    /**
+     * Checks if this structure is {@link JsonObject}
+     *
+     * @return true if this is {@link JsonObject} false otherwise
+     */
+    public final boolean isObject() {
+        return this instanceof JsonObject;
     }
 
     /**
@@ -102,20 +125,4 @@ public abstract class JsonStructure {
      * @return the values of this structure
      */
     public abstract JsonArray values();
-
-    static JsonStructure decodeFully(JsonReader jr) {
-        try {
-            JsonToken t = jr.peek();
-            switch (t) {
-                case BEGIN_OBJECT:
-                    return JsonObject.decodeFully(jr);
-                case BEGIN_ARRAY:
-                    return JsonArray.decodeFully(jr);
-                default:
-                    throw new JsonException("invalid json");
-            }
-        } catch (IOException e) {
-            throw new JsonException("incalid json", e);
-        }
-    }
 }

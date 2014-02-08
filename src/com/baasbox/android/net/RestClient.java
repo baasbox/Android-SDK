@@ -23,6 +23,7 @@ import org.apache.http.HttpResponse;
  * Created by Andrea Tortorella on 23/12/13.
  */
 public interface RestClient {
+// -------------------------- OTHER METHODS --------------------------
 
     /**
      * Execute the http request returning on success an HttpResponse

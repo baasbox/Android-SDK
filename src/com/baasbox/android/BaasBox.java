@@ -58,16 +58,17 @@ import org.apache.http.HttpResponse;
  * @since 0.7.3
  */
 public class BaasBox {
+// ------------------------------ FIELDS ------------------------------
 
     /**
      * Version of the baasbox sdk.
      */
-    public final static String SDK_VERSION = BuildConfig.VERSION_NAME;
+    public static final String SDK_VERSION = BuildConfig.VERSION_NAME;
 
     /**
      * Version of the supported server api
      */
-    public final static String API_VERSION = BuildConfig.API_VERSION;
+    public static final String API_VERSION = BuildConfig.API_VERSION;
 
     /**
      * Minimum supported baasbox server api
@@ -77,9 +78,295 @@ public class BaasBox {
     private static volatile BaasBox sDefaultClient;
     private static final Object LOCK = new Object();
 
+    /**
+     * Configuration of this BaasBox client
+     */
+    public final Config config;
+    final Cache mCache;
+
+    final RequestFactory requestFactory;
+    final RestClient restClient;
+
+    final BaasCredentialManager store;
+
+    private final Context context;
+    private final Dispatcher asyncDispatcher;
+    private final ImmediateDispatcher syncDispatcher;
+
+// -------------------------- STATIC METHODS --------------------------
+
+    /**
+     * Initialize BaasBox client with default configuration.
+     * This must be invoked before any use of the api.
+     *
+     * @param context cannot be null.
+     * @return the singleton instance of the {@link com.baasbox.android.BaasBox} client
+     */
+    public static BaasBox initDefault(Context context) {
+        return initDefault(context, null, null);
+    }
+
+    /**
+     * Initialize BaasBox client with the configuration <code>config</code>
+     *
+     * @param context
+     * @param config
+     * @return
+     */
+    public static BaasBox initDefault(Context context, Config config) {
+        return initDefault(context, config, null);
+    }
+
+    /**
+     * Initialize BaasBox client with the configuration <code>config</code>
+     * and a new <code>session</code>
+     *
+     * @param context
+     * @param config
+     * @param session
+     * @return
+     */
+    public static BaasBox initDefault(Context context, Config config, String session) {
+        if (sDefaultClient == null) {
+            synchronized (LOCK) {
+                if (sDefaultClient == null) {
+                    sDefaultClient = createClient(context, config, session);
+                }
+            }
+        }
+        return sDefaultClient;
+    }
+
+    private static BaasBox createClient(Context context, Config config, String sessionToken) {
+        BaasBox box = new BaasBox(context, config);
+        //todo update token work
+        box.asyncDispatcher.start();
+        return box;
+    }
+
+    /**
+     * Returns the baasbox instance for this device if one has been
+     * initialized through {@link BaasBox#initDefault(android.content.Context)}
+     * or null.
+     *
+     * @return BAASbox instance
+     */
+    public static BaasBox getDefault() {
+        return sDefaultClient;
+    }
+
+    /**
+     * Streams the file using the provided data stream handler.
+     *
+     * @param id      the name of the asset to download
+     * @param data    the data stream handler {@link com.baasbox.android.DataStreamHandler}
+     * @param handler the completion handler
+     * @param <R>     the type to transform the bytes to.
+     * @return a request token to handle the request
+     */
+    public static <R> RequestToken streamAsset(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return stream(id, null, -1, null, data, handler);
+    }
+
+    /**
+     * Streams the file using the provided data stream handler.
+     *
+     * @param id      the name of the asset to download
+     * @param size    a size spec to specify the resize of an image asset
+     * @param data    the data stream handler {@link com.baasbox.android.DataStreamHandler}
+     * @param handler the completion handler
+     * @param <R>     the type to transform the bytes to.
+     * @return a request token to handle the request
+     */
+    public static <R> RequestToken streamAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return stream(id, null, size, null, data, handler);
+    }
+
+    /**
+     * Streams the file using the provided data stream handler.
+     *
+     * @param id       the name of the asset to download
+     * @param priority a priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
+     * @param handler  the completion handler
+     * @param <R>      the type to transform the bytes to.
+     * @return a request token to handle the request
+     */
+    public static <R> RequestToken streamAsset(String id, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
+        return stream(id, null, -1, priority, contentHandler, handler);
+    }
+
+    /**
+     * Streams the file using the provided data stream handler.
+     *
+     * @param id       the name of the asset to download
+     * @param size     a size spec to specify the resize of an image asset
+     * @param priority a priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
+     * @param data     the data stream handler {@link com.baasbox.android.DataStreamHandler}
+     * @param handler  the completion handler
+     * @param <R>      the type to transform the bytes to.
+     * @return a request token to handle the request
+     */
+    public static <R> RequestToken streamAsset(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return stream(id, null, size, priority, data, handler);
+    }
+
+    private static <R> RequestToken stream(String name, String sizeSpec, int sizeIdx, Priority priority, DataStreamHandler<R> dataStreamHandler, BaasHandler<R> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (dataStreamHandler == null) throw new IllegalArgumentException("data handler cannot be null");
+        if (name == null) throw new IllegalArgumentException("id cannot be null");
+        AsyncStream<R> stream = new AssetStream<R>(box, name, sizeSpec, sizeIdx, priority, dataStreamHandler, handler);
+        return box.submitAsync(stream);
+    }
+
+    /**
+     * Synchronously streams the asset.
+     *
+     * @param id     the name of the asset to download
+     * @param sizeId the size index if the asset is an image
+     * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
+     */
+    public static BaasResult<BaasStream> streamAssetSync(String id, int sizeId) {
+        return streamSync(id, null, sizeId);
+    }
+
+    private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
+        StreamRequest synReq = new StreamRequest(box, "asset", id, spec, sizeId);
+        return box.submitSync(synReq);
+    }
+
+    static BaasBox getDefaultChecked() {
+        if (sDefaultClient == null)
+            throw new IllegalStateException("Trying to use implicit client, but no default initialized");
+        return sDefaultClient;
+    }
+
+    /**
+     * Synchronously streams the asset.
+     *
+     * @param id   the name of the asset to download
+     * @param spec a size spec to specify the resize of an image asset
+     * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
+     */
+    public static BaasResult<BaasStream> streamAssetSync(String id, String spec) {
+        return streamSync(id, spec, -1);
+    }
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    private BaasBox(Context context, Config config) {
+        if (context == null) {
+            throw new NullPointerException("context cannot be null");
+        }
+        this.context = context.getApplicationContext();
+        this.config = config == null ? new Config() : config;
+        this.store = new BaasCredentialManager(this, context);
+        this.restClient = new HttpUrlConnectionClient(context, this.config);
+        this.requestFactory = new RequestFactory(this.config, store);
+        this.mCache = new Cache(context);
+        this.syncDispatcher = new ImmediateDispatcher();
+        this.asyncDispatcher = new Dispatcher(this);
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    boolean abort(RequestToken token) {
+        return asyncDispatcher.cancel(token.requestId, true);
+    }
+
     public <R> BaasResult<R> await(RequestToken requestToken) {
         return asyncDispatcher.await(requestToken.requestId);
     }
+
+    boolean cancel(RequestToken token) {
+        return asyncDispatcher.cancel(token.requestId, false);
+    }
+
+    public RequestToken registerPush(String registrationId, BaasHandler<Void> handler) {
+        return registerPush(registrationId, null, handler);
+    }
+
+    public RequestToken registerPush(String registrationId, Priority priority, BaasHandler<Void> handler) {
+        if (registrationId == null) throw new NullPointerException("registrationId cannot be null");
+        RegisterPush rp = new RegisterPush(this, registrationId, priority, handler);
+        return submitAsync(rp);
+    }
+
+    public BaasResult<Void> registerPushSync(String registrationId) {
+        if (registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
+        RegisterPush req = new RegisterPush(this, registrationId, null, null);
+        return submitSync(req);
+    }
+
+    /**
+     * Asynchronously sends a raw rest request to the server that is specified by
+     * the parameters passed in
+     *
+     * @param priority priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
+     * @param method   the method to use
+     * @param endpoint the resource
+     * @param body     an optional jsono bject
+     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
+     */
+    public RequestToken rest(int method, String endpoint, JsonObject body, Priority priority, BaasHandler<JsonObject> jsonHandler) {
+        if (endpoint == null) throw new NullPointerException("endpoint cannot be null");
+        endpoint = requestFactory.getEndpoint(endpoint);
+        HttpRequest any = requestFactory.any(method, endpoint, body);
+        RawRequest request = new RawRequest(this, any, priority, jsonHandler);
+        return submitAsync(request);
+    }
+
+    RequestToken submitAsync(Task<?> task) {
+        return new RequestToken(asyncDispatcher.post(task));
+    }
+
+    /**
+     * Asynchronously sends a raw rest request to the server that is specified by
+     * the parameters passed in, using default {@link com.baasbox.android.Priority#NORMAL}
+     * and no tag.
+     *
+     * @param method       the method to use
+     * @param endpoint     the resource
+     * @param body         an optional jsono bject
+     * @param authenticate true if the client should try to refresh authentication automatically
+     * @param handler      a callback to handle the json response
+     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
+     */
+    public RequestToken rest(int method, String endpoint, JsonObject body, boolean authenticate, BaasHandler<JsonObject> handler) {
+        return rest(method, endpoint, body, null, handler);
+    }
+
+    /**
+     * Synchronously sends a raw rest request to the server that is specified by
+     * the parameters passed in.
+     *
+     * @param method       the method to use
+     * @param endpoint     the resource
+     * @param body         an optional jsono bject
+     * @param authenticate true if the client should try to refresh authentication automatically
+     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
+     */
+    public BaasResult<JsonObject> restSync(int method, String endpoint, JsonObject body, boolean authenticate) {
+        RequestFactory factory = requestFactory;
+        endpoint = factory.getEndpoint(endpoint);
+        HttpRequest any = factory.any(method, endpoint, body);
+        return submitSync(new RawRequest(this, any, null, null));
+    }
+
+    <Resp> BaasResult<Resp> submitSync(Task<Resp> task) {
+        return syncDispatcher.execute(task);
+    }
+
+    boolean resume(RequestToken token, BaasHandler<?> handler) {
+        return asyncDispatcher.resume(token.requestId, handler);
+    }
+
+    boolean suspend(RequestToken token) {
+        return asyncDispatcher.suspend(token.requestId);
+    }
+
+// -------------------------- INNER CLASSES --------------------------
 
     /**
      * The configuration for BaasBox client
@@ -87,8 +374,7 @@ public class BaasBox {
      * @author Andrea Tortorella
      * @since 0.7.3
      */
-    public final static class Config {
-
+    public static final class Config {
         public ExceptionHandler exceptionHandler = ExceptionHandler.DEFAULT;
 
         /**
@@ -155,197 +441,7 @@ public class BaasBox {
         public int workerThreads = 0;
     }
 
-    private final Context context;
-    private final Dispatcher asyncDispatcher;
-    private final ImmediateDispatcher syncDispatcher;
-    final Cache mCache;
-
-    final RequestFactory requestFactory;
-    final RestClient restClient;
-
-    /**
-     * Configuration of this BaasBox client
-     */
-    public final Config config;
-
-    final BaasCredentialManager store;
-
-    private BaasBox(Context context, Config config) {
-        if (context == null) {
-            throw new NullPointerException("context cannot be null");
-        }
-        this.context = context.getApplicationContext();
-        this.config = config == null ? new Config() : config;
-        this.store = new BaasCredentialManager(this, context);
-        this.restClient = new HttpUrlConnectionClient(context, this.config);
-        this.requestFactory = new RequestFactory(this.config, store);
-        this.mCache = new Cache(context);
-        this.syncDispatcher = new ImmediateDispatcher();
-        this.asyncDispatcher = new Dispatcher(this);
-    }
-
-    private static BaasBox createClient(Context context, Config config, String sessionToken) {
-        BaasBox box = new BaasBox(context, config);
-        //todo update token work
-        box.asyncDispatcher.start();
-        return box;
-    }
-
-    /**
-     * Initialize BaasBox client with default configuration.
-     * This must be invoked before any use of the api.
-     *
-     * @param context cannot be null.
-     * @return the singleton instance of the {@link com.baasbox.android.BaasBox} client
-     */
-    public static BaasBox initDefault(Context context) {
-        return initDefault(context, null, null);
-    }
-
-    /**
-     * Initialize BaasBox client with the configuration <code>config</code>
-     *
-     * @param context
-     * @param config
-     * @return
-     */
-    public static BaasBox initDefault(Context context, Config config) {
-        return initDefault(context, config, null);
-    }
-
-    /**
-     * Initialize BaasBox client with the configuration <code>config</code>
-     * and a new <code>session</code>
-     *
-     * @param context
-     * @param config
-     * @param session
-     * @return
-     */
-    public static BaasBox initDefault(Context context, Config config, String session) {
-        if (sDefaultClient == null) {
-            synchronized (LOCK) {
-                if (sDefaultClient == null) {
-                    sDefaultClient = createClient(context, config, session);
-                }
-            }
-        }
-        return sDefaultClient;
-    }
-
-    /**
-     * Returns the baasbox instance for this device if one has been
-     * initialized through {@link BaasBox#initDefault(android.content.Context)}
-     * or null.
-     *
-     * @return BAASbox instance
-     */
-    public static BaasBox getDefault() {
-        return sDefaultClient;
-    }
-
-
-    static BaasBox getDefaultChecked() {
-        if (sDefaultClient == null)
-            throw new IllegalStateException("Trying to use implicit client, but no default initialized");
-        return sDefaultClient;
-    }
-
-    RequestToken submitAsync(Task<?> task) {
-        return new RequestToken(asyncDispatcher.post(task));
-    }
-
-    <Resp> BaasResult<Resp> submitSync(Task<Resp> task) {
-        return syncDispatcher.execute(task);
-    }
-
-    boolean cancel(RequestToken token) {
-        return asyncDispatcher.cancel(token.requestId, false);
-    }
-
-    boolean abort(RequestToken token) {
-        return asyncDispatcher.cancel(token.requestId, true);
-    }
-
-    boolean suspend(RequestToken token) {
-        return asyncDispatcher.suspend(token.requestId);
-    }
-
-    boolean resume(RequestToken token, BaasHandler<?> handler) {
-        return asyncDispatcher.resume(token.requestId, handler);
-    }
-
-    /**
-     * Synchronously sends a raw rest request to the server that is specified by
-     * the parameters passed in.
-     *
-     * @param method       the method to use
-     * @param endpoint     the resource
-     * @param body         an optional jsono bject
-     * @param authenticate true if the client should try to refresh authentication automatically
-     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
-     */
-    public BaasResult<JsonObject> restSync(int method, String endpoint, JsonObject body, boolean authenticate) {
-        RequestFactory factory = requestFactory;
-        endpoint = factory.getEndpoint(endpoint);
-        HttpRequest any = factory.any(method, endpoint, body);
-        return submitSync(new RawRequest(this, any, null, null));
-    }
-
-    /**
-     * Asynchronously sends a raw rest request to the server that is specified by
-     * the parameters passed in
-     *
-     * @param priority priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
-     * @param method   the method to use
-     * @param endpoint the resource
-     * @param body     an optional jsono bject
-     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
-     */
-    public RequestToken rest(int method, String endpoint, JsonObject body, Priority priority, BaasHandler<JsonObject> jsonHandler) {
-        if (endpoint == null) throw new NullPointerException("endpoint cannot be null");
-        endpoint = requestFactory.getEndpoint(endpoint);
-        HttpRequest any = requestFactory.any(method, endpoint, body);
-        RawRequest request = new RawRequest(this, any, priority, jsonHandler);
-        return submitAsync(request);
-    }
-
-
-    /**
-     * Asynchronously sends a raw rest request to the server that is specified by
-     * the parameters passed in, using default {@link com.baasbox.android.Priority#NORMAL}
-     * and no tag.
-     *
-     * @param method       the method to use
-     * @param endpoint     the resource
-     * @param body         an optional jsono bject
-     * @param authenticate true if the client should try to refresh authentication automatically
-     * @param handler      a callback to handle the json response
-     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
-     */
-    public RequestToken rest(int method, String endpoint, JsonObject body, boolean authenticate, BaasHandler<JsonObject> handler) {
-        return rest(method, endpoint, body, null, handler);
-    }
-
-
-    public RequestToken registerPush(String registrationId, Priority priority, BaasHandler<Void> handler) {
-        if (registrationId == null) throw new NullPointerException("registrationId cannot be null");
-        RegisterPush rp = new RegisterPush(this, registrationId, priority, handler);
-        return submitAsync(rp);
-    }
-
-    public RequestToken registerPush(String registrationId, BaasHandler<Void> handler) {
-        return registerPush(registrationId, null, handler);
-    }
-
-    public BaasResult<Void> registerPushSync(String registrationId) {
-        if (registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
-        RegisterPush req = new RegisterPush(this, registrationId, null, null);
-        return submitSync(req);
-    }
-
     private static class RawRequest extends NetworkTask<JsonObject> {
-
         HttpRequest request;
 
         protected RawRequest(BaasBox box, HttpRequest request, Priority priority, BaasHandler<JsonObject> handler) {
@@ -358,7 +454,6 @@ public class BaasBox {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-
             }
             return parseJson(response, box);
         }
@@ -388,105 +483,6 @@ public class BaasBox {
         }
     }
 
-    /**
-     * Streams the file using the provided data stream handler.
-     *
-     * @param id       the name of the asset to download
-     * @param size     a size spec to specify the resize of an image asset
-     * @param priority a priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
-     * @param data     the data stream handler {@link com.baasbox.android.DataStreamHandler}
-     * @param handler  the completion handler
-     * @param <R>      the type to transform the bytes to.
-     * @return a request token to handle the request
-     */
-    public static <R> RequestToken streamAsset(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return stream(id, null, size, priority, data, handler);
-    }
-
-
-    /**
-     * Streams the file using the provided data stream handler.
-     *
-     * @param id      the name of the asset to download
-     * @param size    a size spec to specify the resize of an image asset
-     * @param data    the data stream handler {@link com.baasbox.android.DataStreamHandler}
-     * @param handler the completion handler
-     * @param <R>     the type to transform the bytes to.
-     * @return a request token to handle the request
-     */
-    public static <R> RequestToken streamAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return stream(id, null, size, null, data, handler);
-    }
-
-
-    /**
-     * Streams the file using the provided data stream handler.
-     *
-     * @param id      the name of the asset to download
-     * @param data    the data stream handler {@link com.baasbox.android.DataStreamHandler}
-     * @param handler the completion handler
-     * @param <R>     the type to transform the bytes to.
-     * @return a request token to handle the request
-     */
-    public static <R> RequestToken streamAsset(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return stream(id, null, -1, null, data, handler);
-    }
-
-
-    /**
-     * Streams the file using the provided data stream handler.
-     *
-     * @param id       the name of the asset to download
-     * @param priority a priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
-     * @param handler  the completion handler
-     * @param <R>      the type to transform the bytes to.
-     * @return a request token to handle the request
-     */
-    public static <R> RequestToken streamAsset(String id, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
-        return stream(id, null, -1, priority, contentHandler, handler);
-    }
-
-
-    private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (id == null) throw new IllegalArgumentException("id cannot be null");
-        StreamRequest synReq = new StreamRequest(box, "asset", id, spec, sizeId);
-        return box.submitSync(synReq);
-    }
-
-
-    /**
-     * Synchronously streams the asset.
-     *
-     * @param id     the name of the asset to download
-     * @param sizeId the size index if the asset is an image
-     * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
-     */
-    public static BaasResult<BaasStream> streamAssetSync(String id, int sizeId) {
-        return streamSync(id, null, sizeId);
-    }
-
-    /**
-     * Synchronously streams the asset.
-     *
-     * @param id   the name of the asset to download
-     * @param spec a size spec to specify the resize of an image asset
-     * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
-     */
-    public static BaasResult<BaasStream> streamAssetSync(String id, String spec) {
-        return streamSync(id, spec, -1);
-    }
-
-
-    private static <R> RequestToken stream(String name, String sizeSpec, int sizeIdx, Priority priority, DataStreamHandler<R> dataStreamHandler, BaasHandler<R> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (dataStreamHandler == null) throw new IllegalArgumentException("data handler cannot be null");
-        if (name == null) throw new IllegalArgumentException("id cannot be null");
-        AsyncStream<R> stream = new AssetStream<R>(box, name, sizeSpec, sizeIdx, priority, dataStreamHandler, handler);
-        return box.submitAsync(stream);
-
-    }
-
     private static class AssetStream<R> extends AsyncStream<R> {
         private final String name;
         private HttpRequest request;
@@ -497,7 +493,6 @@ public class BaasBox {
             RequestFactory.Param param = null;
             if (sizeSpec != null) {
                 param = new RequestFactory.Param("resize", sizeSpec);
-
             } else if (sizeId >= 0) {
                 param = new RequestFactory.Param("sizeId", Integer.toString(sizeId));
             }
@@ -519,5 +514,4 @@ public class BaasBox {
             return request;
         }
     }
-
 }

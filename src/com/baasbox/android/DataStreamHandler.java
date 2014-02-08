@@ -61,6 +61,8 @@ package com.baasbox.android;
  * @since 0.7.3
  */
 public interface DataStreamHandler<R> {
+// -------------------------- OTHER METHODS --------------------------
+
     /**
      * Method invoked when new data is available or the data has been completely downloaded.
      *

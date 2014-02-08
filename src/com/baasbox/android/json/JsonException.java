@@ -19,7 +19,11 @@ package com.baasbox.android.json;
  * Created by Andrea Tortorella on 01/01/14.
  */
 public class JsonException extends RuntimeException {
+// ------------------------------ FIELDS ------------------------------
+
     private static final long serialVersionUID = -3383190900059424412L;
+
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public JsonException() {
     }
@@ -28,11 +32,11 @@ public class JsonException extends RuntimeException {
         super(detailMessage);
     }
 
-    public JsonException(String detailMessage, Throwable throwable) {
-        super(detailMessage, throwable);
-    }
-
     public JsonException(Throwable throwable) {
         super(throwable);
+    }
+
+    public JsonException(String detailMessage, Throwable throwable) {
+        super(detailMessage, throwable);
     }
 }

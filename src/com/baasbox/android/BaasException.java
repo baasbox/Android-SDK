@@ -23,7 +23,11 @@ package com.baasbox.android;
  * @since 0.7.3
  */
 public class BaasException extends Exception {
+// ------------------------------ FIELDS ------------------------------
+
     private static final long serialVersionUID = 1981606473384352072L;
+
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public BaasException() {
     }
@@ -32,13 +36,11 @@ public class BaasException extends Exception {
         super(detailMessage);
     }
 
-    public BaasException(String detailMessage, Throwable throwable) {
-        super(detailMessage, throwable);
-    }
-
     public BaasException(Throwable throwable) {
         super(throwable);
     }
 
-
+    public BaasException(String detailMessage, Throwable throwable) {
+        super(detailMessage, throwable);
+    }
 }

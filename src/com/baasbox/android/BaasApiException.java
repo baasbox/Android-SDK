@@ -31,6 +31,7 @@ import java.util.Map;
  * @since 0.7.3
  */
 public class BaasApiException extends BaasException {
+// ------------------------------ FIELDS ------------------------------
 
     private static final long serialVersionUID = -1060197139549630283L;
 
@@ -60,6 +61,8 @@ public class BaasApiException extends BaasException {
     public final int code;
 
     private final JsonObject json;
+
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public BaasApiException(int httpStatus, JsonObject error) {
         super(error.getString("message", ""));
@@ -103,6 +106,8 @@ public class BaasApiException extends BaasException {
         this.requestHeader = requestHeader;
         this.apiVersion = apiVersion;
     }
+
+// ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public String toString() {

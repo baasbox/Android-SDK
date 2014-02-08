@@ -23,23 +23,38 @@ import java.util.Map;
  * Created by eto on 23/12/13.
  */
 public class HttpRequest {
+// ------------------------------ FIELDS ------------------------------
 
-    public final static int GET = 1;
-    public final static int POST = 2;
-    public final static int PUT = 3;
-    public final static int DELETE = 4;
-    public final static int PATCH = 5;
+    public static final int GET = 1;
+    public static final int POST = 2;
+    public static final int PUT = 3;
+    public static final int DELETE = 4;
+    public static final int PATCH = 5;
 
     public final int method;
     public final String url;
     public final Map<String, String> headers;
     public InputStream body;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+
     public HttpRequest(int method, String url, Map<String, String> headers, InputStream body) {
         this.method = method;
         this.url = url;
         this.headers = headers;
         this.body = body;
+    }
+
+// ------------------------ CANONICAL METHODS ------------------------
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{url ->" + url + " method: " + methodToString(method) + ", headers ->{");
+        for (Map.Entry<String, String> header : headers.entrySet()) {
+            sb.append(header.getKey() + ":" + header.getValue());
+        }
+        sb.append("}}");
+        return sb.toString();
     }
 
     private static String methodToString(int method) {
@@ -64,15 +79,5 @@ public class HttpRequest {
                 throw new IllegalArgumentException("Invalid http method identifier");
         }
         return methodName;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("{url ->" + url + " method: " + methodToString(method) + ", headers ->{");
-        for (Map.Entry<String, String> header : headers.entrySet()) {
-            sb.append(header.getKey() + ":" + header.getValue());
-        }
-        sb.append("}}");
-        return sb.toString();
     }
 }

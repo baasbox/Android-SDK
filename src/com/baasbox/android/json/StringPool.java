@@ -21,20 +21,11 @@ package com.baasbox.android.json;
  * It is intended only to save allocations. This class is not thread safe.
  */
 final class StringPool {
+// ------------------------------ FIELDS ------------------------------
 
     private final String[] pool = new String[512];
 
-    private static boolean contentEquals(String s, char[] chars, int start, int length) {
-        if (s.length() != length) {
-            return false;
-        }
-        for (int i = 0; i < length; i++) {
-            if (chars[start + i] != s.charAt(i)) {
-                return false;
-            }
-        }
-        return true;
-    }
+// -------------------------- OTHER METHODS --------------------------
 
     /**
      * Returns a string equal to {@code new String(array, start, length)}.
@@ -59,5 +50,17 @@ final class StringPool {
         String result = new String(array, start, length);
         pool[index] = result;
         return result;
+    }
+
+    private static boolean contentEquals(String s, char[] chars, int start, int length) {
+        if (s.length() != length) {
+            return false;
+        }
+        for (int i = 0; i < length; i++) {
+            if (chars[start + i] != s.charAt(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

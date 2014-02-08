@@ -20,7 +20,6 @@ package com.baasbox.android.json;
  * A structure, name or value type in a JSON-encoded string.
  */
 enum JsonToken {
-
     /**
      * The opening of a JSON array. Written using {@link JsonWriter#beginObject}
      * and read using {@link JsonReader#beginObject}.

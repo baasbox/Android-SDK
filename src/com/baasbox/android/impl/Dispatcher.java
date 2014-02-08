@@ -31,7 +31,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by Andrea Tortorella on 20/01/14.
  */
 public final class Dispatcher {
-    private final static AtomicInteger SEQUENCE = new AtomicInteger();
+// ------------------------------ FIELDS ------------------------------
+
+    private static final AtomicInteger SEQUENCE = new AtomicInteger();
+
+    final Handler defaultMainHandler = new Handler(Looper.getMainLooper());
 
 
     private final PriorityBlockingQueue<Task<?>> taskQueue;
@@ -41,7 +45,7 @@ public final class Dispatcher {
     private final BaasBox box;
     private volatile boolean quit;
 
-    final Handler defaultMainHandler = new Handler(Looper.getMainLooper());
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public Dispatcher(BaasBox box) {
         this.box = box;
@@ -71,27 +75,31 @@ public final class Dispatcher {
         return new Worker[threads];
     }
 
-    public void start() {
-        stop();
-        quit = false;
-        for (int i = 0; i < workers.length; i++) {
-            workers[i] = new Worker(this);
-            workers[i].start();
+// -------------------------- OTHER METHODS --------------------------
+
+    public <R> BaasResult<R> await(int requestId) {
+        Task<R> task = (Task<R>) liveAsyncs.get(requestId);
+        if (task == null) {
+            return null;
+        } else if (task.result != null) {
+            return task.result;
+        } else {
+            task.await();
+            return task.result;
         }
     }
 
-    public void stop() {
-        quit = true;
-        for (int i = 0; i < workers.length; i++) {
-            if (workers[i] != null) {
-                workers[i].interrupt();
-                workers[i] = null;
-            }
+    public boolean cancel(int requestId, boolean immediate) {
+        Task<?> task = liveAsyncs.get(requestId);
+        if (task == null) return false;
+        if (immediate) {
+            return task.abort();
+        } else {
+            return task.cancel();
         }
     }
 
     void finish(Task<?> req) {
-
         this.liveAsyncs.remove(req.seqNumber, req);
         Logger.info("%s finished", req);
     }
@@ -113,13 +121,22 @@ public final class Dispatcher {
         return task.resume(handler);
     }
 
-    public boolean cancel(int requestId, boolean immediate) {
-        Task<?> task = liveAsyncs.get(requestId);
-        if (task == null) return false;
-        if (immediate) {
-            return task.abort();
-        } else {
-            return task.cancel();
+    public void start() {
+        stop();
+        quit = false;
+        for (int i = 0; i < workers.length; i++) {
+            workers[i] = new Worker(this);
+            workers[i].start();
+        }
+    }
+
+    public void stop() {
+        quit = true;
+        for (int i = 0; i < workers.length; i++) {
+            if (workers[i] != null) {
+                workers[i].interrupt();
+                workers[i] = null;
+            }
         }
     }
 
@@ -128,19 +145,7 @@ public final class Dispatcher {
         return task != null && task.suspend();
     }
 
-    public <R> BaasResult<R> await(int requestId) {
-        Task<R> task = (Task<R>) liveAsyncs.get(requestId);
-        if (task == null) {
-            return null;
-        } else if (task.result != null) {
-            return task.result;
-        } else {
-            task.await();
-            return task.result;
-
-        }
-    }
-
+// -------------------------- INNER CLASSES --------------------------
 
     private static final class Worker extends Thread {
         private final PriorityBlockingQueue<Task<?>> queue;
@@ -166,15 +171,12 @@ public final class Dispatcher {
                     task.execute();
                     task.post();
                     task.unlock();
-
-                } catch (Throwable t) {
+                } catch (Exception t) {
                     if (dispatcher.exceptionHandler.onError(t)) {
                         Logger.error(t,"Dispatcher error");
-                        continue;
                     }
                 }
             }
         }
     }
-
 }

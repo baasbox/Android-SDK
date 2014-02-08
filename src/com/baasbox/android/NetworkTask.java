@@ -30,9 +30,16 @@ import java.io.IOException;
  * Created by Andrea Tortorella on 20/01/14.
  */
 abstract class NetworkTask<R> extends Task<R> {
+// ------------------------------ FIELDS ------------------------------
 
     private final BaasBox box;
     private boolean retryOnFailedLogin;
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    protected NetworkTask(BaasBox box, Priority priority, BaasHandler<R> handler) {
+        this(box, priority, handler, box.config.authenticationType == BaasBox.Config.AuthType.SESSION_TOKEN);
+    }
 
     protected NetworkTask(BaasBox box, Priority priority, BaasHandler<R> handler, boolean retryLogin) {
         super(priority, handler);
@@ -40,13 +47,7 @@ abstract class NetworkTask<R> extends Task<R> {
         retryOnFailedLogin = retryLogin;
     }
 
-    protected NetworkTask(BaasBox box, Priority priority, BaasHandler<R> handler) {
-        this(box, priority, handler, box.config.authenticationType == BaasBox.Config.AuthType.SESSION_TOKEN);
-    }
-
-    protected R getFromCache(BaasBox box) throws BaasException {
-        return null;
-    }
+// -------------------------- OTHER METHODS --------------------------
 
     protected final R parseResponse(HttpResponse response, BaasBox box) throws BaasException {
         final int status = response.getStatusLine().getStatusCode();
@@ -80,18 +81,11 @@ abstract class NetworkTask<R> extends Task<R> {
         }
     }
 
-    private boolean attemptRefreshToken(BaasBox box) {
-        try {
-            return box.store.refreshTokenRequest(seq());
-        } catch (BaasException e) {
-            Logger.info(e,"Unable to refresh token");
-            return false;
-        }
-    }
-
     protected R onContinue(int status, HttpResponse response, BaasBox box) throws BaasException {
         throw new BaasException("unexpected status " + status);
     }
+
+    protected abstract R onOk(int status, HttpResponse response, BaasBox box) throws BaasException;
 
     protected R onRedirect(int status, HttpResponse response, BaasBox box) throws BaasException {
         throw new BaasException("unexpected status " + status);
@@ -100,7 +94,6 @@ abstract class NetworkTask<R> extends Task<R> {
     protected R onClientError(int status, HttpResponse response, BaasBox box) throws BaasException {
         JsonObject json = parseJson(response, box);
         if (json.contains("bb_code")) {
-
         }
         if (status == 401 && Integer.parseInt(json.getString("bb_code", "-1")) == BaasInvalidSessionException.INVALID_SESSION_TOKEN_CODE) {
             throw new BaasInvalidSessionException(json);
@@ -109,12 +102,7 @@ abstract class NetworkTask<R> extends Task<R> {
         }
     }
 
-    protected R onServerError(int status, HttpResponse response, BaasBox box) throws BaasException {
-        JsonObject jsonResponse = parseJson(response, box);
-        throw new BaasServerException(status, jsonResponse);
-    }
-
-    protected final static JsonObject parseJson(HttpResponse response, BaasBox box) throws BaasException {
+    protected static final JsonObject parseJson(HttpResponse response, BaasBox box) throws BaasException {
         HttpEntity entity = response.getEntity();
         if (entity != null) {
             String content = null;
@@ -138,12 +126,18 @@ abstract class NetworkTask<R> extends Task<R> {
         }
     }
 
-    protected abstract R onOk(int status, HttpResponse response, BaasBox box) throws BaasException;
+    protected R onServerError(int status, HttpResponse response, BaasBox box) throws BaasException {
+        JsonObject jsonResponse = parseJson(response, box);
+        throw new BaasServerException(status, jsonResponse);
+    }
 
-    protected abstract HttpRequest request(BaasBox box);
-
-    protected R onSkipRequest() throws BaasException {
-        throw new BaasException("no request");
+    private boolean attemptRefreshToken(BaasBox box) {
+        try {
+            return box.store.refreshTokenRequest(seq());
+        } catch (BaasException e) {
+            Logger.info(e,"Unable to refresh token");
+            return false;
+        }
     }
 
     @Override
@@ -160,5 +154,15 @@ abstract class NetworkTask<R> extends Task<R> {
         HttpResponse response = box.restClient.execute(request);
         R r = parseResponse(response, box);
         return r;
+    }
+
+    protected abstract HttpRequest request(BaasBox box);
+
+    protected R onSkipRequest() throws BaasException {
+        throw new BaasException("no request");
+    }
+
+    protected R getFromCache(BaasBox box) throws BaasException {
+        return null;
     }
 }

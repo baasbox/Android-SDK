@@ -25,20 +25,24 @@ import com.baasbox.android.impl.Logger;
  * @since 0.7.3
  */
 public interface ExceptionHandler {
-    public final static ExceptionHandler DEFAULT = new ExceptionHandler() {
+// ------------------------------ FIELDS ------------------------------
+
+    ExceptionHandler DEFAULT = new ExceptionHandler() {
         @Override
-        public boolean onError(Throwable t) throws RuntimeException {
+        public boolean onError(Throwable t){
             throw new RuntimeException(t);
         }
     };
 
-    public final static ExceptionHandler LOGGING_HANDLER = new ExceptionHandler() {
+    ExceptionHandler LOGGING_HANDLER = new ExceptionHandler() {
         @Override
-        public boolean onError(Throwable t) throws RuntimeException {
+        public boolean onError(Throwable t){
             Logger.error(t, "Error during execution of task on dispatcher: continue with next request");
             return true;
         }
     };
 
-    public boolean onError(Throwable t) throws RuntimeException;
+// -------------------------- OTHER METHODS --------------------------
+
+    boolean onError(Throwable t);
 }

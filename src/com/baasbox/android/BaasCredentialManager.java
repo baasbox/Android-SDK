@@ -32,17 +32,19 @@ import java.util.Set;
  * Created by Andrea Tortorella on 22/01/14.
  */
 class BaasCredentialManager {
-    private final static Object NULL = new Object();
+// ------------------------------ FIELDS ------------------------------
 
-    private final static String DISK_PREFERENCES_NAME = "BAAS_USER_INFO_PREFERENCES";
-    private final static String USER_NAME_KEY = "USER_NAME_KEY";
-    private final static String PASSWORD_KEY = "PASSWORD_KEY";
-    private final static String SESSION_KEY = "SESSION_KEY";
-    private final static String PROFILE_KEY = "PROFILE_DATA";
-    private final static String ROLES_KEY = "ROLES_KEY";
-    private final static String STATUS_KEY = "STATUS_KEY";
-    private final static String DATE_KEY = "SIGNUP_KEY";
-    private final static String SOCIAL_NETWORK_KEY = "SOCIAL_KEY";
+    private static final Object NULL = new Object();
+
+    private static final String DISK_PREFERENCES_NAME = "BAAS_USER_INFO_PREFERENCES";
+    private static final String USER_NAME_KEY = "USER_NAME_KEY";
+    private static final String PASSWORD_KEY = "PASSWORD_KEY";
+    private static final String SESSION_KEY = "SESSION_KEY";
+    private static final String PROFILE_KEY = "PROFILE_DATA";
+    private static final String ROLES_KEY = "ROLES_KEY";
+    private static final String STATUS_KEY = "STATUS_KEY";
+    private static final String DATE_KEY = "SIGNUP_KEY";
+    private static final String SOCIAL_NETWORK_KEY = "SOCIAL_KEY";
 
     private final SharedPreferences diskCache;
 
@@ -51,11 +53,66 @@ class BaasCredentialManager {
     private volatile boolean loaded = false;
     private BaasUser current;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+
     public BaasCredentialManager(BaasBox box, Context context) {
         this.box = box;
         this.diskCache = context.getSharedPreferences(DISK_PREFERENCES_NAME, Context.MODE_PRIVATE);
         current = load();
         loaded = true;
+    }
+
+    private BaasUser load() {
+        Map<String, ?> userMap = diskCache.getAll();
+        if (userMap == null) return null;
+        String username = (String) userMap.get(USER_NAME_KEY);
+        if (username == null) return null;
+        String password = (String) userMap.get(PASSWORD_KEY);
+        String signupDate = (String) userMap.get(DATE_KEY);
+        String status = (String) userMap.get(STATUS_KEY);
+        String token = (String) userMap.get(SESSION_KEY);
+        String rolesString = (String) userMap.get(ROLES_KEY);
+        JsonArray roles = JsonArray.decode(rolesString);
+        String profileString = (String) userMap.get(PROFILE_KEY);
+        String social = (String) userMap.get(SOCIAL_NETWORK_KEY);
+        JsonObject profile = JsonObject.decode(profileString);
+        BaasUser user = new BaasUser(username, password, signupDate, status, token, roles, profile);
+        if (social != null) {
+            user.social = social;
+        }
+        return user;
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    public void clear() {
+        synchronized (lock) {
+            current = null;
+            loaded = false;
+            erase();
+        }
+    }
+
+    final boolean refreshTokenRequest(int seq) throws BaasException {
+        BaasUser c = currentUser();
+        if (c != null && c.getName() != null && c.getPassword() != null) {
+            String user = c.getName();
+            String pass = c.getPassword();
+            HttpRequest req = loginRequest(user, pass, null);
+            HttpResponse resp = box.restClient.execute(req);
+            if (resp.getStatusLine().getStatusCode() / 100 == 2) {
+                JsonObject sessionObject = NetworkTask.parseJson(resp, box);
+                Logger.debug("!!!! %s !!!!!", sessionObject.toString());
+                String session = sessionObject.getObject("data").getString("X-BB-SESSION");
+                if (session != null) {
+                    c.setToken(session);
+                    storeUser(c);
+                    return true;
+                }
+                return false;
+            }
+        }
+        return false;
     }
 
     public BaasUser currentUser() {
@@ -70,6 +127,20 @@ class BaasCredentialManager {
         return current;
     }
 
+    final HttpRequest loginRequest(String username, String password, String regId) {
+        String endpoint = box.requestFactory.getEndpoint("login");
+        Map<String, String> formBody = new LinkedHashMap<String, String>();
+        formBody.put("username", username);
+        formBody.put("password", password);
+        formBody.put("appcode", box.config.appCode);
+        if (regId != null) {
+            String login_data = String.format(Locale.US,
+                    "{\"os\":\"android\",\"deviceId\":\"%s\"}", regId);
+            formBody.put("login_data", login_data);
+        }
+        return box.requestFactory.post(endpoint, formBody);
+    }
+
     public void storeUser(BaasUser user) {
         synchronized (lock) {
             current = user;
@@ -79,15 +150,6 @@ class BaasCredentialManager {
                 persist(user);
             }
             loaded = true;
-        }
-    }
-
-
-    public void clear() {
-        synchronized (lock) {
-            current = null;
-            loaded = false;
-            erase();
         }
     }
 
@@ -120,63 +182,4 @@ class BaasCredentialManager {
         }
         while (!edit.commit()) ;
     }
-
-    private BaasUser load() {
-        Map<String, ?> userMap = diskCache.getAll();
-        if (userMap == null) return null;
-        String username = (String) userMap.get(USER_NAME_KEY);
-        if (username == null) return null;
-        String password = (String) userMap.get(PASSWORD_KEY);
-        String signupDate = (String) userMap.get(DATE_KEY);
-        String status = (String) userMap.get(STATUS_KEY);
-        String token = (String) userMap.get(SESSION_KEY);
-        String rolesString = (String) userMap.get(ROLES_KEY);
-        JsonArray roles = JsonArray.decode(rolesString);
-        String profileString = (String) userMap.get(PROFILE_KEY);
-        String social = (String) userMap.get(SOCIAL_NETWORK_KEY);
-        JsonObject profile = JsonObject.decode(profileString);
-        BaasUser user = new BaasUser(username, password, signupDate, status, token, roles, profile);
-        if (social != null) {
-            user.social = social;
-        }
-        return user;
-    }
-
-    final boolean refreshTokenRequest(int seq) throws BaasException {
-        BaasUser c = currentUser();
-        if (c != null && c.getName() != null && c.getPassword() != null) {
-            String user = c.getName();
-            String pass = c.getPassword();
-            HttpRequest req = loginRequest(user, pass, null);
-            HttpResponse resp = box.restClient.execute(req);
-            if (resp.getStatusLine().getStatusCode() / 100 == 2) {
-                JsonObject sessionObject = NetworkTask.parseJson(resp, box);
-                Logger.debug("!!!! %s !!!!!", sessionObject.toString());
-                String session = sessionObject.getObject("data").getString("X-BB-SESSION");
-                if (session != null) {
-                    c.setToken(session);
-                    storeUser(c);
-                    return true;
-                }
-                return false;
-            }
-        }
-        return false;
-    }
-
-
-    final HttpRequest loginRequest(String username, String password, String regId) {
-        String endpoint = box.requestFactory.getEndpoint("login");
-        Map<String, String> formBody = new LinkedHashMap<String, String>();
-        formBody.put("username", username);
-        formBody.put("password", password);
-        formBody.put("appcode", box.config.appCode);
-        if (regId != null) {
-            String login_data = String.format(Locale.US,
-                    "{\"os\":\"android\",\"deviceId\":\"%s\"}", regId);
-            formBody.put("login_data", login_data);
-        }
-        return box.requestFactory.post(endpoint, formBody);
-    }
-
 }

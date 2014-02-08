@@ -33,8 +33,7 @@ import java.io.InputStream;
  * @since 0.7.3
  */
 public final class BaasStream extends FilterInputStream {
-    private final HttpEntity entity;
-    private final DiskLruCache.Snapshot snapshot;
+// ------------------------------ FIELDS ------------------------------
 
     /**
      * The content type of the stream
@@ -50,6 +49,10 @@ public final class BaasStream extends FilterInputStream {
      * The id of the file.
      */
     public final String id;
+    private final HttpEntity entity;
+    private final DiskLruCache.Snapshot snapshot;
+
+// --------------------------- CONSTRUCTORS ---------------------------
 
     BaasStream(String id, DiskLruCache.Snapshot s) {
         super(s.getInputStream(0));
@@ -74,6 +77,19 @@ public final class BaasStream extends FilterInputStream {
         contentLength = entity.getContentLength();
     }
 
+    static BufferedInputStream getInput(HttpEntity entity) throws IOException {
+        InputStream in = entity.getContent();
+        if (in instanceof BufferedInputStream) {
+            return (BufferedInputStream) in;
+        }
+        return new BufferedInputStream(in);
+    }
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface AutoCloseable ---------------------
+
     @Override
     public void close() throws IOException {
         super.close();
@@ -81,14 +97,5 @@ public final class BaasStream extends FilterInputStream {
             entity.consumeContent();
         }
         if (snapshot != null) snapshot.close();
-    }
-
-
-    static BufferedInputStream getInput(HttpEntity entity) throws IOException {
-        InputStream in = entity.getContent();
-        if (in instanceof BufferedInputStream) {
-            return (BufferedInputStream) in;
-        }
-        return new BufferedInputStream(in);
     }
 }

@@ -20,7 +20,6 @@ package com.baasbox.android.json;
  * Lexical scoping elements within a JSON reader or writer.
  */
 enum JsonScope {
-
     /**
      * An array with no elements requires no separators or newlines before
      * it is closed.

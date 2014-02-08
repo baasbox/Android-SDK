@@ -25,27 +25,24 @@ import java.util.ArrayList;
  * @since 0.7.3
  */
 public class Filter {
-
-    StringBuilder where = null;
-    ArrayList<CharSequence> params = null;
-    String orderBy;
-    Paging paging;
+// ------------------------------ FIELDS ------------------------------
 
     /**
      * A filter that does not apply any restriction to the request.
      */
-    public final static Filter ANY = new Filter() {
+    public static final Filter ANY = new Filter() {
         @Override
         RequestFactory.Param[] toParams() {
             return null;
         }
     };
 
-    private static class Paging {
-        int page;
-        int num;
-    }
+    StringBuilder where = null;
+    ArrayList<CharSequence> params = null;
+    String orderBy;
+    Paging paging;
 
+// -------------------------- STATIC METHODS --------------------------
 
     /**
      * Returns a new filter that applies pagination to the request using
@@ -65,6 +62,33 @@ public class Filter {
     }
 
     /**
+     * Sets the sort order to use with this filter.
+     *
+     * @param name
+     * @return
+     */
+    public Filter setOrderBy(String name) {
+        this.orderBy = name;
+        return this;
+    }
+
+    /**
+     * Configures pagination for this filter
+     *
+     * @param page
+     * @param numrecords
+     * @return
+     */
+    public Filter setPaging(int page, int numrecords) {
+        if (this.paging == null) {
+            this.paging = new Paging();
+        }
+        paging.page = page;
+        paging.num = numrecords;
+        return this;
+    }
+
+    /**
      * Returns a new filter that applies the given <code>where</code> condition to the request.
      * Where condition can be parameterized using '?', params will be filled using
      * the provided <code>params</code>.
@@ -79,18 +103,6 @@ public class Filter {
      */
     public static Filter where(String where, String... params) {
         Filter f = new Filter().setWhere(where, params);
-        return f;
-    }
-
-    /**
-     * Returns a new filter that applies the provided sort order to the request.
-     *
-     * @param order a field to use for sorting
-     * @param asc   true if sorting should be ascending false otherwise
-     * @return a configured Filter
-     */
-    public static Filter sort(String order, boolean asc) {
-        Filter f = new Filter().setOrderBy(order + (asc ? " ASC" : " DESC"));
         return f;
     }
 
@@ -126,14 +138,44 @@ public class Filter {
     }
 
     /**
-     * Sets the sort order to use with this filter.
+     * Returns a new filter that applies the provided sort order to the request.
      *
-     * @param name
+     * @param order a field to use for sorting
+     * @param asc   true if sorting should be ascending false otherwise
+     * @return a configured Filter
+     */
+    public static Filter sort(String order, boolean asc) {
+        Filter f = new Filter().setOrderBy(order + (asc ? " ASC" : " DESC"));
+        return f;
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    /**
+     * Removes the pagination from this filter
+     *
      * @return
      */
-    public Filter setOrderBy(String name) {
-        this.orderBy = name;
+    public Filter clearPaging() {
+        this.paging = null;
         return this;
+    }
+
+    private int countParams() {
+        int count = 0;
+        if (where != null) {
+            count += 1;
+            if (params != null) {
+                count += params.size();
+            }
+        }
+        if (orderBy != null) {
+            count += 1;
+        }
+        if (paging != null) {
+            count += 2;
+        }
+        return count;
     }
 
     /**
@@ -151,32 +193,6 @@ public class Filter {
         }
         paging.page = page;
         paging.num = numrecords;
-        return this;
-    }
-
-    /**
-     * Configures pagination for this filter
-     *
-     * @param page
-     * @param numrecords
-     * @return
-     */
-    public Filter setPaging(int page, int numrecords) {
-        if (this.paging == null) {
-            this.paging = new Paging();
-        }
-        paging.page = page;
-        paging.num = numrecords;
-        return this;
-    }
-
-    /**
-     * Removes the pagination from this filter
-     *
-     * @return
-     */
-    public Filter clearPaging() {
-        this.paging = null;
         return this;
     }
 
@@ -202,26 +218,16 @@ public class Filter {
         return reqParams.toArray(new RequestFactory.Param[reqParams.size()]);
     }
 
-    private int countParams() {
-        int count = 0;
-        if (where != null) {
-            count += 1;
-            if (params != null) {
-                count += params.size();
-            }
-        }
-        if (orderBy != null) {
-            count += 1;
-        }
-        if (paging != null) {
-            count += 2;
-        }
-        return count;
-    }
-
     private void validate() {
         if (paging != null) {
             if (orderBy == null) throw new IllegalArgumentException("paging requires order by");
         }
+    }
+
+// -------------------------- INNER CLASSES --------------------------
+
+    private static class Paging {
+        int page;
+        int num;
     }
 }

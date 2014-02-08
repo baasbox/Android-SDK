@@ -13,10 +13,22 @@ import java.util.List;
  */
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class BaasDocumentLoader extends Loader<BaasResult<List<BaasDocument>>> {
+// ------------------------------ FIELDS ------------------------------
+
     private BaasResult<List<BaasDocument>> mDocuments;
     private final String mCollection;
     private final Filter mFilter;
     private RequestToken mCurrentLoad;
+
+    private final BaasHandler<List<BaasDocument>> handler =
+            new BaasHandler<List<BaasDocument>>() {
+                @Override
+                public void handle(BaasResult<List<BaasDocument>> result) {
+                    complete(result);
+                }
+            };
+
+// --------------------------- CONSTRUCTORS ---------------------------
 
     /**
      * Stores away the application context associated with context.
@@ -38,15 +50,15 @@ public class BaasDocumentLoader extends Loader<BaasResult<List<BaasDocument>>> {
         this.mFilter = filter == null ? Filter.ANY : filter;
     }
 
-    @Override
-    protected void onStartLoading() {
-        super.onStartLoading();
-        if (mDocuments != null) {
+// -------------------------- OTHER METHODS --------------------------
+
+    void complete(final BaasResult<List<BaasDocument>> result) {
+        mCurrentLoad = null;
+        mDocuments = result;
+        if (isAbandoned()) {
+        } else if (isStarted()) {
             deliverResult(mDocuments);
-        } else if (takeContentChanged() || mCurrentLoad == null) {
-            forceLoad();
         } else {
-            //do nothing
         }
     }
 
@@ -59,14 +71,6 @@ public class BaasDocumentLoader extends Loader<BaasResult<List<BaasDocument>>> {
         mCurrentLoad = BaasDocument.fetchAll(mCollection, mFilter, handler);
     }
 
-    private final BaasHandler<List<BaasDocument>> handler =
-            new BaasHandler<List<BaasDocument>>() {
-                @Override
-                public void handle(BaasResult<List<BaasDocument>> result) {
-                    complete(result);
-                }
-            };
-
     @Override
     protected void onReset() {
         super.onReset();
@@ -77,17 +81,15 @@ public class BaasDocumentLoader extends Loader<BaasResult<List<BaasDocument>>> {
         mCurrentLoad = null;
     }
 
-    void complete(final BaasResult<List<BaasDocument>> result) {
-        mCurrentLoad = null;
-        mDocuments = result;
-        if (isAbandoned()) {
-
-        } else if (isStarted()) {
+    @Override
+    protected void onStartLoading() {
+        super.onStartLoading();
+        if (mDocuments != null) {
             deliverResult(mDocuments);
+        } else if (takeContentChanged() || mCurrentLoad == null) {
+            forceLoad();
         } else {
-
+            //do nothing
         }
     }
-
-
 }

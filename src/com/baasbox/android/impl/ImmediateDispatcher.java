@@ -22,6 +22,7 @@ import com.baasbox.android.BaasResult;
  * Created by eto on 20/01/14.
  */
 public final class ImmediateDispatcher {
+// -------------------------- OTHER METHODS --------------------------
 
     public <R> BaasResult<R> execute(Task<R> request) {
         try {

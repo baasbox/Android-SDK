@@ -26,44 +26,24 @@ import android.os.Parcelable;
  * @since 0.7.3
  */
 public final class RequestToken implements Parcelable, Comparable<RequestToken> {
+// ------------------------------ FIELDS ------------------------------
+
+    public static Creator<RequestToken> CREATOR =
+            new Creator<RequestToken>() {
+                @Override
+                public RequestToken createFromParcel(Parcel source) {
+                    return new RequestToken(source.readInt());
+                }
+
+                @Override
+                public RequestToken[] newArray(int size) {
+                    return new RequestToken[size];
+                }
+            };
 
     final int requestId;
 
-    RequestToken(int requestId) {
-        this.requestId = requestId;
-    }
-
-    /**
-     * Tries to suspend the asynchronous request identified
-     * by this token.
-     * Suspended requests are executed normally but their associated
-     * callback is cleared.
-     *
-     * @return true if the attempt was successful
-     */
-    public boolean suspend() {
-        return BaasBox.getDefaultChecked().suspend(this);
-    }
-
-    /**
-     * Suspends a request and immediately save it in a bundle
-     *
-     * @param bundle a non null bundle
-     * @param name   the key to save the token with
-     * @return true if the token was suspended
-     */
-    public boolean suspendAndSave(Bundle bundle, String name) {
-        if (bundle == null)
-            throw new IllegalArgumentException("bunlde cannot be null");
-        if (name == null)
-            throw new IllegalArgumentException("name cannot be null");
-        if (suspend()) {
-            bundle.putParcelable(name, this);
-            return true;
-        } else {
-            return false;
-        }
-    }
+// -------------------------- STATIC METHODS --------------------------
 
     /**
      * Loads a request token from the bundle
@@ -98,27 +78,13 @@ public final class RequestToken implements Parcelable, Comparable<RequestToken> 
         return BaasBox.getDefaultChecked().resume(this, handler);
     }
 
-    public <R> BaasResult<R> await() {
-        return BaasBox.getDefaultChecked().await(this);
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    RequestToken(int requestId) {
+        this.requestId = requestId;
     }
 
-    public boolean abort() {
-        return BaasBox.getDefaultChecked().abort(this);
-    }
-
-    public boolean cancel() {
-        return BaasBox.getDefaultChecked().cancel(this);
-    }
-
-    @Override
-    public int hashCode() {
-        return requestId;
-    }
-
-    @Override
-    public int compareTo(RequestToken another) {
-        return this.requestId - another.requestId;
-    }
+// ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public boolean equals(Object o) {
@@ -130,6 +96,24 @@ public final class RequestToken implements Parcelable, Comparable<RequestToken> 
     }
 
     @Override
+    public int hashCode() {
+        return requestId;
+    }
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface Comparable ---------------------
+
+    @Override
+    public int compareTo(RequestToken another) {
+        return this.requestId - another.requestId;
+    }
+
+// --------------------- Interface Parcelable ---------------------
+
+
+    @Override
     public int describeContents() {
         return 0;
     }
@@ -139,17 +123,49 @@ public final class RequestToken implements Parcelable, Comparable<RequestToken> 
         dest.writeInt(requestId);
     }
 
+// -------------------------- OTHER METHODS --------------------------
 
-    public static Creator<RequestToken> CREATOR =
-            new Creator<RequestToken>() {
-                @Override
-                public RequestToken createFromParcel(Parcel source) {
-                    return new RequestToken(source.readInt());
-                }
+    public boolean abort() {
+        return BaasBox.getDefaultChecked().abort(this);
+    }
 
-                @Override
-                public RequestToken[] newArray(int size) {
-                    return new RequestToken[size];
-                }
-            };
+    public <R> BaasResult<R> await() {
+        return BaasBox.getDefaultChecked().await(this);
+    }
+
+    public boolean cancel() {
+        return BaasBox.getDefaultChecked().cancel(this);
+    }
+
+    /**
+     * Suspends a request and immediately save it in a bundle
+     *
+     * @param bundle a non null bundle
+     * @param name   the key to save the token with
+     * @return true if the token was suspended
+     */
+    public boolean suspendAndSave(Bundle bundle, String name) {
+        if (bundle == null)
+            throw new IllegalArgumentException("bunlde cannot be null");
+        if (name == null)
+            throw new IllegalArgumentException("name cannot be null");
+        if (suspend()) {
+            bundle.putParcelable(name, this);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Tries to suspend the asynchronous request identified
+     * by this token.
+     * Suspended requests are executed normally but their associated
+     * callback is cleared.
+     *
+     * @return true if the attempt was successful
+     */
+    public boolean suspend() {
+        return BaasBox.getDefaultChecked().suspend(this);
+    }
 }

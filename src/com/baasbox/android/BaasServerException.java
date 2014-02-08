@@ -29,17 +29,20 @@ import java.util.HashMap;
  * @author Davide Caroselli
  */
 public class BaasServerException extends BaasApiException {
+// ------------------------------ FIELDS ------------------------------
 
     private static final long serialVersionUID = 3343497779336452255L;
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    public BaasServerException(int status, JsonObject jsonResponse) {
+        super(status, jsonResponse);
+    }
 
     public BaasServerException(int code, int httpStatus, String resource, String method,
                                HashMap<String, String> requestHeader, String apiVersion,
                                String detailMessage) {
         super(code, httpStatus, resource, method, requestHeader, apiVersion,
                 detailMessage);
-    }
-
-    public BaasServerException(int status, JsonObject jsonResponse) {
-        super(status, jsonResponse);
     }
 }

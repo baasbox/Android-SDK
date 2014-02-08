@@ -26,6 +26,7 @@ import com.baasbox.android.json.JsonObject;
  * @since 0.7.3
  */
 public class BaasACL {
+// ------------------------------ FIELDS ------------------------------
 
     private JsonArray userReadGrants;
     private JsonArray rolesReadGrants;
@@ -34,6 +35,7 @@ public class BaasACL {
     private JsonArray userUpdateGrants;
     private JsonArray rolesUpdateGrants;
 
+// --------------------------- CONSTRUCTORS ---------------------------
 
     /**
      * Creates a new empty set of grants.
@@ -41,90 +43,7 @@ public class BaasACL {
     public BaasACL() {
     }
 
-    JsonObject toJson() {
-        JsonObject r = null;
-        if (userReadGrants != null) {
-            r = JsonObject.of("users", userReadGrants);
-        }
-        if (rolesReadGrants != null) {
-            r = r == null ? JsonObject.of("roles", rolesReadGrants) : r.putArray("roles", rolesReadGrants);
-        }
-
-        JsonObject u = null;
-        if (userUpdateGrants != null) {
-            u = JsonObject.of("users", userUpdateGrants);
-        }
-        if (rolesUpdateGrants != null) {
-            u = u == null ? JsonObject.of("roles", userUpdateGrants) : u.putArray("roles", userUpdateGrants);
-        }
-
-        JsonObject d = null;
-        if (userDeleteGrants != null) {
-            d = JsonObject.of("users", userDeleteGrants);
-        }
-        if (rolesDeleteGrants != null) {
-            d = d == null ? JsonObject.of("roles", userDeleteGrants) : d.putArray("roles", userDeleteGrants);
-        }
-        JsonObject p = null;
-        if (r != null) {
-            p = new JsonObject();
-            p.putObject("read", r);
-        }
-        if (u != null) {
-            p = p == null ? new JsonObject() : p;
-            p.putObject("updates", u);
-        }
-
-        if (d != null) {
-            p = p == null ? new JsonObject() : p;
-            p.putObject("delete", d);
-        }
-        return p;
-    }
-
-
-    /**
-     * Adds the given grant to the list of users
-     *
-     * @param grant a grant to add
-     * @param usrs  the users to give the grant to
-     * @return this BaasAcl with the grants added
-     */
-    public BaasACL grantUsers(Grant grant, String... usrs) {
-        if (usrs == null) return this;
-        Object[] users = (Object[]) usrs;
-        switch (grant) {
-            case READ:
-                if (userReadGrants == null) {
-                    userReadGrants = JsonArray.of(users);
-                } else {
-                    userReadGrants.append(JsonArray.of(users));
-                }
-                break;
-            case UPDATE:
-                if (userUpdateGrants == null) {
-                    userUpdateGrants = JsonArray.of(users);
-                } else {
-                    userReadGrants.append(JsonArray.of(users));
-                }
-                break;
-            case DELETE:
-                if (userDeleteGrants == null) {
-                    userDeleteGrants = JsonArray.of(users);
-                } else {
-                    userDeleteGrants.append(JsonArray.of(users));
-                }
-                break;
-            case ALL:
-                grantUsers(Grant.READ, usrs);
-                grantUsers(Grant.DELETE, usrs);
-                grantUsers(Grant.UPDATE, usrs);
-                break;
-            default:
-                throw new Error("Invalid grant");
-        }
-        return this;
-    }
+// -------------------------- OTHER METHODS --------------------------
 
     /**
      * Adds the given grant to the list of roles passed in
@@ -170,4 +89,87 @@ public class BaasACL {
         return this;
     }
 
+    /**
+     * Adds the given grant to the list of users
+     *
+     * @param grant a grant to add
+     * @param usrs  the users to give the grant to
+     * @return this BaasAcl with the grants added
+     */
+    public BaasACL grantUsers(Grant grant, String... usrs) {
+        if (usrs == null) return this;
+        Object[] users = (Object[]) usrs;
+        switch (grant) {
+            case READ:
+                if (userReadGrants == null) {
+                    userReadGrants = JsonArray.of(users);
+                } else {
+                    userReadGrants.append(JsonArray.of(users));
+                }
+                break;
+            case UPDATE:
+                if (userUpdateGrants == null) {
+                    userUpdateGrants = JsonArray.of(users);
+                } else {
+                    userReadGrants.append(JsonArray.of(users));
+                }
+                break;
+            case DELETE:
+                if (userDeleteGrants == null) {
+                    userDeleteGrants = JsonArray.of(users);
+                } else {
+                    userDeleteGrants.append(JsonArray.of(users));
+                }
+                break;
+            case ALL:
+                grantUsers(Grant.READ, usrs);
+                grantUsers(Grant.DELETE, usrs);
+                grantUsers(Grant.UPDATE, usrs);
+                break;
+            default:
+                throw new Error("Invalid grant");
+        }
+        return this;
+    }
+
+    JsonObject toJson() {
+        JsonObject r = null;
+        if (userReadGrants != null) {
+            r = JsonObject.of("users", userReadGrants);
+        }
+        if (rolesReadGrants != null) {
+            r = r == null ? JsonObject.of("roles", rolesReadGrants) : r.putArray("roles", rolesReadGrants);
+        }
+
+        JsonObject u = null;
+        if (userUpdateGrants != null) {
+            u = JsonObject.of("users", userUpdateGrants);
+        }
+        if (rolesUpdateGrants != null) {
+            u = u == null ? JsonObject.of("roles", userUpdateGrants) : u.putArray("roles", userUpdateGrants);
+        }
+
+        JsonObject d = null;
+        if (userDeleteGrants != null) {
+            d = JsonObject.of("users", userDeleteGrants);
+        }
+        if (rolesDeleteGrants != null) {
+            d = d == null ? JsonObject.of("roles", userDeleteGrants) : d.putArray("roles", userDeleteGrants);
+        }
+        JsonObject p = null;
+        if (r != null) {
+            p = new JsonObject();
+            p.putObject("read", r);
+        }
+        if (u != null) {
+            p = p == null ? new JsonObject() : p;
+            p.putObject("updates", u);
+        }
+
+        if (d != null) {
+            p = p == null ? new JsonObject() : p;
+            p.putObject("delete", d);
+        }
+        return p;
+    }
 }

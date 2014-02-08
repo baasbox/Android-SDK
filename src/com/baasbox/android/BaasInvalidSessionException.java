@@ -33,10 +33,13 @@ import java.util.HashMap;
  * @author Davide Caroselli
  */
 public class BaasInvalidSessionException extends BaasClientException {
+// ------------------------------ FIELDS ------------------------------
 
     public static final int INVALID_SESSION_TOKEN_CODE = 40101;
 
     private static final long serialVersionUID = -6923343849646015698L;
+
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public BaasInvalidSessionException(JsonObject object) {
         super(401, object);
@@ -48,5 +51,4 @@ public class BaasInvalidSessionException extends BaasClientException {
         super(INVALID_SESSION_TOKEN_CODE, 401, resource, method, requestHeader,
                 apiVersion, detailMessage);
     }
-
 }

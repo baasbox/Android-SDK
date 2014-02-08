@@ -23,12 +23,12 @@ import java.nio.charset.Charset;
  * Junk drawer of utility methods.
  */
 final class Util {
+// ------------------------------ FIELDS ------------------------------
+
     static final Charset US_ASCII = Charset.forName("US-ASCII");
     static final Charset UTF_8 = Charset.forName("UTF-8");
 
-    private Util() {
-    }
-
+// -------------------------- STATIC METHODS --------------------------
 
     static String readFully(Reader reader) throws IOException {
         try {
@@ -72,5 +72,10 @@ final class Util {
             } catch (Exception ignored) {
             }
         }
+    }
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    private Util() {
     }
 }

@@ -25,8 +25,12 @@ import java.io.IOException;
  * Created by Andrea Tortorella on 17/01/14.
  */
 class StreamRequest extends NetworkTask<BaasStream> {
+// ------------------------------ FIELDS ------------------------------
+
     private final String id;
     private final HttpRequest request;
+
+// --------------------------- CONSTRUCTORS ---------------------------
 
     protected StreamRequest(BaasBox box, String resource, String id, String sizeSpec, int sizeId) {
         super(box, null, null);
@@ -35,7 +39,6 @@ class StreamRequest extends NetworkTask<BaasStream> {
         RequestFactory.Param param = null;
         if (sizeSpec != null) {
             param = new RequestFactory.Param("resize", sizeSpec);
-
         } else if (sizeId >= 0) {
             param = new RequestFactory.Param("sizeId", Integer.toString(sizeId));
         }
@@ -45,6 +48,8 @@ class StreamRequest extends NetworkTask<BaasStream> {
             request = box.requestFactory.get(endpoint);
         }
     }
+
+// -------------------------- OTHER METHODS --------------------------
 
     @Override
     protected BaasStream getFromCache(BaasBox box) throws BaasException {

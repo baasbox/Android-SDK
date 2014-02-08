@@ -51,6 +51,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 0.7.3
  */
 public class BaasFile extends BaasObject {
+// ------------------------------ FIELDS ------------------------------
 
     private JsonObject attachedData;
     private String mimeType;
@@ -64,85 +65,20 @@ public class BaasFile extends BaasObject {
     private final AtomicBoolean isBound = new AtomicBoolean();
     private AtomicReference<byte[]> data = new AtomicReference<byte[]>();
 
+// -------------------------- STATIC METHODS --------------------------
 
-    public BaasFile() {
-        this(new JsonObject(), false);
-    }
-
-    public BaasFile(JsonObject attachedData) {
-        this(attachedData, false);
-    }
-
-    BaasFile(JsonObject data, boolean fromServer) {
-        super();
-        if (fromServer) {
-            this.attachedData = new JsonObject();
-            update(data);
-        } else {
-            this.attachedData = data;
-        }
-    }
-
-
-    void update(JsonObject fromServer) {
-        isBound.set(true);
-        this.attachedData.merge(fromServer.getObject("attachedData"));
-        this.id = fromServer.getString("id");
-        this.creationDate = fromServer.getString("_creation_date");
-        this.author = fromServer.getString("_author");
-        this.name = fromServer.getString("fileName");
-        this.contentLength = fromServer.getLong("contentLength");
-        this.version = fromServer.getLong("@version");
-    }
-
-    public byte[] getData() {
-        return data.get();
-    }
-
-    public JsonObject getAttachedData() {
-        return attachedData;
-    }
-
-    @Override
-    public String getAuthor() {
-        return author;
-    }
-
-    @Override
-    public long getVersion() {
-        return version;
-    }
-
-    @Override
-    public String getCreationDate() {
-        return creationDate;
-    }
-
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    public String getContentType() {
-        return mimeType;
-    }
-
-    public long getContentLength() {
-        return this.contentLength;
-    }
-
-    public static RequestToken fetchAll(Filter filter, Priority priority, BaasHandler<List<BaasFile>> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Files files = new Files(box, filter, priority, handler);
-        return box.submitAsync(files);
+    public static RequestToken fetchAll(BaasHandler<List<BaasFile>> handler) {
+        return fetchAll(null, null, handler);
     }
 
     public static RequestToken fetchAll(Filter filter, BaasHandler<List<BaasFile>> handler) {
         return fetchAll(filter, null, handler);
     }
 
-    public static RequestToken fetchAll(BaasHandler<List<BaasFile>> handler) {
-        return fetchAll(null, null, handler);
+    public static RequestToken fetchAll(Filter filter, Priority priority, BaasHandler<List<BaasFile>> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Files files = new Files(box, filter, priority, handler);
+        return box.submitAsync(files);
     }
 
     public static BaasResult<List<BaasFile>> fetchAllSync() {
@@ -177,12 +113,177 @@ public class BaasFile extends BaasObject {
         return box.submitSync(details);
     }
 
-    public BaasResult<BaasFile> refreshSync() {
+    public static BaasResult<Void> deleteSync(String id) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
+        Delete delete = new Delete(box, id, null, null);
+        return box.submitSync(delete);
+    }
+
+    public static RequestToken delete(String id, BaasHandler<Void> handler) {
+        return delete(id, null, handler);
+    }
+
+    public static RequestToken delete(String id, Priority priority, BaasHandler<Void> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
+        Delete delete = new Delete(box, id, priority, handler);
+        return box.submitAsync(delete);
+    }
+
+    public static RequestToken fetchStream(String id, BaasHandler<BaasFile> handler) {
+        BaasFile f = new BaasFile();
+        f.id = id;
+        return f.doStream(-1, null, null, handler);
+    }
+
+    public static <R> RequestToken stream(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return stream(id, null, -1, null, data, handler);
+    }
+
+    public static <R> RequestToken stream(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return stream(id, null, size, null, data, handler);
+    }
+
+    public static <R> RequestToken stream(String id, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
+        return stream(id, null, -1, priority, contentHandler, handler);
+    }
+
+    public static <R> RequestToken stream(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return stream(id, null, size, priority, data, handler);
+    }
+
+    public static BaasResult<BaasStream> streamSync(String id, int sizeId) {
+        return streamSync(id, null, sizeId);
+    }
+
+    public static BaasResult<BaasStream> streamSync(String id, String spec) {
+        return streamSync(id, spec, -1);
+    }
+
+    private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
+        StreamRequest synReq = new StreamRequest(box, "file", id, spec, sizeId);
+        return box.submitSync(synReq);
+    }
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    public BaasFile() {
+        this(new JsonObject(), false);
+    }
+
+    public BaasFile(JsonObject attachedData) {
+        this(attachedData, false);
+    }
+
+    BaasFile(JsonObject data, boolean fromServer) {
+        super();
+        if (fromServer) {
+            this.attachedData = new JsonObject();
+            update(data);
+        } else {
+            this.attachedData = data;
+        }
+    }
+
+    void update(JsonObject fromServer) {
+        isBound.set(true);
+        this.attachedData.merge(fromServer.getObject("attachedData"));
+        this.id = fromServer.getString("id");
+        this.creationDate = fromServer.getString("_creation_date");
+        this.author = fromServer.getString("_author");
+        this.name = fromServer.getString("fileName");
+        this.contentLength = fromServer.getLong("contentLength");
+        this.version = fromServer.getLong("@version");
+    }
+
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+    public JsonObject getAttachedData() {
+        return attachedData;
+    }
+
+    @Override
+    public String getAuthor() {
+        return author;
+    }
+
+    public long getContentLength() {
+        return this.contentLength;
+    }
+
+    @Override
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public long getVersion() {
+        return version;
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    public RequestToken delete(BaasHandler<Void> handler) {
+        return delete(Priority.NORMAL, handler);
+    }
+
+    public RequestToken delete(Priority priority, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
             throw new IllegalStateException("this file is not bound to an entity on the server");
-        Details details = new Details(box, this, null, null);
-        return box.submitSync(details);
+        Delete delete = new Delete(box, this, priority, handler);
+        return box.submitAsync(delete);
+    }
+
+    public BaasResult<Void> deleteSync() {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (id == null) throw new IllegalStateException("this file is not bounded to an entity on the server");
+        Delete delete = new Delete(box, this, null, null);
+        return box.submitSync(delete);
+    }
+
+    public String getContentType() {
+        return mimeType;
+    }
+
+    public byte[] getData() {
+        return data.get();
+    }
+
+    @Override
+    public RequestToken grant(Grant grant, String username, Priority priority, BaasHandler<Void> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Access access = new Access(box, true, false, id, username, grant, priority, handler);
+        return box.submitAsync(access);
+    }
+
+    @Override
+    public RequestToken grantAll(Grant grant, String role, Priority priority, BaasHandler<Void> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Access access = new Access(box, true, true, id, role, grant, priority, handler);
+        return box.submitAsync(access);
+    }
+
+    @Override
+    public BaasResult<Void> grantAllSync(Grant grant, String role) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Access access = new Access(box, true, true, id, role, grant, null, null);
+        return box.submitSync(access);
+    }
+
+    @Override
+    public BaasResult<Void> grantSync(Grant grant, String user) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Access access = new Access(box, true, false, id, user, grant, null, null);
+        return box.submitSync(access);
     }
 
     public RequestToken refresh(BaasHandler<BaasFile> handler) {
@@ -197,41 +298,19 @@ public class BaasFile extends BaasObject {
         return box.submitAsync(details);
     }
 
-    public BaasResult<Void> deleteSync() {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (id == null) throw new IllegalStateException("this file is not bounded to an entity on the server");
-        Delete delete = new Delete(box, this, null, null);
-        return box.submitSync(delete);
-    }
-
-    public static BaasResult<Void> deleteSync(String id) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (id == null) throw new IllegalArgumentException("id cannot be null");
-        Delete delete = new Delete(box, id, null, null);
-        return box.submitSync(delete);
-    }
-
-    public static RequestToken delete(String id, BaasHandler<Void> handler) {
-        return delete(id, null, handler);
-    }
-
-    public RequestToken delete(BaasHandler<Void> handler) {
-        return delete(Priority.NORMAL, handler);
-    }
-
-    public static RequestToken delete(String id, Priority priority, BaasHandler<Void> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (id == null) throw new IllegalArgumentException("id cannot be null");
-        Delete delete = new Delete(box, id, priority, handler);
-        return box.submitAsync(delete);
-    }
-
-    public RequestToken delete(Priority priority, BaasHandler<Void> handler) {
+    public BaasResult<BaasFile> refreshSync() {
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
             throw new IllegalStateException("this file is not bound to an entity on the server");
-        Delete delete = new Delete(box, this, priority, handler);
-        return box.submitAsync(delete);
+        Details details = new Details(box, this, null, null);
+        return box.submitSync(details);
+    }
+
+    @Override
+    public RequestToken revoke(Grant grant, String username, Priority priority, BaasHandler<Void> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Access access = new Access(box, false, false, id, username, grant, priority, handler);
+        return box.submitAsync(access);
     }
 
     @Override
@@ -249,228 +328,18 @@ public class BaasFile extends BaasObject {
     }
 
     @Override
-    public RequestToken revoke(Grant grant, String username, Priority priority, BaasHandler<Void> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Access access = new Access(box, false, false, id, username, grant, priority, handler);
-        return box.submitAsync(access);
-    }
-
-    @Override
     public BaasResult<Void> revokeSync(Grant grant, String user) {
         BaasBox box = BaasBox.getDefaultChecked();
         Access access = new Access(box, false, false, id, user, grant, null, null);
         return box.submitSync(access);
     }
 
-    @Override
-    public RequestToken grantAll(Grant grant, String role, Priority priority, BaasHandler<Void> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Access access = new Access(box, true, true, id, role, grant, priority, handler);
-        return box.submitAsync(access);
-    }
-
-
-    @Override
-    public BaasResult<Void> grantAllSync(Grant grant, String role) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Access access = new Access(box, true, true, id, role, grant, null, null);
-        return box.submitSync(access);
-    }
-
-
-    @Override
-    public BaasResult<Void> grantSync(Grant grant, String user) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Access access = new Access(box, true, false, id, user, grant, null, null);
-        return box.submitSync(access);
-    }
-
-    @Override
-    public RequestToken grant(Grant grant, String username, Priority priority, BaasHandler<Void> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Access access = new Access(box, true, false, id, username, grant, priority, handler);
-        return box.submitAsync(access);
-    }
-
-    private final static class Access extends BaasObject.Access {
-
-        protected Access(BaasBox box, boolean add, boolean isRole, String id, String to, Grant grant, Priority priority, BaasHandler<Void> handler) {
-            super(box, add, isRole, null, id, to, grant, priority, handler);
-        }
-
-        @Override
-        protected String userGrant(RequestFactory factory, Grant grant, String collection, String id, String to) {
-            return factory.getEndpoint("file/?/?/user/?", id, grant.action, to);
-        }
-
-        @Override
-        protected String roleGrant(RequestFactory factory, Grant grant, String collection, String id, String to) {
-            return factory.getEndpoint("file/?/?/role/?", id, grant.action, to);
-        }
-    }
-
-    public RequestToken upload(InputStream stream, Priority priority, BaasHandler<BaasFile> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        RequestFactory factory = box.requestFactory;
-        Upload req = uploadRequest(box, stream, priority, handler, new JsonObject());
-        return box.submitAsync(req);
-    }
-
-
-    public RequestToken upload(BaasACL acl, InputStream stream, Priority priority, BaasHandler<BaasFile> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        RequestFactory factory = box.requestFactory;
-        Upload req = uploadRequest(box, stream, priority, handler, acl.toJson());
-        return box.submitAsync(req);
-    }
-
-    public BaasResult<BaasFile> uploadSync(InputStream stream) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Upload req = uploadRequest(box, stream, null, null, new JsonObject());
-        return box.submitSync(req);
-    }
-
-    public RequestToken upload(InputStream stream, BaasHandler<BaasFile> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Upload upload = uploadRequest(box, stream, null, handler, new JsonObject());
-        return box.submitAsync(upload);
-    }
-
-    public RequestToken upload(BaasACL acl, InputStream stream, BaasHandler<BaasFile> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Upload upload = uploadRequest(box, stream, null, handler, acl.toJson());
-        return box.submitAsync(upload);
-    }
-
-    public RequestToken upload(BaasACL acl, File file, Priority priority, BaasHandler<BaasFile> handler) {
-        if (file == null) throw new IllegalArgumentException("file cannot be null");
-        try {
-
-            FileInputStream fin = new FileInputStream(file);
-            return upload(acl, fin, priority, handler);
-        } catch (FileNotFoundException e) {
-            throw new IllegalArgumentException("file does not exists", e);
-        }
-    }
-
-    public RequestToken upload(File file, Priority priority, BaasHandler<BaasFile> handler) {
-        if (file == null) throw new IllegalArgumentException("file cannot be null");
-        try {
-
-            FileInputStream fin = new FileInputStream(file);
-            return upload(fin, priority, handler);
-        } catch (FileNotFoundException e) {
-            throw new IllegalArgumentException("file does not exists", e);
-        }
-    }
-
-    public BaasResult<BaasFile> uploadSync(BaasACL acl, File file) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (file == null) throw new IllegalArgumentException("file cannot be null");
-        try {
-            FileInputStream in = new FileInputStream(file);
-            Upload req = uploadRequest(box, in, null, null, acl == null ? null : acl.toJson());
-            return box.submitSync(req);
-        } catch (FileNotFoundException e) {
-            throw new IllegalArgumentException("file does not exists", e);
-        }
-    }
-
-
-    public RequestToken upload(BaasACL acl, File file, BaasHandler<BaasFile> handler) {
-        return upload(acl, file, null, handler);
-    }
-
-    public RequestToken upload(File file, BaasHandler<BaasFile> handler) {
-        return upload(file, null, handler);
-    }
-
-
-    public RequestToken upload(byte[] bytes, Priority priority, BaasHandler<BaasFile> handler) {
-        return upload(new BaasACL(), bytes, priority, handler);
-    }
-
-    public RequestToken upload(BaasACL acl, byte[] bytes, Priority priority, BaasHandler<BaasFile> handler) {
-        if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
-        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        return upload(acl, in, priority, handler);
-    }
-
-    public BaasResult<BaasFile> uploadSync(byte[] bytes) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
-        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        Upload req = uploadRequest(box, in, null, null, new JsonObject());
-        return box.submitSync(req);
-    }
-
-
-    public RequestToken upload(BaasACL acl, byte[] bytes, BaasHandler<BaasFile> handler) {
-        if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
-        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        return upload(acl, in, null, handler);
-    }
-
-    public RequestToken upload(byte[] bytes, BaasHandler<BaasFile> handler) {
-        if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
-        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        return upload(in, null, handler);
-    }
-
-
     public RequestToken stream(BaasHandler<BaasFile> handler) {
         return doStream(-1, null, Priority.NORMAL, handler);
     }
 
-    public RequestToken stream(int sizeIdx, BaasHandler<BaasFile> handler) {
-        return doStream(sizeIdx, null, null, handler);
-    }
-
-    public RequestToken stream(String sizeSpec, BaasHandler<BaasFile> handler) {
-        return doStream(-1, sizeSpec, null, handler);
-    }
-
-    public static RequestToken fetchStream(String id, BaasHandler<BaasFile> handler) {
-        BaasFile f = new BaasFile();
-        f.id = id;
-        return f.doStream(-1, null, null, handler);
-    }
-
-
     private RequestToken doStream(int size, String spec, Priority priority, BaasHandler<BaasFile> handler) {
         return stream(this.id, spec, size, priority, new FileStreamer(this), handler);
-    }
-
-    private static class FileStreamer extends StreamBody<BaasFile> {
-        BaasFile file;
-
-        FileStreamer(BaasFile file) {
-            this.file = file;
-        }
-
-        @Override
-        protected BaasFile convert(byte[] body, String id, String contentType) {
-            file.data.set(body);
-            file.mimeType = contentType;
-            return file;
-        }
-    }
-
-    public static <R> RequestToken stream(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return stream(id, null, size, priority, data, handler);
-    }
-
-    public static <R> RequestToken stream(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return stream(id, null, size, null, data, handler);
-    }
-
-    public static <R> RequestToken stream(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return stream(id, null, -1, null, data, handler);
-    }
-
-
-    public static <R> RequestToken stream(String id, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
-        return stream(id, null, -1, priority, contentHandler, handler);
     }
 
     private static <R> RequestToken stream(String id, String sizeSpec, int sizeIdx, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
@@ -481,49 +350,16 @@ public class BaasFile extends BaasObject {
         return box.submitAsync(stream);
     }
 
+    public RequestToken stream(int sizeIdx, BaasHandler<BaasFile> handler) {
+        return doStream(sizeIdx, null, null, handler);
+    }
 
-    private static class FileStream<R> extends AsyncStream<R> {
-        private final String id;
-        private HttpRequest request;
-
-        protected FileStream(BaasBox box, String id, String sizeSpec, int sizeId, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
-            super(box, priority, dataStream, handler);
-            this.id = id;
-            RequestFactory.Param param = null;
-            if (sizeSpec != null) {
-                param = new RequestFactory.Param("resize", sizeSpec);
-
-            } else if (sizeId >= 0) {
-                param = new RequestFactory.Param("sizeId", Integer.toString(sizeId));
-            }
-            String endpoint = box.requestFactory.getEndpoint("file/?", id);
-            if (param != null) {
-                request = box.requestFactory.get(endpoint, param);
-            } else {
-                request = box.requestFactory.get(endpoint);
-            }
-        }
-
-        @Override
-        protected String streamId() {
-            return id;
-        }
-
-        @Override
-        protected HttpRequest request(BaasBox box) {
-            return request;
-        }
+    public RequestToken stream(String sizeSpec, BaasHandler<BaasFile> handler) {
+        return doStream(-1, sizeSpec, null, handler);
     }
 
     public <R> RequestToken stream(DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
         return stream(Priority.NORMAL, contentHandler, handler);
-    }
-
-    public <R> RequestToken stream(int sizeId, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
-        String id = getId();
-        if (id == null)
-            throw new IllegalStateException("this file is not bound to any remote entity");
-        return stream(id, null, sizeId, priority, contentHandler, handler);
     }
 
     public <R> RequestToken stream(Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
@@ -533,32 +369,11 @@ public class BaasFile extends BaasObject {
         return stream(id, priority, contentHandler, handler);
     }
 
-    private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (id == null) throw new IllegalArgumentException("id cannot be null");
-        StreamRequest synReq = new StreamRequest(box, "file", id, spec, sizeId);
-        return box.submitSync(synReq);
-    }
-
-
-    public static BaasResult<BaasStream> streamSync(String id, int sizeId) {
-        return streamSync(id, null, sizeId);
-    }
-
-    public static BaasResult<BaasStream> streamSync(String id, String spec) {
-        return streamSync(id, spec, -1);
-    }
-
-
-    public BaasResult<BaasStream> streamSync(String spec) {
-        if (id == null) throw new IllegalStateException("this is not bound to a remote entity");
-        return streamSync(id, spec, -1);
-    }
-
-
-    public BaasResult<BaasStream> streamSync(int sizeId) {
-        if (id == null) throw new IllegalStateException("this is not bound to a remote entity");
-        return streamSync(id, null, sizeId);
+    public <R> RequestToken stream(int sizeId, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
+        String id = getId();
+        if (id == null)
+            throw new IllegalStateException("this file is not bound to any remote entity");
+        return stream(id, null, sizeId, priority, contentHandler, handler);
     }
 
     public BaasResult<BaasStream> streamSync() {
@@ -566,6 +381,38 @@ public class BaasFile extends BaasObject {
         return streamSync(id, null, -1);
     }
 
+    public BaasResult<BaasStream> streamSync(String spec) {
+        if (id == null) throw new IllegalStateException("this is not bound to a remote entity");
+        return streamSync(id, spec, -1);
+    }
+
+    public BaasResult<BaasStream> streamSync(int sizeId) {
+        if (id == null) throw new IllegalStateException("this is not bound to a remote entity");
+        return streamSync(id, null, sizeId);
+    }
+
+    public RequestToken upload(InputStream stream, BaasHandler<BaasFile> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Upload upload = uploadRequest(box, stream, null, handler, new JsonObject());
+        return box.submitAsync(upload);
+    }
+
+    public RequestToken upload(File file, BaasHandler<BaasFile> handler) {
+        return upload(file, null, handler);
+    }
+
+    public RequestToken upload(byte[] bytes, BaasHandler<BaasFile> handler) {
+        if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        return upload(in, null, handler);
+    }
+
+    public RequestToken upload(InputStream stream, Priority priority, BaasHandler<BaasFile> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        RequestFactory factory = box.requestFactory;
+        Upload req = uploadRequest(box, stream, priority, handler, new JsonObject());
+        return box.submitAsync(req);
+    }
 
     private Upload uploadRequest(BaasBox box, InputStream stream, Priority priority, BaasHandler<BaasFile> handler, JsonObject acl) {
         RequestFactory factory = box.requestFactory;
@@ -597,7 +444,151 @@ public class BaasFile extends BaasObject {
         return new Upload(box, this, req, priority, handler);
     }
 
-    private final static class Details extends NetworkTask<BaasFile> {
+    public RequestToken upload(BaasACL acl, InputStream stream, BaasHandler<BaasFile> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Upload upload = uploadRequest(box, stream, null, handler, acl.toJson());
+        return box.submitAsync(upload);
+    }
+
+    public RequestToken upload(File file, Priority priority, BaasHandler<BaasFile> handler) {
+        if (file == null) throw new IllegalArgumentException("file cannot be null");
+        try {
+            FileInputStream fin = new FileInputStream(file);
+            return upload(fin, priority, handler);
+        } catch (FileNotFoundException e) {
+            throw new IllegalArgumentException("file does not exists", e);
+        }
+    }
+
+    public RequestToken upload(BaasACL acl, File file, BaasHandler<BaasFile> handler) {
+        return upload(acl, file, null, handler);
+    }
+
+    public RequestToken upload(byte[] bytes, Priority priority, BaasHandler<BaasFile> handler) {
+        return upload(new BaasACL(), bytes, priority, handler);
+    }
+
+    public RequestToken upload(BaasACL acl, byte[] bytes, BaasHandler<BaasFile> handler) {
+        if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        return upload(acl, in, null, handler);
+    }
+
+    public RequestToken upload(BaasACL acl, InputStream stream, Priority priority, BaasHandler<BaasFile> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        RequestFactory factory = box.requestFactory;
+        Upload req = uploadRequest(box, stream, priority, handler, acl.toJson());
+        return box.submitAsync(req);
+    }
+
+    public RequestToken upload(BaasACL acl, File file, Priority priority, BaasHandler<BaasFile> handler) {
+        if (file == null) throw new IllegalArgumentException("file cannot be null");
+        try {
+            FileInputStream fin = new FileInputStream(file);
+            return upload(acl, fin, priority, handler);
+        } catch (FileNotFoundException e) {
+            throw new IllegalArgumentException("file does not exists", e);
+        }
+    }
+
+    public RequestToken upload(BaasACL acl, byte[] bytes, Priority priority, BaasHandler<BaasFile> handler) {
+        if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        return upload(acl, in, priority, handler);
+    }
+
+    public BaasResult<BaasFile> uploadSync(InputStream stream) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Upload req = uploadRequest(box, stream, null, null, new JsonObject());
+        return box.submitSync(req);
+    }
+
+    public BaasResult<BaasFile> uploadSync(byte[] bytes) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        Upload req = uploadRequest(box, in, null, null, new JsonObject());
+        return box.submitSync(req);
+    }
+
+    public BaasResult<BaasFile> uploadSync(BaasACL acl, File file) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (file == null) throw new IllegalArgumentException("file cannot be null");
+        try {
+            FileInputStream in = new FileInputStream(file);
+            Upload req = uploadRequest(box, in, null, null, acl == null ? null : acl.toJson());
+            return box.submitSync(req);
+        } catch (FileNotFoundException e) {
+            throw new IllegalArgumentException("file does not exists", e);
+        }
+    }
+
+// -------------------------- INNER CLASSES --------------------------
+
+    private static final class Access extends BaasObject.Access {
+        protected Access(BaasBox box, boolean add, boolean isRole, String id, String to, Grant grant, Priority priority, BaasHandler<Void> handler) {
+            super(box, add, isRole, null, id, to, grant, priority, handler);
+        }
+
+        @Override
+        protected String userGrant(RequestFactory factory, Grant grant, String collection, String id, String to) {
+            return factory.getEndpoint("file/?/?/user/?", id, grant.action, to);
+        }
+
+        @Override
+        protected String roleGrant(RequestFactory factory, Grant grant, String collection, String id, String to) {
+            return factory.getEndpoint("file/?/?/role/?", id, grant.action, to);
+        }
+    }
+
+    private static class FileStreamer extends StreamBody<BaasFile> {
+        BaasFile file;
+
+        FileStreamer(BaasFile file) {
+            this.file = file;
+        }
+
+        @Override
+        protected BaasFile convert(byte[] body, String id, String contentType) {
+            file.data.set(body);
+            file.mimeType = contentType;
+            return file;
+        }
+    }
+
+    private static class FileStream<R> extends AsyncStream<R> {
+        private final String id;
+        private HttpRequest request;
+
+        protected FileStream(BaasBox box, String id, String sizeSpec, int sizeId, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
+            super(box, priority, dataStream, handler);
+            this.id = id;
+            RequestFactory.Param param = null;
+            if (sizeSpec != null) {
+                param = new RequestFactory.Param("resize", sizeSpec);
+            } else if (sizeId >= 0) {
+                param = new RequestFactory.Param("sizeId", Integer.toString(sizeId));
+            }
+            String endpoint = box.requestFactory.getEndpoint("file/?", id);
+            if (param != null) {
+                request = box.requestFactory.get(endpoint, param);
+            } else {
+                request = box.requestFactory.get(endpoint);
+            }
+        }
+
+        @Override
+        protected String streamId() {
+            return id;
+        }
+
+        @Override
+        protected HttpRequest request(BaasBox box) {
+            return request;
+        }
+    }
+
+    private static final class Details extends NetworkTask<BaasFile> {
         private final BaasFile file;
 
         protected Details(BaasBox box, BaasFile file, Priority priority, BaasHandler<BaasFile> handler) {
@@ -618,7 +609,7 @@ public class BaasFile extends BaasObject {
         }
     }
 
-    private final static class Delete extends NetworkTask<Void> {
+    private static final class Delete extends NetworkTask<Void> {
         private final BaasFile file;
         private final String id;
 
@@ -656,7 +647,7 @@ public class BaasFile extends BaasObject {
         }
     }
 
-    private final static class Files extends NetworkTask<List<BaasFile>> {
+    private static final class Files extends NetworkTask<List<BaasFile>> {
         private RequestFactory.Param[] params;
 
         protected Files(BaasBox box, Filter filter, Priority priority, BaasHandler<List<BaasFile>> handler) {
@@ -696,7 +687,7 @@ public class BaasFile extends BaasObject {
         }
     }
 
-    private final static class Upload extends NetworkTask<BaasFile> {
+    private static final class Upload extends NetworkTask<BaasFile> {
         private final BaasFile file;
         private final HttpRequest request;
 
@@ -717,7 +708,5 @@ public class BaasFile extends BaasObject {
         protected HttpRequest request(BaasBox box) {
             return request;
         }
-
     }
-
 }
