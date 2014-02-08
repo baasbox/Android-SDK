@@ -262,7 +262,6 @@ public class BaasBox {
         return asyncDispatcher.resume(token.requestId, handler);
     }
 
-
     /**
      * Synchronously sends a raw rest request to the server that is specified by
      * the parameters passed in.
@@ -378,23 +377,65 @@ public class BaasBox {
         }
     }
 
-
+    /**
+     * Streams the file using the provided data stream handler.
+     *
+     * @param id the name of the asset to download
+     * @param size a size spec to specify the resize of an image asset
+     * @param priority a priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
+     * @param data the data stream handler {@link com.baasbox.android.DataStreamHandler}
+     * @param handler the completion handler
+     * @param <R> the type to transform the bytes to.
+     * @return a request token to handle the request
+     */
     public static <R> RequestToken streamAsset(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
         return stream(id, null, size, priority, data, handler);
     }
 
+
+    /**
+     * Streams the file using the provided data stream handler.
+     *
+     * @param id the name of the asset to download
+     * @param size a size spec to specify the resize of an image asset
+     * @param data the data stream handler {@link com.baasbox.android.DataStreamHandler}
+     * @param handler the completion handler
+     * @param <R> the type to transform the bytes to.
+     * @return a request token to handle the request
+     */
     public static <R> RequestToken streamAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
         return stream(id, null, size, null, data, handler);
     }
 
+
+    /**
+     * Streams the file using the provided data stream handler.
+     *
+     * @param id the name of the asset to download
+     * @param data the data stream handler {@link com.baasbox.android.DataStreamHandler}
+     * @param handler the completion handler
+     * @param <R> the type to transform the bytes to.
+     * @return a request token to handle the request
+     */
     public static <R> RequestToken streamAsset(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
         return stream(id, null, -1, null, data, handler);
     }
 
 
+
+    /**
+     * Streams the file using the provided data stream handler.
+     *
+     * @param id the name of the asset to download
+     * @param priority a priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
+     * @param handler the completion handler
+     * @param <R> the type to transform the bytes to.
+     * @return a request token to handle the request
+     */
     public static <R> RequestToken streamAsset(String id, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
         return stream(id, null, -1, priority, contentHandler, handler);
     }
+
 
     private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
         BaasBox box = BaasBox.getDefaultChecked();
@@ -404,10 +445,22 @@ public class BaasBox {
     }
 
 
+    /**
+     * Synchronously streams the asset.
+     * @param id the name of the asset to download
+     * @param sizeId the size index if the asset is an image
+     * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
+     */
     public static BaasResult<BaasStream> streamAssetSync(String id, int sizeId) {
         return streamSync(id, null, sizeId);
     }
 
+    /**
+     * Synchronously streams the asset.
+     * @param id the name of the asset to download
+     * @param spec a size spec to specify the resize of an image asset
+     * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
+     */
     public static BaasResult<BaasStream> streamAssetSync(String id, String spec) {
         return streamSync(id, spec, -1);
     }
