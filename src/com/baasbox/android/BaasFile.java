@@ -54,6 +54,7 @@ public class BaasFile extends BaasObject {
 // ------------------------------ FIELDS ------------------------------
 
     private JsonObject attachedData;
+    private JsonObject metaData;
     private String mimeType;
     private String name;
 
@@ -66,6 +67,7 @@ public class BaasFile extends BaasObject {
     private AtomicReference<byte[]> data = new AtomicReference<byte[]>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
+
     public BaasFile() {
         this(new JsonObject(), false);
     }
@@ -78,6 +80,7 @@ public class BaasFile extends BaasObject {
         super();
         if (fromServer) {
             this.attachedData = new JsonObject();
+            this.metaData = new JsonObject();
             update(data);
         } else {
             this.attachedData = data;
@@ -87,6 +90,7 @@ public class BaasFile extends BaasObject {
     void update(JsonObject fromServer) {
         isBound.set(true);
         this.attachedData.merge(fromServer.getObject("attachedData"));
+        this.metaData.merge(fromServer.getObject("metadata"));
         this.id = fromServer.getString("id");
         this.creationDate = fromServer.getString("_creation_date");
         this.author = fromServer.getString("_author");
@@ -216,6 +220,21 @@ public class BaasFile extends BaasObject {
         return attachedData;
     }
 
+    /**
+     * Retrieves the metadata associated with this file
+     * coomputed by the server.
+     *
+     * @return an object containing metadata about this file or null if no metadata is found
+     */
+    public JsonObject getMetadata() {
+        return metaData;
+    }
+
+    public String getTextContent(){
+        //todo implement text content
+        return null;
+    }
+
     @Override
     public String getAuthor() {
         return author;
@@ -240,6 +259,14 @@ public class BaasFile extends BaasObject {
         return version;
     }
 
+    public String getContentType() {
+        return mimeType;
+    }
+
+    public byte[] getData() {
+        return data.get();
+    }
+
 // -------------------------- OTHER METHODS --------------------------
 
     public RequestToken delete(BaasHandler<Void> handler) {
@@ -259,14 +286,6 @@ public class BaasFile extends BaasObject {
         if (id == null) throw new IllegalStateException("this file is not bounded to an entity on the server");
         Delete delete = new Delete(box, this, null, null);
         return box.submitSync(delete);
-    }
-
-    public String getContentType() {
-        return mimeType;
-    }
-
-    public byte[] getData() {
-        return data.get();
     }
 
     @Override
