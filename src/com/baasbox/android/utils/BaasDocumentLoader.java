@@ -55,10 +55,8 @@ public class BaasDocumentLoader extends Loader<BaasResult<List<BaasDocument>>> {
     void complete(final BaasResult<List<BaasDocument>> result) {
         mCurrentLoad = null;
         mDocuments = result;
-        if (isAbandoned()) {
-        } else if (isStarted()) {
+        if (isStarted()) {
             deliverResult(mDocuments);
-        } else {
         }
     }
 
@@ -88,8 +86,6 @@ public class BaasDocumentLoader extends Loader<BaasResult<List<BaasDocument>>> {
             deliverResult(mDocuments);
         } else if (takeContentChanged() || mCurrentLoad == null) {
             forceLoad();
-        } else {
-            //do nothing
         }
     }
 }

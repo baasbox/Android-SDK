@@ -32,7 +32,7 @@ public final class Logger {
 
     private Logger(){
     }
-    
+
 // -------------------------- STATIC METHODS --------------------------
 
     public static void warn(String format, Object... args) {

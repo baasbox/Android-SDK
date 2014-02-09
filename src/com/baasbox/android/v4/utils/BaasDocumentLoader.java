@@ -90,8 +90,6 @@ public class BaasDocumentLoader extends Loader<BaasResult<List<BaasDocument>>> {
             deliverResult(mDocuments);
         } else if (takeContentChanged() || mCurrentLoad == null) {
             forceLoad();
-        } else {
-            //do nothing
         }
     }
 }
