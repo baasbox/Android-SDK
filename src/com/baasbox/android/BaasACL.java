@@ -84,7 +84,7 @@ public class BaasACL {
                 grantRoles(Grant.UPDATE, roles);
                 break;
             default:
-                throw new Error("Invalid grant");
+                throw new IllegalArgumentException("Invalid grant");
         }
         return this;
     }
@@ -127,7 +127,7 @@ public class BaasACL {
                 grantUsers(Grant.UPDATE, usrs);
                 break;
             default:
-                throw new Error("Invalid grant");
+                throw new IllegalArgumentException("Invalid grant");
         }
         return this;
     }

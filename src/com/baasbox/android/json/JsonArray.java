@@ -17,6 +17,7 @@ package com.baasbox.android.json;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import com.baasbox.android.BaasError;
 import com.baasbox.android.impl.Base64;
 
 import java.io.IOException;
@@ -69,7 +70,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
                 (o instanceof Long) ||
                 (o instanceof Double)) {
             list.add(o);
-        } else if ((o instanceof byte[])) {
+        } else if (o instanceof byte[]) {
             list.add(Base64.encode((byte[]) o, Base64.DEFAULT));
         } else if (o instanceof Float) {
             list.add(((Float) o).doubleValue());
@@ -97,7 +98,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
             }
             return a;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new JsonException(e);
         } finally {
             if (r != null) {
                 try {
@@ -578,7 +579,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     public JsonStructure getStructure(int index, JsonStructure otherwise) {
         Object o = list.get(index);
         if (o == null) return otherwise;
-        if ((o instanceof JsonStructure)) return (JsonStructure) o;
+        if (o instanceof JsonStructure) return (JsonStructure) o;
         throw new JsonException("not a structure");
     }
 
@@ -599,7 +600,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         } else if (o instanceof Boolean) {
             return BOOLEAN;
         }
-        throw new Error("Object contains wrong type: " + o.getClass());
+        throw new BaasError("Object contains wrong type: " + o.getClass());
     }
 
     public int size() {

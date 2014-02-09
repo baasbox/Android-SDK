@@ -31,3 +31,4 @@ build/**
 # local gradle
 dev-config.gradle
 dev-config/**
+gradle.properties

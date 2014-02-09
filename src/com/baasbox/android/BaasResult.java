@@ -130,6 +130,14 @@ public abstract class BaasResult<T> {
         }
     }
 
+    static void throwEx(Throwable t){
+        BaasResult.<RuntimeException>sneakyThrow(t);
+    }
+
+    private static <T extends Throwable> T sneakyThrow(Throwable e)throws T{
+        throw (T)e;
+    }
+
     private static class Error<T> extends BaasResult<T> {
         private final BaasException error;
 
@@ -140,7 +148,8 @@ public abstract class BaasResult<T> {
 
         @Override
         public final T value() {
-            throw new RuntimeException(error);
+            throwEx(error);
+            return null; // compiler is happy!
         }
 
         @Override

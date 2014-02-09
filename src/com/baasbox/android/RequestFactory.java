@@ -108,7 +108,7 @@ class RequestFactory {
             try {
                 bytes = object.toString().getBytes(config.httpCharset);
             } catch (UnsupportedEncodingException e) {
-                throw new Error(e);
+                throw new BaasError("Charset "+config.httpCharset+" is not supported",e);
             }
             headers = setContentType(headers, config, JSON_CONTENT, bytes.length);
             body = new ByteArrayInputStream(bytes);
@@ -124,7 +124,7 @@ class RequestFactory {
             try {
                 bytes = object.toString().getBytes(config.httpCharset);
             } catch (UnsupportedEncodingException e) {
-                throw new Error(e);
+                throw new BaasError("Charset "+config.httpCharset+" is not supported",e);
             }
             headers = setContentType(headers, config, JSON_CONTENT, bytes.length);
             body = new ByteArrayInputStream(bytes);
@@ -181,7 +181,7 @@ class RequestFactory {
             }
             return sb.toString();
         } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
+            throw new BaasError("Charset "+charset+" is not supported",e);
         }
     }
 
@@ -206,7 +206,7 @@ class RequestFactory {
                 String params = encodeParams(form_params, config.httpCharset);
                 bytes = params.getBytes(config.httpCharset);
             } catch (UnsupportedEncodingException e) {
-                throw new Error(e);
+                throw new BaasError("Charset "+config.httpCharset+" is not supported",e);
             }
             headers = setContentType(headers, config, FORM_ENCODED_CONTENT, bytes.length);
             body = new ByteArrayInputStream(bytes);
@@ -227,7 +227,7 @@ class RequestFactory {
             }
             return builder.toString();
         } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
+            throw new BaasError("Charset "+charset+" is not supported",e);
         }
     }
 
@@ -309,7 +309,7 @@ class RequestFactory {
         try {
             return new ByteArrayInputStream(header.getBytes(config.httpCharset));
         } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
+            throw new BaasError("Charset "+config.httpCharset+" is not supported",e);
         }
     }
 
@@ -320,7 +320,7 @@ class RequestFactory {
         try {
             return new ByteArrayInputStream(header.getBytes(config.httpCharset));
         } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
+            throw new BaasError("Charset "+config.httpCharset+" is not supported",e);
         }
     }
 
@@ -328,7 +328,7 @@ class RequestFactory {
         try {
             return new ByteArrayInputStream(object.toString().getBytes(charset));
         } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
+            throw new BaasError("Charset "+config.httpCharset+" is not supported",e);
         }
     }
 
@@ -338,7 +338,7 @@ class RequestFactory {
             ByteArrayInputStream in = new ByteArrayInputStream(trail);
             return in;
         } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
+            throw new BaasError("Charset "+config.httpCharset+" is not supported",e);
         }
     }
 
@@ -356,8 +356,8 @@ class RequestFactory {
 // -------------------------- INNER CLASSES --------------------------
 
     static class Param {
-        public final String paramName;
-        public final String paramValue;
+        final String paramName;
+        final String paramValue;
 
         Param(String name, String value) {
             this.paramName = name;

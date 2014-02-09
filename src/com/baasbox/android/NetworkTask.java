@@ -65,7 +65,7 @@ abstract class NetworkTask<R> extends Task<R> {
                 case 5:
                     return onServerError(status, response, box);
                 default:
-                    throw new Error("unexpected status code: " + status);
+                    throw new BaasIOException("unexpected status code returned from server: " + status);
             }
         } catch (BaasInvalidSessionException e) {
             if (retryOnFailedLogin) {
