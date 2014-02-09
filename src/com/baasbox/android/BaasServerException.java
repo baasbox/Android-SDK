@@ -18,6 +18,7 @@ package com.baasbox.android;
 import com.baasbox.android.json.JsonObject;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A subclass of {@link BaasApiException} indicating an error due a problem
@@ -40,7 +41,7 @@ public class BaasServerException extends BaasApiException {
     }
 
     public BaasServerException(int code, int httpStatus, String resource, String method,
-                               HashMap<String, String> requestHeader, String apiVersion,
+                               Map<String, String> requestHeader, String apiVersion,
                                String detailMessage) {
         super(code, httpStatus, resource, method, requestHeader, apiVersion,
                 detailMessage);

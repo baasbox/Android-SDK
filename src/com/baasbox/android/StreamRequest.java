@@ -75,6 +75,7 @@ class StreamRequest extends NetworkTask<BaasStream> {
                         entity.consumeContent();
                     }
                 } catch (IOException e) {
+                    // ignored
                 }
             }
         }

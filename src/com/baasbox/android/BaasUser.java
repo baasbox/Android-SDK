@@ -1229,7 +1229,7 @@ public class BaasUser implements Parcelable {
         @Override
         protected final List<BaasUser> onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             JsonArray array = parseJson(response, box).getArray("data");
-            ArrayList<BaasUser> users = new ArrayList<BaasUser>(array.size());
+            List<BaasUser> users = new ArrayList<BaasUser>(array.size());
             BaasUser current = BaasUser.current();
             for (Object o : array) {
                 JsonObject userJson = (JsonObject) o;

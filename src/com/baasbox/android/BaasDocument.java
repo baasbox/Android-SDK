@@ -1221,7 +1221,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
             if (data == null) {
                 return Collections.emptyList();
             } else {
-                ArrayList<BaasDocument> res = new ArrayList<BaasDocument>();
+                List<BaasDocument> res = new ArrayList<BaasDocument>();
                 for (Object obj : data) {
                     res.add(new BaasDocument((JsonObject) obj));
                 }

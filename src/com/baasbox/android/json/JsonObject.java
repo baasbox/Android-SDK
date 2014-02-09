@@ -18,7 +18,7 @@ package com.baasbox.android.json;
 import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
-import com.baasbox.android.BaasError;
+import com.baasbox.android.BaasRuntimeException;
 import com.baasbox.android.impl.Base64;
 
 import java.io.IOException;
@@ -143,6 +143,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
                 try {
                     r.close();
                 } catch (IOException e) {
+                    // ignored
                 }
             }
         }
@@ -398,6 +399,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
                 try {
                     jw.close();
                 } catch (IOException e) {
+                    // ignored
                 }
             }
         }
@@ -478,7 +480,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
             } else if (v instanceof JsonObject) {
                 ((JsonObject) v).encode(w);
             } else {
-                throw new BaasError("Array contains non json value");
+                throw new BaasRuntimeException("Array contains non json value");
             }
         }
         w.endObject();
@@ -787,7 +789,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         } else if (o instanceof Boolean) {
             return BOOLEAN;
         }
-        throw new BaasError("Object contains wrong type: " + o.getClass());
+        throw new BaasRuntimeException("Object contains wrong type: " + o.getClass());
     }
 
     /**

@@ -18,6 +18,7 @@ package com.baasbox.android;
 import com.baasbox.android.json.JsonObject;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This is a particular subclass of {@link BaasClientException} indicating an
@@ -46,7 +47,7 @@ public class BaasInvalidSessionException extends BaasClientException {
     }
 
     public BaasInvalidSessionException(String resource, String method,
-                                       HashMap<String, String> requestHeader, String apiVersion,
+                                       Map<String, String> requestHeader, String apiVersion,
                                        String detailMessage) {
         super(INVALID_SESSION_TOKEN_CODE, 401, resource, method, requestHeader,
                 apiVersion, detailMessage);

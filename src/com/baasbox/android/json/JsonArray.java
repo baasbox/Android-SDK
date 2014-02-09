@@ -17,7 +17,7 @@ package com.baasbox.android.json;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import com.baasbox.android.BaasError;
+import com.baasbox.android.BaasRuntimeException;
 import com.baasbox.android.impl.Base64;
 
 import java.io.IOException;
@@ -104,6 +104,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
                 try {
                     r.close();
                 } catch (IOException e) {
+                    // ignored
                 }
             }
         }
@@ -316,6 +317,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
                 try {
                     jw.close();
                 } catch (IOException e) {
+                    // ignored
                 }
             }
         }
@@ -600,7 +602,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         } else if (o instanceof Boolean) {
             return BOOLEAN;
         }
-        throw new BaasError("Object contains wrong type: " + o.getClass());
+        throw new BaasRuntimeException("Object contains wrong type: " + o.getClass());
     }
 
     public int size() {

@@ -70,6 +70,7 @@ final class Util {
             } catch (RuntimeException rethrown) {
                 throw rethrown;
             } catch (Exception ignored) {
+                // ignored
             }
         }
     }

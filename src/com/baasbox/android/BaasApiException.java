@@ -78,14 +78,13 @@ public class BaasApiException extends BaasException {
             try {
                 String bbcodeString = error.getString("bb_code", "-1");
                 code = Integer.parseInt(bbcodeString);
-                ;
             } catch (NumberFormatException ex) {
                 code = -1;
             }
         }
         this.code = code;
         JsonObject headers = error.getObject("request_header");
-        LinkedHashMap<String, String> headersMap = new LinkedHashMap<String, String>();
+        Map<String, String> headersMap = new LinkedHashMap<String, String>();
         if (headers != null) {
             for (Map.Entry<String, Object> h : headers) {
                 headersMap.put(h.getKey(), h.getValue().toString());

@@ -24,6 +24,7 @@ import com.baasbox.android.BaasResult;
 import com.baasbox.android.ExceptionHandler;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,7 +40,7 @@ public final class Dispatcher {
 
 
     private final PriorityBlockingQueue<Task<?>> taskQueue;
-    private final ConcurrentHashMap<Integer, Task<?>> liveAsyncs;
+    private final ConcurrentMap<Integer, Task<?>> liveAsyncs;
     private final ExceptionHandler exceptionHandler;
     private final Worker[] workers;
     private final BaasBox box;

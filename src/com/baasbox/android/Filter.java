@@ -16,6 +16,7 @@
 package com.baasbox.android;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class represents a query filter that can be applied
@@ -38,7 +39,7 @@ public class Filter {
     };
 
     StringBuilder where = null;
-    ArrayList<CharSequence> params = null;
+    List<CharSequence> params = null;
     String orderBy;
     Paging paging;
 
@@ -198,7 +199,7 @@ public class Filter {
 
     RequestFactory.Param[] toParams() {
         validate();
-        ArrayList<RequestFactory.Param> reqParams = new ArrayList<RequestFactory.Param>();
+        List<RequestFactory.Param> reqParams = new ArrayList<RequestFactory.Param>();
         if (where != null) {
             reqParams.add(new RequestFactory.Param("where", where.toString()));
             if (params != null) {

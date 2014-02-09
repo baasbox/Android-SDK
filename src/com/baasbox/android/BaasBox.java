@@ -257,7 +257,7 @@ public class BaasBox {
 
     private BaasBox(Context context, Config config) {
         if (context == null) {
-            throw new NullPointerException("context cannot be null");
+            throw new IllegalArgumentException("context cannot be null");
         }
         this.context = context.getApplicationContext();
         this.config = config == null ? new Config() : config;
@@ -288,7 +288,7 @@ public class BaasBox {
     }
 
     public RequestToken registerPush(String registrationId, Priority priority, BaasHandler<Void> handler) {
-        if (registrationId == null) throw new NullPointerException("registrationId cannot be null");
+        if (registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
         RegisterPush rp = new RegisterPush(this, registrationId, priority, handler);
         return submitAsync(rp);
     }
@@ -310,7 +310,7 @@ public class BaasBox {
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
     public RequestToken rest(int method, String endpoint, JsonObject body, Priority priority, BaasHandler<JsonObject> jsonHandler) {
-        if (endpoint == null) throw new NullPointerException("endpoint cannot be null");
+        if (endpoint == null) throw new IllegalArgumentException("endpoint cannot be null");
         endpoint = requestFactory.getEndpoint(endpoint);
         HttpRequest any = requestFactory.any(method, endpoint, body);
         RawRequest request = new RawRequest(this, any, priority, jsonHandler);
@@ -451,10 +451,6 @@ public class BaasBox {
 
         @Override
         protected JsonObject onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-            }
             return parseJson(response, box);
         }
 

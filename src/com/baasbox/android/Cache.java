@@ -79,6 +79,7 @@ final class Cache {
                 try {
                     din.close();
                 } catch (IOException e) {
+                    // ignored
                 }
             }
 
@@ -116,6 +117,7 @@ final class Cache {
                 try {
                     out.close();
                 } catch (IOException e) {
+                    // ignored
                 }
             }
             if (edit != null) {

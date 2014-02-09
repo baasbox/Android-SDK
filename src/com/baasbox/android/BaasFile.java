@@ -664,7 +664,7 @@ public class BaasFile extends BaasObject {
             try {
                 JsonArray details = parseJson(response, box).getArray("data");
 
-                ArrayList<BaasFile> files = new ArrayList<BaasFile>();
+                List<BaasFile> files = new ArrayList<BaasFile>();
                 for (Object o : details) {
                     JsonObject obj = (JsonObject) o;
                     BaasFile f = new BaasFile(obj, true);
