@@ -36,7 +36,6 @@ abstract class NetworkTask<R> extends Task<R> {
     private boolean retryOnFailedLogin;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     protected NetworkTask(BaasBox box, Priority priority, BaasHandler<R> handler) {
         this(box, priority, handler, box.config.authenticationType == BaasBox.Config.AuthType.SESSION_TOKEN);
     }

@@ -63,12 +63,15 @@ public class Base64 {
      */
     public static final int NO_CLOSE = 16;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+    private Base64() {
+    } // don't instantiate
+
 // -------------------------- STATIC METHODS --------------------------
 
     // --------------------------------------------------------
     // decoding
     // --------------------------------------------------------
-
     /**
      * Decode the Base64-encoded data in input and return the data in a new byte
      * array.
@@ -241,17 +244,11 @@ public class Base64 {
         return encoder.output;
     }
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    private Base64() {
-    } // don't instantiate
-
 // -------------------------- INNER CLASSES --------------------------
 
     // --------------------------------------------------------
     // shared code
     // --------------------------------------------------------
-
     /* package */static abstract class Coder {
         public byte[] output;
         public int op;

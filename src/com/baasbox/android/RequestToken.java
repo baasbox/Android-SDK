@@ -43,6 +43,11 @@ public final class RequestToken implements Parcelable, Comparable<RequestToken> 
 
     final int requestId;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+    RequestToken(int requestId) {
+        this.requestId = requestId;
+    }
+
 // -------------------------- STATIC METHODS --------------------------
 
     /**
@@ -74,14 +79,7 @@ public final class RequestToken implements Parcelable, Comparable<RequestToken> 
      * @return
      */
     public boolean resume(BaasHandler<?> handler) {
-        handler = handler == null ? BaasHandler.NOOP : handler;
-        return BaasBox.getDefaultChecked().resume(this, handler);
-    }
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    RequestToken(int requestId) {
-        this.requestId = requestId;
+        return BaasBox.getDefaultChecked().resume(this, handler==null?BaasHandler.NOOP:handler);
     }
 
 // ------------------------ CANONICAL METHODS ------------------------
@@ -111,7 +109,6 @@ public final class RequestToken implements Parcelable, Comparable<RequestToken> 
     }
 
 // --------------------- Interface Parcelable ---------------------
-
 
     @Override
     public int describeContents() {

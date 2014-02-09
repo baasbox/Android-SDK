@@ -4,7 +4,7 @@ package com.baasbox.android;
  * Created by Andrea Tortorella on 09/02/14.
  */
 public class BaasRuntimeException extends RuntimeException {
-
+// --------------------------- CONSTRUCTORS ---------------------------
     public BaasRuntimeException() {
     }
 
@@ -12,11 +12,11 @@ public class BaasRuntimeException extends RuntimeException {
         super(detailMessage);
     }
 
-    public BaasRuntimeException(String detailMessage, Throwable throwable) {
-        super(detailMessage, throwable);
-    }
-
     public BaasRuntimeException(Throwable throwable) {
         super(throwable);
+    }
+
+    public BaasRuntimeException(String detailMessage, Throwable throwable) {
+        super(detailMessage, throwable);
     }
 }

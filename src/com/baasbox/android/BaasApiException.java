@@ -63,7 +63,6 @@ public class BaasApiException extends BaasException {
     private final JsonObject json;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     public BaasApiException(int httpStatus, JsonObject error) {
         super(error.getString("message", ""));
         this.json = error;

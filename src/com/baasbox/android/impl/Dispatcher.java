@@ -47,7 +47,6 @@ public final class Dispatcher {
     private volatile boolean quit;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     public Dispatcher(BaasBox box) {
         this.box = box;
         this.exceptionHandler = setHandler(box.config.exceptionHandler);

@@ -20,9 +20,7 @@ public abstract class JsonStructure {
     public static final int NUMBER = 5;
     public static final int NULL = 6;
 
-
 // --------------------------- CONSTRUCTORS ---------------------------
-
     JsonStructure() {
     }
 

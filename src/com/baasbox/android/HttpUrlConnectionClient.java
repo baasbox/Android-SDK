@@ -78,7 +78,6 @@ class HttpUrlConnectionClient implements RestClient {
     private HostnameVerifier mHostVerifier;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     HttpUrlConnectionClient(Context context, BaasBox.Config config) {
         this.config = config;
         this.mSSLSocketFactory = config.useHttps ? trustAll() : null;

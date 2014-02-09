@@ -51,6 +51,64 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
     protected List<Object> list;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+    /**
+     * Creates a new empty JsonArray
+     */
+    public JsonArray() {
+        list = new LinkedList<Object>();
+    }
+
+    JsonArray(Collection<Object> object) {
+        this();
+        for (Object o : object) {
+            if (o == null) {
+                list.add(null);
+            } else if (o instanceof JsonArray) {
+                list.add(((JsonArray) o).copy());
+            } else if (o instanceof JsonObject) {
+                list.add(((JsonObject) o).copy());
+            } else if (o instanceof byte[]) {
+                byte[] original = (byte[]) o;
+                byte[] copy = new byte[original.length];
+                System.arraycopy(original, 0, copy, 0, original.length);
+                list.add(copy);
+            } else {
+                list.add(o);
+            }
+        }
+    }
+
+    @Override
+    public JsonArray copy() {
+        return new JsonArray(this);
+    }
+
+    JsonArray(JsonArray other) {
+        this();
+        for (Object o : other) {
+            if (o == null) {
+                list.add(null);
+            } else if (o instanceof JsonArray) {
+                list.add(((JsonArray) o).copy());
+            } else if (o instanceof JsonObject) {
+                list.add(((JsonObject) o).copy());
+            } else if (o instanceof byte[]) {
+                byte[] original = (byte[]) o;
+                byte[] copy = new byte[original.length];
+                System.arraycopy(original, 0, copy, 0, original.length);
+                list.add(copy);
+            } else {
+                list.add(o);
+            }
+        }
+    }
+
+    JsonArray(Parcel source) {
+        this();
+        source.readList(list, null);
+    }
+
 // -------------------------- STATIC METHODS --------------------------
 
     public static JsonArray of(Object... values) {
@@ -215,65 +273,6 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     public JsonArray addArray(JsonArray a) {
         list.add(a);
         return this;
-    }
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    /**
-     * Creates a new empty JsonArray
-     */
-    public JsonArray() {
-        list = new LinkedList<Object>();
-    }
-
-    JsonArray(Collection<Object> object) {
-        this();
-        for (Object o : object) {
-            if (o == null) {
-                list.add(null);
-            } else if (o instanceof JsonArray) {
-                list.add(((JsonArray) o).copy());
-            } else if (o instanceof JsonObject) {
-                list.add(((JsonObject) o).copy());
-            } else if (o instanceof byte[]) {
-                byte[] original = (byte[]) o;
-                byte[] copy = new byte[original.length];
-                System.arraycopy(original, 0, copy, 0, original.length);
-                list.add(copy);
-            } else {
-                list.add(o);
-            }
-        }
-    }
-
-    @Override
-    public JsonArray copy() {
-        return new JsonArray(this);
-    }
-
-    JsonArray(JsonArray other) {
-        this();
-        for (Object o : other) {
-            if (o == null) {
-                list.add(null);
-            } else if (o instanceof JsonArray) {
-                list.add(((JsonArray) o).copy());
-            } else if (o instanceof JsonObject) {
-                list.add(((JsonObject) o).copy());
-            } else if (o instanceof byte[]) {
-                byte[] original = (byte[]) o;
-                byte[] copy = new byte[original.length];
-                System.arraycopy(original, 0, copy, 0, original.length);
-                list.add(copy);
-            } else {
-                list.add(o);
-            }
-        }
-    }
-
-    JsonArray(Parcel source) {
-        this();
-        source.readList(list, null);
     }
 
 // ------------------------ CANONICAL METHODS ------------------------

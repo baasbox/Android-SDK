@@ -37,7 +37,6 @@ public class HttpRequest {
     public InputStream body;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     public HttpRequest(int method, String url, Map<String, String> headers, InputStream body) {
         this.method = method;
         this.url = url;

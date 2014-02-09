@@ -50,7 +50,6 @@ class RequestFactory {
     private final String apiRoot;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     RequestFactory(BaasBox.Config config, BaasCredentialManager credential) {
         this.config = config;
         this.credentials = credential;
@@ -116,6 +115,13 @@ class RequestFactory {
         return post(uri, headers, body);
     }
 
+    private static Map<String, String> setContentType(Map<String, String> headers, BaasBox.Config config, String contentType, int length) {
+        headers = headers == null ? new HashMap<String, String>() : headers;
+        headers.put(CONTENT_HEADER, contentType + config.httpCharset);
+        headers.put(CONTENT_LENGTH, Integer.toString(length));
+        return headers;
+    }
+
     public HttpRequest put(String uri, JsonObject object) {
         InputStream body = null;
         Map<String, String> headers = null;
@@ -147,6 +153,46 @@ class RequestFactory {
             endpoint = endpoint + "?" + queryUrl;
         }
         return new HttpRequest(HttpRequest.DELETE, endpoint, headers, null);
+    }
+
+    private static Map<String, String> fillHeaders(Map<String, String> headers, BaasBox.Config config, BaasUser credentials) {
+        headers = headers == null ? new HashMap<String, String>() : headers;
+        headers.put(APPCODE_HEADER_NAME, config.appCode);
+        headers.put(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER);
+
+        Logger.debug("Format %s", credentials);
+        if (credentials != null) {
+            Logger.debug("Format2 %s", credentials);
+            if(BaasBox.Config.AuthType.BASIC_AUTHENTICATION == config.authenticationType){
+                 if (credentials.getName() != null && credentials.getPassword() != null) {
+                        String plain = credentials.getName() + ':' + credentials.getPassword();
+                        String encoded = Base64.encodeToString(plain.getBytes(), Base64.DEFAULT).trim();
+                        headers.put(BASIC_AUTH_HEADER_NAME, "Basic " + encoded);
+                    }
+            } else {
+                    if (credentials.getToken() != null) {
+                        headers.put(BB_SESSION_HEADER_NAME, credentials.getToken());
+                    }
+            }
+        }
+        return headers;
+    }
+
+    public static String encodeParams(Map<String, String> formParams, String charset) {
+        try {
+            StringBuilder builder = new StringBuilder();
+            boolean first = true;
+            for (Map.Entry<String, String> p : formParams.entrySet()) {
+                if (first) first = false;
+                else builder.append('&');
+                builder.append(URLEncoder.encode(p.getKey(), charset));
+                builder.append("=");
+                builder.append(URLEncoder.encode(p.getValue(), charset));
+            }
+            return builder.toString();
+        } catch (UnsupportedEncodingException e) {
+            throw new BaasRuntimeException("Charset "+charset+" is not supported",e);
+        }
     }
 
     public HttpRequest get(String endpoint, Param... params) {
@@ -214,30 +260,6 @@ class RequestFactory {
         return post(uri, headers, body);
     }
 
-    public static String encodeParams(Map<String, String> formParams, String charset) {
-        try {
-            StringBuilder builder = new StringBuilder();
-            boolean first = true;
-            for (Map.Entry<String, String> p : formParams.entrySet()) {
-                if (first) first = false;
-                else builder.append('&');
-                builder.append(URLEncoder.encode(p.getKey(), charset));
-                builder.append("=");
-                builder.append(URLEncoder.encode(p.getValue(), charset));
-            }
-            return builder.toString();
-        } catch (UnsupportedEncodingException e) {
-            throw new BaasRuntimeException("Charset "+charset+" is not supported",e);
-        }
-    }
-
-    private static Map<String, String> setContentType(Map<String, String> headers, BaasBox.Config config, String contentType, int length) {
-        headers = headers == null ? new HashMap<String, String>() : headers;
-        headers.put(CONTENT_HEADER, contentType + config.httpCharset);
-        headers.put(CONTENT_LENGTH, Integer.toString(length));
-        return headers;
-    }
-
     public HttpRequest post(String endpoint, Param... params) {
         return post(endpoint, null, params);
     }
@@ -258,29 +280,6 @@ class RequestFactory {
     public HttpRequest put(String uri, Map<String, String> headers, InputStream body) {
         headers = fillHeaders(headers, config, credentials.currentUser());
         return new HttpRequest(HttpRequest.PUT, uri, headers, body);
-    }
-
-    private static Map<String, String> fillHeaders(Map<String, String> headers, BaasBox.Config config, BaasUser credentials) {
-        headers = headers == null ? new HashMap<String, String>() : headers;
-        headers.put(APPCODE_HEADER_NAME, config.appCode);
-        headers.put(USER_AGENT_HEADER_NAME, USER_AGENT_HEADER);
-
-        Logger.debug("Format %s", credentials);
-        if (credentials != null) {
-            Logger.debug("Format2 %s", credentials);
-            if(BaasBox.Config.AuthType.BASIC_AUTHENTICATION == config.authenticationType){
-                 if (credentials.getName() != null && credentials.getPassword() != null) {
-                        String plain = credentials.getName() + ':' + credentials.getPassword();
-                        String encoded = Base64.encodeToString(plain.getBytes(), Base64.DEFAULT).trim();
-                        headers.put(BASIC_AUTH_HEADER_NAME, "Basic " + encoded);
-                    }
-            } else {
-                    if (credentials.getToken() != null) {
-                        headers.put(BB_SESSION_HEADER_NAME, credentials.getToken());
-                    }
-            }
-        }
-        return headers;
     }
 
     public HttpRequest uploadFile(String endpoint, boolean binary, InputStream inputStream, String name, String contentType, JsonObject acl, JsonObject metaData) {

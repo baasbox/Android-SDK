@@ -24,7 +24,6 @@ public class JsonException extends RuntimeException {
     private static final long serialVersionUID = -3383190900059424412L;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     public JsonException() {
     }
 

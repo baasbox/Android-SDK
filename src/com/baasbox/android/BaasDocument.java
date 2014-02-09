@@ -72,6 +72,104 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     private String creation_date;
     private long version;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+    BaasDocument(JsonObject data) {
+        super();
+        this.collection = data.getString("@class");
+        data.remove("@class");
+        this.id = data.getString("id");
+        data.remove("id");
+        this.author = data.getString("_author");
+        data.remove("_author");
+        this.creation_date = data.getString("_creation_date");
+        data.remove("_creation_date");
+        this.version = data.getLong("@version");
+        data.remove("@version");
+        data.remove("@rid");
+        this.data = data;
+    }
+
+    /**
+     * Creates a new unbound empty document belonging to the given <code>collection</code>
+     *
+     * @param collection a non empty collection name.
+     * @throws java.lang.IllegalArgumentException if collection name is empty
+     */
+    public BaasDocument(String collection) {
+        this(collection, (JsonObject) null);
+    }
+
+    BaasDocument(Parcel source) {
+        this.collection = source.readString();
+        this.id = readOptString(source);
+        this.version = source.readLong();
+        this.author = readOptString(source);
+        this.creation_date = readOptString(source);
+        this.data = source.readParcelable(JsonObject.class.getClassLoader());
+    }
+
+    private static final String readOptString(Parcel p) {
+        boolean read = p.readByte() == 1;
+        if (read) {
+            return p.readString();
+        }
+        return null;
+    }
+
+    /**
+     * Creates a new unbound document that belongs to the given <code>collection</code>
+     * and with fields initialized from the <code>data</code> {@link com.baasbox.android.json.JsonObject}.
+     * <p/>
+     * Data cannot contain reserved property names at the top level.
+     * Note that the JSON data is copied in the document, so modifications to the original instance will
+     * not be reflected by the document.
+     *
+     * @param collection a non empty collection name.
+     * @param data       a possibly null {@link com.baasbox.android.json.JsonObject}
+     * @throws java.lang.IllegalArgumentException if collection name is empty or data contains reserved fields
+     */
+    public BaasDocument(String collection, JsonObject data) {
+        super();
+        if (collection == null || collection.length() == 0)
+            throw new IllegalArgumentException("collection name cannot be null");
+        this.collection = collection;
+        data = checkObject(data);
+        //fixme we copy the data to avoid insertion of forbidden fields, but this is a costly operation
+        this.data = data == null ? new JsonObject() : data.copy();
+    }
+
+    private static JsonObject checkObject(JsonObject data) {
+        if (data == null) return null;
+        if (data.contains("id")) throw new IllegalArgumentException("key 'id' is reserved");
+        for (String k : data.getFieldNames()) {
+            char f = k.charAt(0);
+            switch (f) {
+                case '@':
+                case '_':
+                    throw new IllegalArgumentException("key names starting with '_' or '@' are reserved");
+            }
+        }
+        return data;
+    }
+
+    /**
+     * Creates a new unbound document that belongs to the given <code>collection</code>
+     * and with fields initialized from the <code>values</code> {@link android.content.ContentValues}
+     * values are converted to a {@link com.baasbox.android.json.JsonObject}
+     * using {@link com.baasbox.android.json.JsonObject#from(android.content.ContentValues)}
+     *
+     * @param collection a non empty collection name.
+     * @param values     a possibly null {@link android.content.ContentValues}
+     * @throws java.lang.IllegalArgumentException if collection name is empty or values contains reserved fields names
+     */
+    public BaasDocument(String collection, ContentValues values) {
+        super();
+        if (collection == null || collection.length() == 0)
+            throw new IllegalArgumentException("collection name cannot be null");
+        this.collection = collection;
+        this.data = values == null ? new JsonObject() : checkObject(JsonObject.from(values));
+    }
+
 // -------------------------- STATIC METHODS --------------------------
 
     private static JsonObject cleanObject(JsonObject data) {
@@ -324,17 +422,17 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         return doc.save(SaveMode.IGNORE_VERSION, null, handler);
     }
 
-    public static RequestToken create(String collection, Priority priority, BaasHandler<BaasDocument> handler) {
-        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
-        BaasDocument doc = new BaasDocument(collection);
-        return doc.save(SaveMode.IGNORE_VERSION, priority, handler);
-    }
-
     public RequestToken save(SaveMode mode, Priority priority, BaasHandler<BaasDocument> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (mode == null) throw new IllegalArgumentException("mode cannot be null");
         Save save = new Save(box, mode, this, priority, handler);
         return box.submitAsync(save);
+    }
+
+    public static RequestToken create(String collection, Priority priority, BaasHandler<BaasDocument> handler) {
+        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
+        BaasDocument doc = new BaasDocument(collection);
+        return doc.save(SaveMode.IGNORE_VERSION, priority, handler);
     }
 
     public static BaasResult<BaasDocument> createSync(String collection) {
@@ -356,105 +454,6 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
             p.writeByte((byte) 1);
             p.writeString(s);
         }
-    }
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    BaasDocument(JsonObject data) {
-        super();
-        this.collection = data.getString("@class");
-        data.remove("@class");
-        this.id = data.getString("id");
-        data.remove("id");
-        this.author = data.getString("_author");
-        data.remove("_author");
-        this.creation_date = data.getString("_creation_date");
-        data.remove("_creation_date");
-        this.version = data.getLong("@version");
-        data.remove("@version");
-        data.remove("@rid");
-        this.data = data;
-    }
-
-    /**
-     * Creates a new unbound empty document belonging to the given <code>collection</code>
-     *
-     * @param collection a non empty collection name.
-     * @throws java.lang.IllegalArgumentException if collection name is empty
-     */
-    public BaasDocument(String collection) {
-        this(collection, (JsonObject) null);
-    }
-
-    BaasDocument(Parcel source) {
-        this.collection = source.readString();
-        this.id = readOptString(source);
-        this.version = source.readLong();
-        this.author = readOptString(source);
-        this.creation_date = readOptString(source);
-        this.data = source.readParcelable(JsonObject.class.getClassLoader());
-    }
-
-    private static final String readOptString(Parcel p) {
-        boolean read = p.readByte() == 1;
-        if (read) {
-            return p.readString();
-        }
-        return null;
-    }
-
-    /**
-     * Creates a new unbound document that belongs to the given <code>collection</code>
-     * and with fields initialized from the <code>data</code> {@link com.baasbox.android.json.JsonObject}.
-     * <p/>
-     * Data cannot contain reserved property names at the top level.
-     * Note that the JSON data is copied in the document, so modifications to the original instance will
-     * not be reflected by the document.
-     *
-     * @param collection a non empty collection name.
-     * @param data       a possibly null {@link com.baasbox.android.json.JsonObject}
-     * @throws java.lang.IllegalArgumentException if collection name is empty or data contains reserved fields
-     */
-    public BaasDocument(String collection, JsonObject data) {
-        super();
-        if (collection == null || collection.length() == 0)
-            throw new IllegalArgumentException("collection name cannot be null");
-        this.collection = collection;
-        data = checkObject(data);
-        //fixme we copy the data to avoid insertion of forbidden fields, but this is a costly operation
-        this.data = data == null ? new JsonObject() : data.copy();
-    }
-
-    private static JsonObject checkObject(JsonObject data) {
-        if (data == null) return null;
-        if (data.contains("id")) throw new IllegalArgumentException("key 'id' is reserved");
-        for (String k : data.getFieldNames()) {
-            char f = k.charAt(0);
-            switch (f) {
-                case '@':
-                case '_':
-                    throw new IllegalArgumentException("key names starting with '_' or '@' are reserved");
-            }
-        }
-        return data;
-    }
-
-    /**
-     * Creates a new unbound document that belongs to the given <code>collection</code>
-     * and with fields initialized from the <code>values</code> {@link android.content.ContentValues}
-     * values are converted to a {@link com.baasbox.android.json.JsonObject}
-     * using {@link com.baasbox.android.json.JsonObject#from(android.content.ContentValues)}
-     *
-     * @param collection a non empty collection name.
-     * @param values     a possibly null {@link android.content.ContentValues}
-     * @throws java.lang.IllegalArgumentException if collection name is empty or values contains reserved fields names
-     */
-    public BaasDocument(String collection, ContentValues values) {
-        super();
-        if (collection == null || collection.length() == 0)
-            throw new IllegalArgumentException("collection name cannot be null");
-        this.collection = collection;
-        this.data = values == null ? new JsonObject() : checkObject(JsonObject.from(values));
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -499,7 +498,6 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     }
 
 // --------------------- Interface Parcelable ---------------------
-
 
     @Override
     public int describeContents() {
@@ -868,6 +866,16 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         return this;
     }
 
+    private static String checkKey(String key) {
+        if (key == null || key.length() == 0)
+            throw new IllegalArgumentException("key cannot be empty");
+        if ("id".equals(key)) throw new IllegalArgumentException("key 'id' is reserved");
+        char f = key.charAt(0);
+        if (f == '@' || f == '_')
+            throw new IllegalArgumentException("key names starting with '_' or '@' are reserved");
+        return key;
+    }
+
     /**
      * Associate <code>name</code> key to the <code>byte[]</code> <code>value</code>
      * in this document.
@@ -961,16 +969,6 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     public BaasDocument putString(String name, String value) {
         data.putString(checkKey(name), value);
         return this;
-    }
-
-    private static String checkKey(String key) {
-        if (key == null || key.length() == 0)
-            throw new IllegalArgumentException("key cannot be empty");
-        if ("id".equals(key)) throw new IllegalArgumentException("key 'id' is reserved");
-        char f = key.charAt(0);
-        if (f == '@' || f == '_')
-            throw new IllegalArgumentException("key names starting with '_' or '@' are reserved");
-        return key;
     }
 
     /**
@@ -1144,20 +1142,20 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
 
         @Override
         protected BaasDocument onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            JsonObject data = parseJson(response, box).getObject("data");
-            document.update(data);
+            JsonObject jsonData = parseJson(response, box).getObject("data");
+            document.update(jsonData);
             return document;
         }
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String collection = document.collection;
-            String id = document.id;
-            if (id == null) {
-                String endpoint = box.requestFactory.getEndpoint("document/?", collection);
+            String coll = document.collection;
+            String docId = document.id;
+            if (docId == null) {
+                String endpoint = box.requestFactory.getEndpoint("document/?", coll);
                 return box.requestFactory.post(endpoint, data);
             } else {
-                String endpoint = box.requestFactory.getEndpoint("document/?/?", collection, id);
+                String endpoint = box.requestFactory.getEndpoint("document/?/?", coll, docId);
                 if (mode == SaveMode.CHECK_VERSION) {
                     data.putLong("@version", document.version);
                 }
@@ -1216,13 +1214,13 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
 
         @Override
         protected List<BaasDocument> onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            JsonArray data = parseJson(response, box).getArray("data");
-            Logger.debug("received: " + data);
-            if (data == null) {
+            JsonArray jsonData = parseJson(response, box).getArray("data");
+            Logger.debug("received: " + jsonData);
+            if (jsonData == null) {
                 return Collections.emptyList();
             } else {
                 List<BaasDocument> res = new ArrayList<BaasDocument>();
-                for (Object obj : data) {
+                for (Object obj : jsonData) {
                     res.add(new BaasDocument((JsonObject) obj));
                 }
                 return res;

@@ -103,8 +103,7 @@ public class Filter {
      * @return a configured filter
      */
     public static Filter where(String where, String... params) {
-        Filter f = new Filter().setWhere(where, params);
-        return f;
+        return new Filter().setWhere(where, params);
     }
 
     /**
@@ -146,8 +145,7 @@ public class Filter {
      * @return a configured Filter
      */
     public static Filter sort(String order, boolean asc) {
-        Filter f = new Filter().setOrderBy(order + (asc ? " ASC" : " DESC"));
-        return f;
+        return new Filter().setOrderBy(order + (asc ? " ASC" : " DESC"));
     }
 
 // -------------------------- OTHER METHODS --------------------------

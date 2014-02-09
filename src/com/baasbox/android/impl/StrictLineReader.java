@@ -57,7 +57,6 @@ class StrictLineReader implements Closeable {
     private int end;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     /**
      * Constructs a new {@code LineReader} with the specified charset and the default capacity.
      *

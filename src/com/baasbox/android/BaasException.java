@@ -28,7 +28,6 @@ public class BaasException extends Exception {
     private static final long serialVersionUID = 1981606473384352072L;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     public BaasException() {
     }
 

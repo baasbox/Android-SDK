@@ -29,7 +29,6 @@ public final class Logger {
     private static final String TAG = "BAASBOX";
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     private Logger(){
     }
 
@@ -76,5 +75,4 @@ public final class Logger {
             Log.d(TAG, String.format(Locale.US, format, args));
         }
     }
-
 }

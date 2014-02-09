@@ -29,7 +29,6 @@ public class BaasDocumentLoader extends Loader<BaasResult<List<BaasDocument>>> {
             };
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     /**
      * Stores away the application context associated with context.
      * Since Loaders can be used across multiple activities it's dangerous to

@@ -175,6 +175,17 @@ public final class DiskLruCache implements Closeable {
         }
     };
 
+// --------------------------- CONSTRUCTORS ---------------------------
+    private DiskLruCache(File directory, int appVersion, int valueCount, long maxSize) {
+        this.directory = directory;
+        this.appVersion = appVersion;
+        this.journalFile = new File(directory, JOURNAL_FILE);
+        this.journalFileTmp = new File(directory, JOURNAL_FILE_TEMP);
+        this.journalFileBackup = new File(directory, JOURNAL_FILE_BACKUP);
+        this.valueCount = valueCount;
+        this.maxSize = maxSize;
+    }
+
 // -------------------------- STATIC METHODS --------------------------
 
     /**
@@ -239,6 +250,12 @@ public final class DiskLruCache implements Closeable {
             deleteIfExists(to);
         }
         if (!from.renameTo(to)) {
+            throw new IOException();
+        }
+    }
+
+    private static void deleteIfExists(File file) throws IOException {
+        if (file.exists() && !file.delete()) {
             throw new IOException();
         }
     }
@@ -337,12 +354,6 @@ public final class DiskLruCache implements Closeable {
         }
     }
 
-    private static void deleteIfExists(File file) throws IOException {
-        if (file.exists() && !file.delete()) {
-            throw new IOException();
-        }
-    }
-
     /**
      * Closes the cache and deletes all of its stored values. This will delete
      * all files in the cache directory including files that weren't created by
@@ -415,18 +426,6 @@ public final class DiskLruCache implements Closeable {
 
     private static String inputStreamToString(InputStream in) throws IOException {
         return Util.readFully(new InputStreamReader(in, Util.UTF_8));
-    }
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    private DiskLruCache(File directory, int appVersion, int valueCount, long maxSize) {
-        this.directory = directory;
-        this.appVersion = appVersion;
-        this.journalFile = new File(directory, JOURNAL_FILE);
-        this.journalFileTmp = new File(directory, JOURNAL_FILE_TEMP);
-        this.journalFileBackup = new File(directory, JOURNAL_FILE_BACKUP);
-        this.valueCount = valueCount;
-        this.maxSize = maxSize;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -504,6 +503,16 @@ public final class DiskLruCache implements Closeable {
     }
 
     /**
+     * We only rebuild the journal when it will halve the size of the journal
+     * and eliminate at least 2000 ops.
+     */
+    private boolean journalRebuildRequired() {
+        final int redundantOpCompactThreshold = 2000;
+        return redundantOpCount >= redundantOpCompactThreshold //
+                && redundantOpCount >= lruEntries.size();
+    }
+
+    /**
      * Returns an editor for the entry named {@code key}, or null if another
      * edit is in progress.
      */
@@ -533,6 +542,19 @@ public final class DiskLruCache implements Closeable {
         journalWriter.write(DIRTY + ' ' + key + '\n');
         journalWriter.flush();
         return editor;
+    }
+
+    private void checkNotClosed() {
+        if (journalWriter == null) {
+            throw new IllegalStateException("cache is closed");
+        }
+    }
+
+    private void validateKey(String key) {
+        Matcher matcher = LEGAL_KEY_PATTERN.matcher(key);
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("keys must match regex [a-z0-9_-]{1,64}: \"" + key + "\"");
+        }
     }
 
     /**
@@ -629,29 +651,6 @@ public final class DiskLruCache implements Closeable {
         }
 
         return new Snapshot(key, entry.sequenceNumber, ins, entry.lengths);
-    }
-
-    private void checkNotClosed() {
-        if (journalWriter == null) {
-            throw new IllegalStateException("cache is closed");
-        }
-    }
-
-    private void validateKey(String key) {
-        Matcher matcher = LEGAL_KEY_PATTERN.matcher(key);
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException("keys must match regex [a-z0-9_-]{1,64}: \"" + key + "\"");
-        }
-    }
-
-    /**
-     * We only rebuild the journal when it will halve the size of the journal
-     * and eliminate at least 2000 ops.
-     */
-    private boolean journalRebuildRequired() {
-        final int redundantOpCompactThreshold = 2000;
-        return redundantOpCount >= redundantOpCompactThreshold //
-                && redundantOpCount >= lruEntries.size();
     }
 
     /**

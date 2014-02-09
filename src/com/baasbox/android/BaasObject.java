@@ -28,7 +28,6 @@ import org.apache.http.HttpResponse;
  */
 public abstract class BaasObject {
 // --------------------------- CONSTRUCTORS ---------------------------
-
     // todo this should provide common interface among remote objects
     //      such as dirty tracking timestamps ecc
     BaasObject() {

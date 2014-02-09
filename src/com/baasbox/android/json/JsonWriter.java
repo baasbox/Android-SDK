@@ -141,7 +141,6 @@ final class JsonWriter implements Closeable {
     private boolean lenient;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     /**
      * Creates a new instance that writes a JSON-encoded stream to {@code out}.
      * For best performance, ensure {@link Writer} is buffered; wrapping in
@@ -267,6 +266,31 @@ final class JsonWriter implements Closeable {
     }
 
     /**
+     * Returns the value on the top of the stack.
+     */
+    private JsonScope peek() {
+        return stack.get(stack.size() - 1);
+    }
+
+    private void newline() throws IOException {
+        if (indent == null) {
+            return;
+        }
+
+        out.write("\n");
+        for (int i = 1; i < stack.size(); i++) {
+            out.write(indent);
+        }
+    }
+
+    /**
+     * Replace the value on the top of the stack with the given value.
+     */
+    private void replaceTop(JsonScope topOfStack) {
+        stack.set(stack.size() - 1, topOfStack);
+    }
+
+    /**
      * Begins encoding a new object. Each call to this method must be paired
      * with a call to {@link #endObject}.
      *
@@ -302,24 +326,6 @@ final class JsonWriter implements Closeable {
         }
         out.write(closeBracket);
         return this;
-    }
-
-    /**
-     * Returns the value on the top of the stack.
-     */
-    private JsonScope peek() {
-        return stack.get(stack.size() - 1);
-    }
-
-    private void newline() throws IOException {
-        if (indent == null) {
-            return;
-        }
-
-        out.write("\n");
-        for (int i = 1; i < stack.size(); i++) {
-            out.write(indent);
-        }
     }
 
     /**
@@ -367,13 +373,6 @@ final class JsonWriter implements Closeable {
         }
         newline();
         replaceTop(JsonScope.DANGLING_NAME);
-    }
-
-    /**
-     * Replace the value on the top of the stack with the given value.
-     */
-    private void replaceTop(JsonScope topOfStack) {
-        stack.set(stack.size() - 1, topOfStack);
     }
 
     private void string(String value) throws IOException {

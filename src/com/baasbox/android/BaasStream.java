@@ -53,7 +53,6 @@ public final class BaasStream extends FilterInputStream {
     private final DiskLruCache.Snapshot snapshot;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     BaasStream(String id, DiskLruCache.Snapshot s) {
         super(s.getInputStream(0));
         this.id = id;

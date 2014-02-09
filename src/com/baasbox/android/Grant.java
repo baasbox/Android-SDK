@@ -49,7 +49,6 @@ public enum Grant {
     final String action;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     Grant(String action) {
         this.action = action;
     }

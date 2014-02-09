@@ -28,7 +28,6 @@ public class BaasIOException extends BaasException {
     private static final long serialVersionUID = 4277921777119622999L;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     public BaasIOException(String detailMessage) {
         super(detailMessage);
     }

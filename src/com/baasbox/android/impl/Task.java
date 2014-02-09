@@ -43,8 +43,8 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
     private Dispatcher dispatcher;
     private Priority priority;
     private final AtomicReference<BaasHandler<?>> suspendableHandler = new AtomicReference<BaasHandler<?>>();
-// --------------------------- CONSTRUCTORS ---------------------------
 
+// --------------------------- CONSTRUCTORS ---------------------------
     protected Task(Priority priority, BaasHandler<R> handler) {
         this.priority = priority == null ? Priority.NORMAL : priority;
         this.suspendableHandler.set(handler == null ? BaasHandler.NOOP : handler);

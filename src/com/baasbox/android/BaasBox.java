@@ -93,6 +93,21 @@ public class BaasBox {
     private final Dispatcher asyncDispatcher;
     private final ImmediateDispatcher syncDispatcher;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+    private BaasBox(Context context, Config config) {
+        if (context == null) {
+            throw new IllegalArgumentException("context cannot be null");
+        }
+        this.context = context.getApplicationContext();
+        this.config = config == null ? new Config() : config;
+        this.store = new BaasCredentialManager(this, context);
+        this.restClient = new HttpUrlConnectionClient(context, this.config);
+        this.requestFactory = new RequestFactory(this.config, store);
+        this.mCache = new Cache(context);
+        this.syncDispatcher = new ImmediateDispatcher();
+        this.asyncDispatcher = new Dispatcher(this);
+    }
+
 // -------------------------- STATIC METHODS --------------------------
 
     /**
@@ -168,6 +183,24 @@ public class BaasBox {
         return stream(id, null, -1, null, data, handler);
     }
 
+    private static <R> RequestToken stream(String name, String sizeSpec, int sizeIdx, Priority priority, DataStreamHandler<R> dataStreamHandler, BaasHandler<R> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (dataStreamHandler == null) throw new IllegalArgumentException("data handler cannot be null");
+        if (name == null) throw new IllegalArgumentException("id cannot be null");
+        AsyncStream<R> stream = new AssetStream<R>(box, name, sizeSpec, sizeIdx, priority, dataStreamHandler, handler);
+        return box.submitAsync(stream);
+    }
+
+    static BaasBox getDefaultChecked() {
+        if (sDefaultClient == null)
+            throw new IllegalStateException("Trying to use implicit client, but no default initialized");
+        return sDefaultClient;
+    }
+
+    RequestToken submitAsync(Task<?> task) {
+        return new RequestToken(asyncDispatcher.post(task));
+    }
+
     /**
      * Streams the file using the provided data stream handler.
      *
@@ -210,14 +243,6 @@ public class BaasBox {
         return stream(id, null, size, priority, data, handler);
     }
 
-    private static <R> RequestToken stream(String name, String sizeSpec, int sizeIdx, Priority priority, DataStreamHandler<R> dataStreamHandler, BaasHandler<R> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (dataStreamHandler == null) throw new IllegalArgumentException("data handler cannot be null");
-        if (name == null) throw new IllegalArgumentException("id cannot be null");
-        AsyncStream<R> stream = new AssetStream<R>(box, name, sizeSpec, sizeIdx, priority, dataStreamHandler, handler);
-        return box.submitAsync(stream);
-    }
-
     /**
      * Synchronously streams the asset.
      *
@@ -236,10 +261,8 @@ public class BaasBox {
         return box.submitSync(synReq);
     }
 
-    static BaasBox getDefaultChecked() {
-        if (sDefaultClient == null)
-            throw new IllegalStateException("Trying to use implicit client, but no default initialized");
-        return sDefaultClient;
+    <Resp> BaasResult<Resp> submitSync(Task<Resp> task) {
+        return syncDispatcher.execute(task);
     }
 
     /**
@@ -251,22 +274,6 @@ public class BaasBox {
      */
     public static BaasResult<BaasStream> streamAssetSync(String id, String spec) {
         return streamSync(id, spec, -1);
-    }
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    private BaasBox(Context context, Config config) {
-        if (context == null) {
-            throw new IllegalArgumentException("context cannot be null");
-        }
-        this.context = context.getApplicationContext();
-        this.config = config == null ? new Config() : config;
-        this.store = new BaasCredentialManager(this, context);
-        this.restClient = new HttpUrlConnectionClient(context, this.config);
-        this.requestFactory = new RequestFactory(this.config, store);
-        this.mCache = new Cache(context);
-        this.syncDispatcher = new ImmediateDispatcher();
-        this.asyncDispatcher = new Dispatcher(this);
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -317,10 +324,6 @@ public class BaasBox {
         return submitAsync(request);
     }
 
-    RequestToken submitAsync(Task<?> task) {
-        return new RequestToken(asyncDispatcher.post(task));
-    }
-
     /**
      * Asynchronously sends a raw rest request to the server that is specified by
      * the parameters passed in, using default {@link com.baasbox.android.Priority#NORMAL}
@@ -352,10 +355,6 @@ public class BaasBox {
         endpoint = factory.getEndpoint(endpoint);
         HttpRequest any = factory.any(method, endpoint, body);
         return submitSync(new RawRequest(this, any, null, null));
-    }
-
-    <Resp> BaasResult<Resp> submitSync(Task<Resp> task) {
-        return syncDispatcher.execute(task);
     }
 
     boolean resume(RequestToken token, BaasHandler<?> handler) {

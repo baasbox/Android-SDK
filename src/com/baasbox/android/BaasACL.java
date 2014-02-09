@@ -36,7 +36,6 @@ public class BaasACL {
     private JsonArray rolesUpdateGrants;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     /**
      * Creates a new empty set of grants.
      */

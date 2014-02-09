@@ -31,7 +31,6 @@ class StreamRequest extends NetworkTask<BaasStream> {
     private final HttpRequest request;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     protected StreamRequest(BaasBox box, String resource, String id, String sizeSpec, int sizeId) {
         super(box, null, null);
         this.id = id;

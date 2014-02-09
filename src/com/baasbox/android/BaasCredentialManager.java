@@ -54,7 +54,6 @@ class BaasCredentialManager {
     private BaasUser current;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     public BaasCredentialManager(BaasBox box, Context context) {
         this.box = box;
         this.diskCache = context.getSharedPreferences(DISK_PREFERENCES_NAME, Context.MODE_PRIVATE);
@@ -91,6 +90,10 @@ class BaasCredentialManager {
             loaded = false;
             erase();
         }
+    }
+
+    private void erase() {
+        while (!diskCache.edit().clear().commit()) ;
     }
 
     final boolean refreshTokenRequest(int seq) throws BaasException {
@@ -151,10 +154,6 @@ class BaasCredentialManager {
             }
             loaded = true;
         }
-    }
-
-    private void erase() {
-        while (!diskCache.edit().clear().commit()) ;
     }
 
     private void persist(BaasUser user) {

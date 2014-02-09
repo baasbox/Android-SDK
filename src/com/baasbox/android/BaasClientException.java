@@ -35,7 +35,6 @@ public class BaasClientException extends BaasApiException {
     private static final long serialVersionUID = 7494588625332374406L;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     public BaasClientException(int httpStatus, JsonObject json) {
         super(httpStatus, json);
     }

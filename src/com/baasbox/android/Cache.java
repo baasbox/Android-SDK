@@ -20,7 +20,6 @@ final class Cache {
     private final DiskLruCache mLruCache;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     Cache(Context context) {
         try {
             mLruCache = DiskLruCache.open(getCacheDir(context),
@@ -33,14 +32,12 @@ final class Cache {
     }
 
     private static File getCacheDir(Context context) {
-        File cacheDir = new File(context.getCacheDir(), BAASBOX_CACHE_DIR);
-        return cacheDir;
+        return new File(context.getCacheDir(), BAASBOX_CACHE_DIR);
     }
 
     private static int appVersion(Context context) {
         try {
-            PackageInfo pi = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            return pi.versionCode;
+            return context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
         } catch (PackageManager.NameNotFoundException e) {
             throw new AssertionError(e);
         }

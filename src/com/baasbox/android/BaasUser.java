@@ -76,185 +76,7 @@ public class BaasUser implements Parcelable {
     private String signupDate;
     private String status;
 
-// -------------------------- STATIC METHODS --------------------------
-
-    /**
-     * Verifies if there is a currently logged in user on this device
-     *
-     * @return true if there is an authenticated user on this device
-     */
-    public static boolean isAuthentcated() {
-        return current() != null;
-    }
-
-    public static BaasResult<BaasUser> signupWithProviderSync(String provider, String token, String secret) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        SocialSignup socialSignup = new SocialSignup(box, provider, token, secret, null, null);
-        return box.submitSync(socialSignup);
-    }
-
-    public static RequestToken signupWithProvider(String provider, String token, String secret, BaasHandler<BaasUser> handler) {
-        return signupWithProvider(provider, token, secret, null, handler);
-    }
-
-    public static RequestToken signupWithProvider(String provider, String token, String secret, Priority priority, BaasHandler<BaasUser> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        SocialSignup socialSignup = new SocialSignup(box, provider, token, secret, priority, handler);
-        return box.submitAsync(socialSignup);
-    }
-
-    public static BaasResult<Void> requestPasswordResetSync(String username) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (username == null) throw new IllegalArgumentException("username cannot be null");
-        return box.submitSync(new PasswordReset(box, username, null, null));
-    }
-
-    public static RequestToken requestPaswordReset(String username, BaasHandler<Void> handler) {
-        return requestPasswordReset(username, null, handler);
-    }
-
-    public static RequestToken requestPasswordReset(String username, Priority priority, BaasHandler<Void> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (username == null) throw new IllegalArgumentException("username cannot be null");
-        return box.submitAsync(new PasswordReset(box, username, priority, handler));
-    }
-
-    /**
-     * Asynchronously fetches an existing {@link com.baasbox.android.BaasUser} from the server
-     * given it's username, using default {@link com.baasbox.android.Priority} and no tag.
-     *
-     * @param username a non empty username
-     * @param handler  an handler to be invoked when the request completes
-     * @return a {@link com.baasbox.android.RequestToken} to manage the request
-     */
-    public static RequestToken fetch(String username, BaasHandler<BaasUser> handler) {
-        BaasUser user = BaasUser.withUserName(username);
-        return user.refresh(handler);
-    }
-
-    /**
-     * Creates a new user bound to username.
-     * If the provided username is the same one of the currently logged in account
-     * the same instance of {@link #current()} is returned.
-     *
-     * @param username a non empty username
-     * @return a <code>BaasUser</code>
-     */
-    public static BaasUser withUserName(String username) {
-        BaasUser current = current();
-        if (current != null && current.username.equals(username)) {
-            return current;
-        }
-        return new BaasUser(username);
-    }
-
-    /**
-     * Returns the current logged in user if
-     * one is logged in or <code>null</code>
-     *
-     * @return the current logged in <code>BaasUser</code>
-     */
-    public static BaasUser current() {
-        return BaasBox.getDefaultChecked().store.currentUser();
-    }
-
-    public RequestToken refresh(BaasHandler<BaasUser> handler) {
-        return refresh(Priority.NORMAL, handler);
-    }
-
-    /**
-     * Asynchronously fetches an existing {@link com.baasbox.android.BaasUser} from the server
-     * given it's username
-     *
-     * @param username a non empty username
-     * @param priority a {@link com.baasbox.android.Priority}
-     * @param handler  an handler to be invoked when the request completes
-     * @return a {@link com.baasbox.android.RequestToken} to manage the request
-     */
-    public static RequestToken fetch(String username, Priority priority, BaasHandler<BaasUser> handler) {
-        BaasUser user = new BaasUser(username);
-        return user.refresh(priority, handler);
-    }
-
-    public RequestToken refresh(Priority priority, BaasHandler<BaasUser> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        FetchUser fetch = new FetchUser(box, this, priority, handler);
-        return box.submitAsync(fetch);
-    }
-
-    public static BaasResult<BaasUser> fetchSync(String username) {
-        BaasUser user = new BaasUser(username);
-        return user.refreshSync();
-    }
-
-    public BaasResult<BaasUser> refreshSync() {
-        BaasBox box = BaasBox.getDefaultChecked();
-        FetchUser fetch = new FetchUser(box, this, null, null);
-        return box.submitSync(fetch);
-    }
-
-    public static BaasResult<List<BaasUser>> fetchAllSync() {
-        BaasBox box = BaasBox.getDefaultChecked();
-        FetchUsers users = new FetchUsers(box, "users", null, null, null, null);
-        return box.submitSync(users);
-    }
-
-    public static BaasResult<List<BaasUser>> fetchAllSync(Filter filter) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        FetchUsers users = new FetchUsers(box, "users", null, filter, null, null);
-        return box.submitSync(users);
-    }
-
-    /**
-     * Asynchronously fetches the list of users from the server.
-     *
-     * @param handler an handler to be invoked upon completion of the request
-     * @return a {@link com.baasbox.android.RequestToken} to manage the request
-     */
-    public static RequestToken fetchAll(BaasHandler<List<BaasUser>> handler) {
-        return fetchAll(null, null, handler);
-    }
-
-    /**
-     * Asynchronously fetches the list of users from the server.
-     *
-     * @param filter  an optional filter to apply to the request
-     * @param handler an handler to be invoked upon completion of the request
-     * @return a {@link com.baasbox.android.RequestToken} to manage the request
-     */
-    public static RequestToken fetchAll(Filter filter, BaasHandler<List<BaasUser>> handler) {
-        return fetchAll(filter, null, handler);
-    }
-
-    /**
-     * Asynchronously fetches the list of users from the server.
-     *
-     * @param priority a {@link com.baasbox.android.Priority}
-     * @param handler  an handler to be invoked upon completion of the request
-     * @return a {@link com.baasbox.android.RequestToken} to manage the request
-     */
-    public static RequestToken fetchAll(Filter filter, Priority priority, BaasHandler<List<BaasUser>> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        FetchUsers users = new FetchUsers(box, "users", null, filter, priority, handler);
-        return box.submitAsync(users);
-    }
-
-    private static void writeStringSet(Parcel p, Set<String> s) {
-        p.writeInt(s.size());
-        p.writeStringArray(s.toArray(new String[s.size()]));
-    }
-
-    private static void writeOptJson(Parcel p, JsonObject o) {
-        if (o == null) {
-            p.writeByte((byte) 0);
-        } else {
-            p.writeByte((byte) 1);
-            p.writeParcelable(o, 0);
-        }
-    }
-
 // --------------------------- CONSTRUCTORS ---------------------------
-
     BaasUser(String username) {
         super();
         if (TextUtils.isEmpty(username)) throw new IllegalArgumentException("username cannot be empty");
@@ -351,6 +173,183 @@ public class BaasUser implements Parcelable {
             if (role != null) {
                 roles.add(role);
             }
+        }
+    }
+
+// -------------------------- STATIC METHODS --------------------------
+
+    /**
+     * Verifies if there is a currently logged in user on this device
+     *
+     * @return true if there is an authenticated user on this device
+     */
+    public static boolean isAuthentcated() {
+        return current() != null;
+    }
+
+    /**
+     * Returns the current logged in user if
+     * one is logged in or <code>null</code>
+     *
+     * @return the current logged in <code>BaasUser</code>
+     */
+    public static BaasUser current() {
+        return BaasBox.getDefaultChecked().store.currentUser();
+    }
+
+    public static BaasResult<BaasUser> signupWithProviderSync(String provider, String token, String secret) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        SocialSignup socialSignup = new SocialSignup(box, provider, token, secret, null, null);
+        return box.submitSync(socialSignup);
+    }
+
+    public static RequestToken signupWithProvider(String provider, String token, String secret, BaasHandler<BaasUser> handler) {
+        return signupWithProvider(provider, token, secret, null, handler);
+    }
+
+    public static RequestToken signupWithProvider(String provider, String token, String secret, Priority priority, BaasHandler<BaasUser> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        SocialSignup socialSignup = new SocialSignup(box, provider, token, secret, priority, handler);
+        return box.submitAsync(socialSignup);
+    }
+
+    public static BaasResult<Void> requestPasswordResetSync(String username) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (username == null) throw new IllegalArgumentException("username cannot be null");
+        return box.submitSync(new PasswordReset(box, username, null, null));
+    }
+
+    public static RequestToken requestPaswordReset(String username, BaasHandler<Void> handler) {
+        return requestPasswordReset(username, null, handler);
+    }
+
+    public static RequestToken requestPasswordReset(String username, Priority priority, BaasHandler<Void> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (username == null) throw new IllegalArgumentException("username cannot be null");
+        return box.submitAsync(new PasswordReset(box, username, priority, handler));
+    }
+
+    /**
+     * Asynchronously fetches an existing {@link com.baasbox.android.BaasUser} from the server
+     * given it's username, using default {@link com.baasbox.android.Priority} and no tag.
+     *
+     * @param username a non empty username
+     * @param handler  an handler to be invoked when the request completes
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static RequestToken fetch(String username, BaasHandler<BaasUser> handler) {
+        BaasUser user = BaasUser.withUserName(username);
+        return user.refresh(handler);
+    }
+
+    /**
+     * Creates a new user bound to username.
+     * If the provided username is the same one of the currently logged in account
+     * the same instance of {@link #current()} is returned.
+     *
+     * @param username a non empty username
+     * @return a <code>BaasUser</code>
+     */
+    public static BaasUser withUserName(String username) {
+        BaasUser current = current();
+        if (current != null && current.username.equals(username)) {
+            return current;
+        }
+        return new BaasUser(username);
+    }
+
+    public RequestToken refresh(BaasHandler<BaasUser> handler) {
+        return refresh(Priority.NORMAL, handler);
+    }
+
+    /**
+     * Asynchronously fetches an existing {@link com.baasbox.android.BaasUser} from the server
+     * given it's username
+     *
+     * @param username a non empty username
+     * @param priority a {@link com.baasbox.android.Priority}
+     * @param handler  an handler to be invoked when the request completes
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static RequestToken fetch(String username, Priority priority, BaasHandler<BaasUser> handler) {
+        BaasUser user = new BaasUser(username);
+        return user.refresh(priority, handler);
+    }
+
+    public RequestToken refresh(Priority priority, BaasHandler<BaasUser> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        FetchUser fetch = new FetchUser(box, this, priority, handler);
+        return box.submitAsync(fetch);
+    }
+
+    public static BaasResult<BaasUser> fetchSync(String username) {
+        BaasUser user = new BaasUser(username);
+        return user.refreshSync();
+    }
+
+    public BaasResult<BaasUser> refreshSync() {
+        BaasBox box = BaasBox.getDefaultChecked();
+        FetchUser fetch = new FetchUser(box, this, null, null);
+        return box.submitSync(fetch);
+    }
+
+    public static BaasResult<List<BaasUser>> fetchAllSync() {
+        BaasBox box = BaasBox.getDefaultChecked();
+        FetchUsers users = new FetchUsers(box, "users", null, null, null, null);
+        return box.submitSync(users);
+    }
+
+    public static BaasResult<List<BaasUser>> fetchAllSync(Filter filter) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        FetchUsers users = new FetchUsers(box, "users", null, filter, null, null);
+        return box.submitSync(users);
+    }
+
+    /**
+     * Asynchronously fetches the list of users from the server.
+     *
+     * @param handler an handler to be invoked upon completion of the request
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static RequestToken fetchAll(BaasHandler<List<BaasUser>> handler) {
+        return fetchAll(null, null, handler);
+    }
+
+    /**
+     * Asynchronously fetches the list of users from the server.
+     *
+     * @param filter  an optional filter to apply to the request
+     * @param handler an handler to be invoked upon completion of the request
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static RequestToken fetchAll(Filter filter, BaasHandler<List<BaasUser>> handler) {
+        return fetchAll(filter, null, handler);
+    }
+
+    /**
+     * Asynchronously fetches the list of users from the server.
+     *
+     * @param priority a {@link com.baasbox.android.Priority}
+     * @param handler  an handler to be invoked upon completion of the request
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public static RequestToken fetchAll(Filter filter, Priority priority, BaasHandler<List<BaasUser>> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        FetchUsers users = new FetchUsers(box, "users", null, filter, priority, handler);
+        return box.submitAsync(users);
+    }
+
+    private static void writeStringSet(Parcel p, Set<String> s) {
+        p.writeInt(s.size());
+        p.writeStringArray(s.toArray(new String[s.size()]));
+    }
+
+    private static void writeOptJson(Parcel p, JsonObject o) {
+        if (o == null) {
+            p.writeByte((byte) 0);
+        } else {
+            p.writeByte((byte) 1);
+            p.writeParcelable(o, 0);
         }
     }
 
@@ -489,24 +488,9 @@ public class BaasUser implements Parcelable {
         if (isCurrent()) {
             users = new FetchUsers(box, "followers", null, filter, priority, handler);
         } else {
-            users = new FetchUsers(box, "followers/?", getName(), filter, priority, handler);
+            users = new FetchUsers(box, "followers/?", username, filter, priority, handler);
         }
         return box.submitAsync(users);
-    }
-
-    public BaasResult<List<BaasUser>> followersSync() {
-        return followersSync(null);
-    }
-
-    public BaasResult<List<BaasUser>> followersSync(Filter filter) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        FetchUsers users;
-        if (isCurrent()) {
-            users = new FetchUsers(box, "followers", null, filter, null, null);
-        } else {
-            users = new FetchUsers(box, "followers/?", getName(), filter, null, null);
-        }
-        return box.submitSync(users);
     }
 
     /**
@@ -530,6 +514,21 @@ public class BaasUser implements Parcelable {
         return username;
     }
 
+    public BaasResult<List<BaasUser>> followersSync() {
+        return followersSync(null);
+    }
+
+    public BaasResult<List<BaasUser>> followersSync(Filter filter) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        FetchUsers users;
+        if (isCurrent()) {
+            users = new FetchUsers(box, "followers", null, filter, null, null);
+        } else {
+            users = new FetchUsers(box, "followers/?", username, filter, null, null);
+        }
+        return box.submitSync(users);
+    }
+
     public RequestToken following(BaasHandler<List<BaasUser>> handler) {
         return following(null, null, handler);
     }
@@ -544,7 +543,7 @@ public class BaasUser implements Parcelable {
         if (isCurrent()) {
             users = new FetchUsers(box, "following", null, filter, priority, handler);
         } else {
-            users = new FetchUsers(box, "following/?", getName(), filter, priority, handler);
+            users = new FetchUsers(box, "following/?", username, filter, priority, handler);
         }
         return box.submitAsync(users);
     }
@@ -559,7 +558,7 @@ public class BaasUser implements Parcelable {
         if (isCurrent()) {
             users = new FetchUsers(box, "following", null, filter, null, null);
         } else {
-            users = new FetchUsers(box, "following/?", getName(), filter, null, null);
+            users = new FetchUsers(box, "following/?", username, filter, null, null);
         }
         return box.submitSync(users);
     }
@@ -907,7 +906,6 @@ public class BaasUser implements Parcelable {
          * of user private data
          */
         PRIVATE("visibleByTheUser"),
-
         /**
          * Scope used to access a {@link com.baasbox.android.json.JsonObject}
          * whose fields are accessible by the friends of the user
@@ -962,10 +960,10 @@ public class BaasUser implements Parcelable {
         protected BaasUser onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             JsonObject data = parseJson(response, box).getObject("data");
             Logger.debug("RECEIVED " + data.toString());
-            String token = data.getString("X-BB-SESSION");
-            if (token == null) throw new BaasException("Could not parse server response, missing token");
+            String tok = data.getString("X-BB-SESSION");
+            if (tok == null) throw new BaasException("Could not parse server response, missing token");
             BaasUser user = new BaasUser(data);
-            user.authToken = token;
+            user.authToken = tok;
             user.social = provider;
             box.store.storeUser(user);
             return user;
@@ -1202,7 +1200,7 @@ public class BaasUser implements Parcelable {
             if (user.isCurrent()) {
                 endpoint = box.requestFactory.getEndpoint("me");
             } else {
-                endpoint = box.requestFactory.getEndpoint("user/?", user.getName());
+                endpoint = box.requestFactory.getEndpoint("user/?", user.username);
             }
             return box.requestFactory.get(endpoint);
         }
@@ -1286,7 +1284,7 @@ public class BaasUser implements Parcelable {
             if (user.isCurrent()) {
                 return null;
             }
-            String endpoint = box.requestFactory.getEndpoint("follow/?", user.getName());
+            String endpoint = box.requestFactory.getEndpoint("follow/?", user.username);
             if (follow) {
                 return box.requestFactory.post(endpoint);
             } else {

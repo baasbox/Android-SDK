@@ -234,7 +234,6 @@ final class JsonReader implements Closeable {
     private boolean skipping = false;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     /**
      * Creates a new instance that reads a JSON-encoded stream from {@code in}.
      */
@@ -484,6 +483,48 @@ final class JsonReader implements Closeable {
         throw new EOFException("End of input");
     }
 
+    /**
+     * Returns true once {@code limit - pos >= minimum}. If the data is
+     * exhausted before that many characters are available, this returns
+     * false.
+     */
+    private boolean fillBuffer(int minimum) throws IOException {
+        // Before clobbering the old characters, update where buffer starts
+        for (int i = 0; i < pos; i++) {
+            if (buffer[i] == '\n') {
+                bufferStartLine++;
+                bufferStartColumn = 1;
+            } else {
+                bufferStartColumn++;
+            }
+        }
+
+        if (limit != pos) {
+            limit -= pos;
+            System.arraycopy(buffer, pos, buffer, 0, limit);
+        } else {
+            limit = 0;
+        }
+
+        pos = 0;
+        int total;
+        while ((total = in.read(buffer, limit, buffer.length - limit)) != -1) {
+            limit += total;
+
+            // if this is the first read, consume an optional byte order mark (BOM) if it exists
+            if (bufferStartLine == 1 && bufferStartColumn == 1
+                    && limit > 0 && buffer[0] == '\ufeff') {
+                pos++;
+                bufferStartColumn--;
+            }
+
+            if (limit >= minimum) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean skipTo(String toFind) throws IOException {
         outer:
         for (; pos + toFind.length() <= limit || fillBuffer(toFind.length()); pos++) {
@@ -541,48 +582,6 @@ final class JsonReader implements Closeable {
 
         replaceTop(JsonScope.NONEMPTY_OBJECT);
         return nextValue();
-    }
-
-    /**
-     * Returns true once {@code limit - pos >= minimum}. If the data is
-     * exhausted before that many characters are available, this returns
-     * false.
-     */
-    private boolean fillBuffer(int minimum) throws IOException {
-        // Before clobbering the old characters, update where buffer starts
-        for (int i = 0; i < pos; i++) {
-            if (buffer[i] == '\n') {
-                bufferStartLine++;
-                bufferStartColumn = 1;
-            } else {
-                bufferStartColumn++;
-            }
-        }
-
-        if (limit != pos) {
-            limit -= pos;
-            System.arraycopy(buffer, pos, buffer, 0, limit);
-        } else {
-            limit = 0;
-        }
-
-        pos = 0;
-        int total;
-        while ((total = in.read(buffer, limit, buffer.length - limit)) != -1) {
-            limit += total;
-
-            // if this is the first read, consume an optional byte order mark (BOM) if it exists
-            if (bufferStartLine == 1 && bufferStartColumn == 1
-                    && limit > 0 && buffer[0] == '\ufeff') {
-                pos++;
-                bufferStartColumn--;
-            }
-
-            if (limit >= minimum) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private JsonToken nextInObject(boolean firstElement) throws IOException {

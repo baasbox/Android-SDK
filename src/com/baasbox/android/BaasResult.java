@@ -24,6 +24,10 @@ package com.baasbox.android;
  * @since 0.7.3
  */
 public abstract class BaasResult<T> {
+// --------------------------- CONSTRUCTORS ---------------------------
+    private BaasResult() {
+    }
+
 // -------------------------- STATIC METHODS --------------------------
 
     /**
@@ -58,9 +62,12 @@ public abstract class BaasResult<T> {
         return new Success<T>(result);
     }
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    static void throwEx(Throwable t){
+        BaasResult.<RuntimeException>sneakyThrow(t);
+    }
 
-    private BaasResult() {
+    private static <T extends Throwable> T sneakyThrow(Throwable e)throws T{
+        throw (T)e;
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -128,14 +135,6 @@ public abstract class BaasResult<T> {
         public String toString() {
             return "Cancel{}";
         }
-    }
-
-    static void throwEx(Throwable t){
-        BaasResult.<RuntimeException>sneakyThrow(t);
-    }
-
-    private static <T extends Throwable> T sneakyThrow(Throwable e)throws T{
-        throw (T)e;
     }
 
     private static class Error<T> extends BaasResult<T> {

@@ -52,6 +52,47 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
 
     protected Map<String, Object> map;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+    /**
+     * Creates a new JsonObject with no mappings
+     */
+    public JsonObject() {
+        map = new LinkedHashMap<String, Object>();
+    }
+
+    JsonObject(Parcel source) {
+        this();
+        source.readMap(map, null);
+    }
+
+    private JsonObject(JsonObject object) {
+        this();
+        for (Map.Entry<String, Object> e : object) {
+            String key = e.getKey();
+            Object v = e.getValue();
+            if (v == null) {
+                map.put(key, null);
+            } else if (v instanceof JsonArray) {
+                map.put(key, ((JsonArray) v).copy());
+            } else if (v instanceof JsonObject) {
+                map.put(key, ((JsonObject) v).copy());
+            } else if (v instanceof byte[]) {
+                byte[] original = (byte[]) v;
+                byte[] copy = new byte[original.length];
+                System.arraycopy(original, 0, copy, 0, original.length);
+                map.put(key, copy);
+            } else {
+                map.put(key, v);
+            }
+        }
+    }
+
+    @Override
+    public JsonObject copy() {
+        JsonObject copy = new JsonObject(this);
+        return copy;
+    }
+
 // -------------------------- STATIC METHODS --------------------------
 
     /**
@@ -312,48 +353,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         return this;
     }
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    /**
-     * Creates a new JsonObject with no mappings
-     */
-    public JsonObject() {
-        map = new LinkedHashMap<String, Object>();
-    }
-
-    JsonObject(Parcel source) {
-        this();
-        source.readMap(map, null);
-    }
-
-    private JsonObject(JsonObject object) {
-        this();
-        for (Map.Entry<String, Object> e : object) {
-            String key = e.getKey();
-            Object v = e.getValue();
-            if (v == null) {
-                map.put(key, null);
-            } else if (v instanceof JsonArray) {
-                map.put(key, ((JsonArray) v).copy());
-            } else if (v instanceof JsonObject) {
-                map.put(key, ((JsonObject) v).copy());
-            } else if (v instanceof byte[]) {
-                byte[] original = (byte[]) v;
-                byte[] copy = new byte[original.length];
-                System.arraycopy(original, 0, copy, 0, original.length);
-                map.put(key, copy);
-            } else {
-                map.put(key, v);
-            }
-        }
-    }
-
-    @Override
-    public JsonObject copy() {
-        JsonObject copy = new JsonObject(this);
-        return copy;
-    }
-
 // ------------------------ CANONICAL METHODS ------------------------
 
     @Override
@@ -422,7 +421,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     }
 
 // --------------------- Interface Parcelable ---------------------
-
 
     @Override
     public int describeContents() {
@@ -610,19 +608,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     }
 
     /**
-     * Returns the value mapped to <code>name</code> as a <code>float</code>
-     * or <code>otherwise</code> if the mapping is absent.
-     *
-     * @param otherwise a <code>float</code> default
-     * @param name      a non <code>null</code> key
-     * @return the value mapped to <code>name</code> or <code>otherwise</code>
-     */
-    public float getFloat(String name, float otherwise) {
-        Double l = getDouble(name);
-        return l == null ? otherwise : l.floatValue();
-    }
-
-    /**
      * Returns the value mapped to <code>name</code> as a {@link java.lang.Double}
      * or <code>null</code> if the mapping is absent.
      *
@@ -639,6 +624,19 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     }
 
     /**
+     * Returns the value mapped to <code>name</code> as a <code>float</code>
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param otherwise a <code>float</code> default
+     * @param name      a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
+    public float getFloat(String name, float otherwise) {
+        Double l = getDouble(name);
+        return l == null ? otherwise : l.floatValue();
+    }
+
+    /**
      * Returns the value mapped to <code>name</code> as a {@link java.lang.Integer}
      * or <code>null</code> if the mapping is absent.
      *
@@ -648,19 +646,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     public Integer getInt(String name) {
         Long l = getLong(name);
         return l == null ? null : l.intValue();
-    }
-
-    /**
-     * Returns the value mapped to <code>name</code> as a <code>int</code>
-     * or <code>otherwise</code> if the mapping is absent.
-     *
-     * @param otherwise a <code>int</code> default
-     * @param name      a non <code>null</code> key
-     * @return the value mapped to <code>name</code> or <code>otherwise</code>
-     */
-    public int getInt(String name, int otherwise) {
-        Long l = getLong(name);
-        return l == null ? otherwise : l.intValue();
     }
 
     /**
@@ -677,6 +662,19 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         if (number instanceof Long) return (Long) number;
         if (number instanceof Double) return ((Double) number).longValue();
         throw new JsonException("not a long");
+    }
+
+    /**
+     * Returns the value mapped to <code>name</code> as a <code>int</code>
+     * or <code>otherwise</code> if the mapping is absent.
+     *
+     * @param otherwise a <code>int</code> default
+     * @param name      a non <code>null</code> key
+     * @return the value mapped to <code>name</code> or <code>otherwise</code>
+     */
+    public int getInt(String name, int otherwise) {
+        Long l = getLong(name);
+        return l == null ? otherwise : l.intValue();
     }
 
     /**
