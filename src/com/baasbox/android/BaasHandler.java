@@ -32,6 +32,7 @@ public interface BaasHandler<R> {
     BaasHandler NOOP = new BaasHandler() {
         @Override
         public void handle(BaasResult result) {
+            // do nothing
         }
     };
 

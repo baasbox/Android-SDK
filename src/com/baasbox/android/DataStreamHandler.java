@@ -74,5 +74,5 @@ public interface DataStreamHandler<R> {
      * @return the response content.
      * @throws Exception any exception thrown will be wrapped in a {@link com.baasbox.android.BaasException}
      */
-    public R onData(byte[] data, int read, long contentLength, String id, String contentType) throws Exception;
+    R onData(byte[] data, int read, long contentLength, String id, String contentType) throws Exception;
 }

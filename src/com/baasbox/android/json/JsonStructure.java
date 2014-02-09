@@ -20,6 +20,12 @@ public abstract class JsonStructure {
     public static final int NUMBER = 5;
     public static final int NULL = 6;
 
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    JsonStructure() {
+    }
+
 // -------------------------- STATIC METHODS --------------------------
 
     /**
@@ -50,11 +56,6 @@ public abstract class JsonStructure {
         } catch (IOException e) {
             throw new JsonException("incalid json", e);
         }
-    }
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    JsonStructure() {
     }
 
 // -------------------------- OTHER METHODS --------------------------

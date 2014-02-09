@@ -34,5 +34,5 @@ public interface RestClient {
      * @return an http response
      * @throws com.baasbox.android.BaasException
      */
-    public HttpResponse execute(HttpRequest request) throws BaasException;
+    HttpResponse execute(HttpRequest request) throws BaasException;
 }

@@ -28,6 +28,11 @@ public final class Logger {
     private static final boolean ENABLED = true;
     private static final String TAG = "BAASBOX";
 
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    private Logger(){
+    }
+    
 // -------------------------- STATIC METHODS --------------------------
 
     public static void warn(String format, Object... args) {
@@ -72,7 +77,4 @@ public final class Logger {
         }
     }
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    private Logger(){}
 }
