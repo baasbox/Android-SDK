@@ -94,12 +94,11 @@ abstract class NetworkTask<R> extends Task<R> {
         JsonObject json = parseJson(response, box);
         if (status == 401 && Integer.parseInt(json.getString("bb_code", "-1")) == BaasInvalidSessionException.INVALID_SESSION_TOKEN_CODE) {
             throw new BaasInvalidSessionException(json);
-        } else {
-            throw new BaasClientException(status, json);
         }
+        throw new BaasClientException(status, json);
     }
 
-    protected static final JsonObject parseJson(HttpResponse response, BaasBox box) throws BaasException {
+    protected static JsonObject parseJson(HttpResponse response, BaasBox box) throws BaasException {
         HttpEntity entity = response.getEntity();
         if (entity != null) {
             String content = null;
@@ -149,8 +148,7 @@ abstract class NetworkTask<R> extends Task<R> {
         }
         Logger.info("requested %s", request);
         HttpResponse response = box.restClient.execute(request);
-        R r = parseResponse(response, box);
-        return r;
+        return parseResponse(response, box);
     }
 
     protected abstract HttpRequest request(BaasBox box);

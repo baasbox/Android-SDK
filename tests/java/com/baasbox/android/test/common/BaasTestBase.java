@@ -20,17 +20,16 @@ public class BaasTestBase extends TestBase {
     protected void beforeClass() throws Exception {
         super.beforeClass();
         mHandler = new Handler(Looper.myLooper());
-        Context context = getContext();
-        box = BaasBox.initDefault(context,getConfig());
+        box = initBaasbox();
         Logger.debug("Baasbox initialized");
     }
 
-    protected BaasBox.Config getConfig(){
-        BaasBox.Config config = new BaasBox.Config();
-        config.apiDomain ="192.168.56.1";
-        config.authenticationType = BaasBox.Config.AuthType.SESSION_TOKEN;
-        return config;
-    }
+    protected BaasBox initBaasbox(){
+        BaasBox.Builder builder = new BaasBox.Builder(getContext());
+        return builder.setApiDomain("192.168.56.1")
+               .setAuthentication(BaasBox.Config.AuthType.SESSION_TOKEN)
+                .init();
+        }
 
     protected final void asUser(String username,String password,Runnable action){
         BaasResult<BaasUser> user =

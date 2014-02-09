@@ -16,9 +16,9 @@
 package com.baasbox.android;
 
 import android.content.Context;
+import android.util.Patterns;
 import com.baasbox.android.impl.Dispatcher;
 import com.baasbox.android.impl.ImmediateDispatcher;
-import com.baasbox.android.impl.Logger;
 import com.baasbox.android.impl.Task;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
@@ -94,14 +94,14 @@ public class BaasBox {
     private final ImmediateDispatcher syncDispatcher;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    private BaasBox(Context context, Config config) {
+    private BaasBox(Context context, Config config,RestClient client) {
         if (context == null) {
             throw new IllegalArgumentException("context cannot be null");
         }
         this.context = context.getApplicationContext();
-        this.config = config == null ? new Config() : config;
+        this.config = config;
         this.store = new BaasCredentialManager(this, context);
-        this.restClient = new HttpUrlConnectionClient(context, this.config);
+        this.restClient = client==null?new HttpUrlConnectionClient(context, this.config):client;
         this.requestFactory = new RequestFactory(this.config, store);
         this.mCache = new Cache(context);
         this.syncDispatcher = new ImmediateDispatcher();
@@ -118,45 +118,7 @@ public class BaasBox {
      * @return the singleton instance of the {@link com.baasbox.android.BaasBox} client
      */
     public static BaasBox initDefault(Context context) {
-        return initDefault(context, null, null);
-    }
-
-    /**
-     * Initialize BaasBox client with the configuration <code>config</code>
-     *
-     * @param context
-     * @param config
-     * @return
-     */
-    public static BaasBox initDefault(Context context, Config config) {
-        return initDefault(context, config, null);
-    }
-
-    /**
-     * Initialize BaasBox client with the configuration <code>config</code>
-     * and a new <code>session</code>
-     *
-     * @param context
-     * @param config
-     * @param session
-     * @return
-     */
-    public static BaasBox initDefault(Context context, Config config, String session) {
-        if (sDefaultClient == null) {
-            synchronized (LOCK) {
-                if (sDefaultClient == null) {
-                    sDefaultClient = createClient(context, config, session);
-                }
-            }
-        }
-        return sDefaultClient;
-    }
-
-    private static BaasBox createClient(Context context, Config config, String sessionToken) {
-        BaasBox box = new BaasBox(context, config);
-        //todo update token work
-        box.asyncDispatcher.start();
-        return box;
+        return new Builder(context).init();
     }
 
     /**
@@ -365,7 +327,106 @@ public class BaasBox {
         return asyncDispatcher.suspend(token.requestId);
     }
 
-// -------------------------- INNER CLASSES --------------------------
+    // -------------------------- INNER CLASSES --------------------------
+    public static class Builder {
+        private final Context mContext;
+        private ExceptionHandler mExceptionHandler =  ExceptionHandler.DEFAULT;
+        private Config.AuthType mAuthType = Config.AuthType.SESSION_TOKEN;
+        private boolean mUseHttps = false;
+        private String mHttpCharset = "UTF-8";
+        private int mPort = 9000;
+        private int mHttpConnectionTimeout = 6000;
+        private int mHttpSocketTimeout = 10000;
+        private String mApiDomain = "10.0.2.2";
+        private String mApiBasepath = "/";
+        private String mAppCode = "1234567890";
+        private int mWorkerThreads = 0;
+        private RestClient mRestClient = null;
+
+        public Builder(Context context){
+            mContext=context;
+        }
+
+        public Builder setHttpCharset(String charset){
+            mHttpCharset =charset==null?"UTF-8":charset;
+            return this;
+        }
+
+        public Builder setExceptionHandler(ExceptionHandler handler){
+            mExceptionHandler = handler==null?ExceptionHandler.DEFAULT:handler;
+            return this;
+        }
+
+        public Builder setAuthentication(Config.AuthType auth){
+            mAuthType = auth==null? Config.AuthType.SESSION_TOKEN:auth;
+            return this;
+        }
+
+        public Builder setPort(int port){
+            mPort = port;
+            return this;
+        }
+
+        public Builder setApiBasepath(String basepath){
+            mApiBasepath = basepath==null?"/":basepath;
+            return this;
+        }
+
+        public Builder setHttpConnectionTimeout(int timeout) {
+            mHttpConnectionTimeout = timeout;
+            return this;
+        }
+
+        public Builder setHttpSocketTimeout(int timeout) {
+            mHttpSocketTimeout = timeout;
+            return this;
+        }
+
+        public Builder setApiDomain(String domain){
+            if (domain==null) mApiDomain = "10.0.2.2";
+            if(Patterns.IP_ADDRESS.matcher(domain).matches()||
+               Patterns.DOMAIN_NAME.matcher(domain).matches()){
+                mApiDomain = domain;
+            }
+            return this;
+        }
+
+        public Builder setAppCode(String code){
+            mAppCode = code==null?mAppCode:code;
+            return this;
+        }
+
+        public Builder setWorkerThreads(int workers){
+            mWorkerThreads = workers;
+            return this;
+        }
+
+        public Builder setRestClient(RestClient client){
+            mRestClient =client;
+            return this;
+        }
+
+        private Config buildConfig(){
+            return new Config(mExceptionHandler,mUseHttps,
+                              mHttpCharset,mPort,mHttpConnectionTimeout,
+                              mHttpSocketTimeout,mApiDomain,
+                              mApiBasepath,mAppCode,mAuthType,mWorkerThreads);
+        }
+
+
+        public BaasBox init(){
+            if (sDefaultClient==null){
+                synchronized (LOCK){
+                    if (sDefaultClient==null){
+                        BaasBox box = new BaasBox(mContext, buildConfig(), mRestClient);
+                        box.asyncDispatcher.start();
+                        sDefaultClient = box;
+                    }
+                }
+            }
+            return sDefaultClient;
+        }
+    }
 
     /**
      * The configuration for BaasBox client
@@ -374,7 +435,7 @@ public class BaasBox {
      * @since 0.7.3
      */
     public static final class Config {
-        public ExceptionHandler exceptionHandler = ExceptionHandler.DEFAULT;
+        public final ExceptionHandler exceptionHandler;
 
         /**
          * The supported authentication types.
@@ -387,57 +448,72 @@ public class BaasBox {
          * if <code>true</code> the SDK use HTTPs protocol. Default is
          * <code>false</code>.
          */
-        public boolean useHttps = false;
+        public final boolean useHttps;
 
         /**
          * The charset used for the HTTP connection, default is <code>UTF-8</code>.
          */
-        public String httpCharset = "UTF-8";
+        public final String httpCharset;
 
         /**
          * The port number of the server connection, default is <code>9000</code>.
          */
-        public int httpPort = 9000;
+        public final int httpPort;
 
         /**
          * Sets the timeout until a connection is established. A value of zero means
          * the timeout is not used. The default value is 6000.
          */
-        public int httpConnectionTimeout = 6000;
+        public final int httpConnectionTimeout;
 
         /**
          * Sets the default socket timeout (SO_TIMEOUT) in milliseconds which is the
          * timeout for waiting for data. A timeout value of zero is interpreted as
          * an infinite timeout. The default value is zero.
          */
-        public int httpSocketTimeout = 10000;
+        public final int httpSocketTimeout;
 
         /**
          * The domain name of the server, default is <code>"10.0.2.2</code> -refers to the localhost from emulator.
          */
-        public String apiDomain = "10.0.2.2";
+        public final String apiDomain;
 
         /**
          * The relative path of the server, default is <code>/</code>.
          */
-        public String apiBasepath = "/";
+        public final String apiBasepath;
 
         /**
          * The BaasBox app code, default is <code>1234567890</code>.
          */
-        public String appCode = "1234567890";
+        public final String appCode;
 
         /**
          * The authentication type used by the SDK, default is
          * <code>BASIC_AUTHENTICATION</code>.
          */
-        public AuthType authenticationType = AuthType.BASIC_AUTHENTICATION;
+        public final AuthType authenticationType;
 
         /**
          * Number of threads to use for asynchronous requests.
          * If it's <code>0</code> it uses a computed default value.
          */
-        public int workerThreads = 0;
+        public final int workerThreads;
+
+
+        public Config(ExceptionHandler exceptionHandler, boolean useHttps, String httpCharset, int httpPort, int httpConnectionTimeout, int httpSocketTimeout, String apiDomain, String apiBasepath, String appCode, AuthType authenticationType, int workerThreads) {
+            this.exceptionHandler = exceptionHandler;
+            this.useHttps = useHttps;
+            this.httpCharset = httpCharset;
+            this.httpPort = httpPort;
+            this.httpConnectionTimeout = httpConnectionTimeout;
+            this.httpSocketTimeout = httpSocketTimeout;
+            this.apiDomain = apiDomain;
+            this.apiBasepath = apiBasepath;
+            this.appCode = appCode;
+            this.authenticationType = authenticationType;
+            this.workerThreads = workerThreads;
+        }
     }
 
     private static class RawRequest extends NetworkTask<JsonObject> {
