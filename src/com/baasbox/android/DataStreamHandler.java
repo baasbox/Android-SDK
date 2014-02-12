@@ -64,15 +64,33 @@ public interface DataStreamHandler<R> {
 // -------------------------- OTHER METHODS --------------------------
 
     /**
-     * Method invoked when new data is available or the data has been completely downloaded.
+     * Method invoked right before data starts to stream.
+     * @param id the identifier to which this stream is bound to
+     * @param contentLength the length of the body
+     * @param contentType the contentType of the response
+     * @throws Exception
+     */
+    void startData(String id,long contentLength,String contentType) throws Exception;
+
+    /**
+     * Method invoked when new data is available.
      *
      * @param data          a byte[] array filled with new available data or null if there is no more available.
      * @param read          the number of actual bytes that can be read from <code>data</code>
-     * @param contentLength the content length of the response
-     * @param id            the id of the file that is streaming
-     * @param contentType   the expected content type of the stream
-     * @return the response content.
      * @throws Exception any exception thrown will be wrapped in a {@link com.baasbox.android.BaasException}
      */
-    R onData(byte[] data, int read, long contentLength, String id, String contentType) throws Exception;
+    void onData(byte[] data, int read) throws Exception;
+
+    /**
+     * Method invoked when the whole data has been streamed
+     *
+     * @param id the identifier to which this stream is bound to
+     * @param contentLength the length of the body
+     * @param contentType the contentType of the response
+     * @return an object
+     * @throws Exception
+     */
+    R endData(String id,long contentLength,String contentType) throws Exception;
+
+    void finishStream(String id);
 }

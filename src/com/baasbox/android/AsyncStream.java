@@ -53,11 +53,15 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
                 return null;
             } else {
                 Logger.info("GOT FROM CACHE HIT");
-                dataStream.onData(bytes, bytes.length, bytes.length, streamId(), null);
-                return dataStream.onData(null, 0, bytes.length, streamId(), null);
+                //todo fix caching
+                dataStream.startData(streamId(), bytes.length, null);
+                dataStream.onData(bytes,bytes.length);
+                return dataStream.endData(streamId(),bytes.length,null);
             }
         } catch (Exception e) {
             throw new BaasIOException("error while parsing content from cache", e);
+        }finally {
+            dataStream.finishStream(streamId());
         }
     }
 
@@ -82,13 +86,13 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
             int read = 0;
             long available = contentLength;
             cacheStream = box.mCache.beginStream(streamId());
+            dataStream.startData(streamId(),contentLength,contentType);
             while ((read = in.read(data, 0, Math.min((int) available, data.length))) > 0) {
                 available -= read;
                 cacheStream.write(data, 0, read);
-                result = dataStream.onData(data, read, contentLength, streamId(), contentType);
-            }
+                dataStream.onData(data,read);}
             cacheStream.commit();
-            result = dataStream.onData(null, 0, contentLength, streamId(), contentType);
+            result = dataStream.endData(streamId(), contentLength, contentType);
         } catch (IOException e) {
             throw new BaasException(e);
         } catch (Exception e) {
@@ -107,6 +111,7 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
             } catch (IOException e) {
                 Logger.error(e,"Error while parsing stream");
             }
+            dataStream.finishStream(streamId());
         }
         return result;
     }

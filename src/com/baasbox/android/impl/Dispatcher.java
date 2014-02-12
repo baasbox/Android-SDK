@@ -115,7 +115,6 @@ public final class Dispatcher {
     public <R> boolean resume(int requestId, BaasHandler<R> handler) {
         Task<R> task = (Task<R>) liveAsyncs.get(requestId);
         if (task == null) {
-            Task.st("not found");
             return false;
         }
         return task.resume(handler);
