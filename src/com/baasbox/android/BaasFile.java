@@ -17,6 +17,7 @@ package com.baasbox.android;
 
 import android.util.Pair;
 import android.webkit.MimeTypeMap;
+import com.baasbox.android.impl.Logger;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
@@ -91,6 +92,7 @@ public class BaasFile extends BaasObject {
     void update(JsonObject fromServer) {
         isBound.set(true);
         this.attachedData.merge(fromServer.getObject("attachedData"));
+        if(this.metaData==null)this.metaData=new JsonObject();
         this.metaData.merge(fromServer.getObject("metadata"));
         this.id = fromServer.getString("id");
         this.creationDate = fromServer.getString("_creation_date");

@@ -11,6 +11,7 @@ public class TestBase extends AndroidTestCase {
 
     private int totalTests;
     private boolean first = true;
+
     public TestBase(){
         Method[] methods = getClass().getDeclaredMethods();
         int tests = 0;
