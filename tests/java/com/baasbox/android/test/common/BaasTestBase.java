@@ -29,6 +29,7 @@ public class BaasTestBase extends TestBase {
     protected BaasBox initBaasbox() {
         BaasBox.Builder builder = new BaasBox.Builder(getContext());
         return builder.setApiDomain(IP_ADDRESS)
+                .setUseHttps(true)
                 .setAuthentication(BaasBox.Config.AuthType.SESSION_TOKEN)
                 .init();
     }

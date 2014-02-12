@@ -396,6 +396,11 @@ public class BaasBox {
             return this;
         }
 
+        public Builder setUseHttps(boolean useHttps){
+            this.mUseHttps=useHttps;
+            return this;
+        }
+
         public Builder setWorkerThreads(int workers){
             mWorkerThreads = workers;
             return this;
