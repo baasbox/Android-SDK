@@ -5,7 +5,7 @@ BaasBox Android SDK.
 
 The binary of the library can be downloaded from [BaasBox](http://www.baasbox.com/download/) download page.
 
-*Documentation:* [user guide](http://www.baasbox.com/documentation/) [javadoc reference](http://baasbox.github.io/Android-SDK/docs/)
+*Documentation:* [[user guide]](http://www.baasbox.com/documentation/) [[javadoc reference]](http://baasbox.github.io/Android-SDK/docs/)
 
 Check out our [blog](http://www.baasbox.com/blog/), for updates and tutorials.
 
