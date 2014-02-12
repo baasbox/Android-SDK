@@ -102,7 +102,7 @@ public class Filter {
      * @param params params to fill in the condition
      * @return a configured filter
      */
-    public static Filter where(String where, String... params) {
+    public static Filter where(String where, Object... params) {
         return new Filter().setWhere(where, params);
     }
 
@@ -112,9 +112,9 @@ public class Filter {
      * @param clause a string
      * @param args   arguments to use in the condition
      * @return this filter with this where condition set
-     * @see com.baasbox.android.Filter#where(String, String...)
+     * @see com.baasbox.android.Filter#where(String, Object...)
      */
-    public Filter setWhere(CharSequence clause, CharSequence... args) {
+    public Filter setWhere(CharSequence clause, Object... args) {
         where = null;
         if (clause == null) return this;
 
@@ -126,8 +126,8 @@ public class Filter {
             } else {
                 params.clear();
             }
-            for (CharSequence a : args) {
-                params.add(a);
+            for (Object a : args) {
+                params.add(a==null?"null":a.toString());
             }
         } else {
             if (params != null) {
@@ -210,8 +210,8 @@ public class Filter {
             reqParams.add(new RequestFactory.Param("orderBy", orderBy.toString()));
         }
         if (paging != null) {
-            reqParams.add(new RequestFactory.Param("paging", Integer.toString(paging.page)));
-            reqParams.add(new RequestFactory.Param("recordPerPage", Integer.toString(paging.num)));
+            reqParams.add(new RequestFactory.Param("page", Integer.toString(paging.page)));
+            reqParams.add(new RequestFactory.Param("recordsPerPage", Integer.toString(paging.num)));
         }
         if (reqParams.size() == 0) return null;
         return reqParams.toArray(new RequestFactory.Param[reqParams.size()]);
