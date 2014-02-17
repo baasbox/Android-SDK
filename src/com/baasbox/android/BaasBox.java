@@ -341,10 +341,22 @@ public class BaasBox {
         private String mApiBasepath = "/";
         private String mAppCode = "1234567890";
         private int mWorkerThreads = 0;
+        private int mKeyStoreRes = 0;
+        private String mKeyStorePass = null;
         private RestClient mRestClient = null;
 
         public Builder(Context context){
             mContext=context;
+        }
+
+        public Builder setKeyStoreRes(int keyStoreRes) {
+            this.mKeyStoreRes = keyStoreRes;
+            return this;
+        }
+
+        public Builder setKeyStorePass(String pass){
+            this.mKeyStorePass=pass;
+            return this;
         }
 
         public Builder setHttpCharset(String charset){
@@ -415,7 +427,9 @@ public class BaasBox {
             return new Config(mExceptionHandler,mUseHttps,
                               mHttpCharset,mPort,mHttpConnectionTimeout,
                               mHttpSocketTimeout,mApiDomain,
-                              mApiBasepath,mAppCode,mAuthType,mWorkerThreads);
+                              mApiBasepath,mAppCode,mAuthType,mWorkerThreads,
+                              mKeyStoreRes,
+                              mKeyStorePass);
         }
 
 
@@ -441,6 +455,8 @@ public class BaasBox {
      */
     public static final class Config {
         public final ExceptionHandler exceptionHandler;
+        public final String password;
+        public final int keystoreRes;
 
         /**
          * The supported authentication types.
@@ -506,7 +522,7 @@ public class BaasBox {
         public final int workerThreads;
 
 
-        public Config(ExceptionHandler exceptionHandler, boolean useHttps, String httpCharset, int httpPort, int httpConnectionTimeout, int httpSocketTimeout, String apiDomain, String apiBasepath, String appCode, AuthType authenticationType, int workerThreads) {
+        public Config(ExceptionHandler exceptionHandler, boolean useHttps, String httpCharset, int httpPort, int httpConnectionTimeout, int httpSocketTimeout, String apiDomain, String apiBasepath, String appCode, AuthType authenticationType, int workerThreads,int keystoreRes,String keystorepass) {
             this.exceptionHandler = exceptionHandler;
             this.useHttps = useHttps;
             this.httpCharset = httpCharset;
@@ -518,6 +534,8 @@ public class BaasBox {
             this.appCode = appCode;
             this.authenticationType = authenticationType;
             this.workerThreads = workerThreads;
+            this.keystoreRes=keystoreRes;
+            this.password=keystorepass;
         }
     }
 

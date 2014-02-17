@@ -18,6 +18,8 @@ package com.baasbox.android;
 import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpResponse;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 
 /**
  * Base class for remote resources that can be saved and retrieved from
@@ -27,6 +29,8 @@ import org.apache.http.HttpResponse;
  * @since 0.7.3
  */
 public abstract class BaasObject {
+    protected volatile boolean mDirty;
+
 // --------------------------- CONSTRUCTORS ---------------------------
     // todo this should provide common interface among remote objects
     //      such as dirty tracking timestamps ecc
@@ -110,6 +114,10 @@ public abstract class BaasObject {
      */
     public final boolean isNew() {
         return getId() == null;
+    }
+
+    public final boolean isDirty(){
+        return mDirty;
     }
 
     /**

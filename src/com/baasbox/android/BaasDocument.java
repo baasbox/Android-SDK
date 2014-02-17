@@ -172,6 +172,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
 
 // -------------------------- STATIC METHODS --------------------------
 
+
     private static JsonObject cleanObject(JsonObject data) {
         if (data == null) return new JsonObject();
         data.remove("id");
@@ -523,6 +524,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      */
     public BaasDocument clear() {
         data.clear();
+        mDirty=true;
         return this;
     }
 
@@ -850,6 +852,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     public BaasDocument merge(JsonObject other) {
         JsonObject o = checkObject(other);
         data.merge(o == null ? null : o.copy());
+        mDirty = true;
         return this;
     }
 
@@ -863,6 +866,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      */
     public BaasDocument putArray(String name, JsonArray value) {
         data.putArray(checkKey(name), value);
+        mDirty=true;
         return this;
     }
 
@@ -913,6 +917,8 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      */
     public BaasDocument putDouble(String name, double value) {
         data.putDouble(checkKey(name), value);
+        mDirty=true;
+
         return this;
     }
 

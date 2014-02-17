@@ -64,7 +64,9 @@ public class BaasUser implements Parcelable {
             return new BaasUser[size];
         }
     };
+
     String social;
+
     private final Set<String> roles = new HashSet<String>();
     private JsonObject privateData;
     private JsonObject friendVisibleData;
@@ -138,6 +140,7 @@ public class BaasUser implements Parcelable {
         this.registeredVisibleData = readOptJson(source);
         this.publicVisibleData = readOptJson(source);
     }
+
 
     private static void readStringSet(Parcel p, Set<String> set) {
         int size = p.readInt();
@@ -893,7 +896,23 @@ public class BaasUser implements Parcelable {
         init(user);
     }
 
-// -------------------------- ENUMERATIONS --------------------------
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (o == null) return false;
+        if (o.getClass().equals(BaasUser.class)){
+            if(((BaasUser) o).getName().equals(username)) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return username.hashCode();
+    }
+
+
+    // -------------------------- ENUMERATIONS --------------------------
 
     /**
      * Scopes of visibility of  user related data.

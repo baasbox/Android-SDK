@@ -21,6 +21,7 @@ import com.baasbox.android.impl.Logger;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
 import org.apache.http.*;
+import org.apache.http.conn.scheme.HostNameResolver;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
@@ -35,8 +36,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
@@ -80,26 +81,44 @@ class HttpUrlConnectionClient implements RestClient {
 // --------------------------- CONSTRUCTORS ---------------------------
     HttpUrlConnectionClient(Context context, BaasBox.Config config) {
         this.config = config;
-        this.mSSLSocketFactory = config.useHttps ? trustAll() : null;
-        this.mHostVerifier = config.useHttps ? ACCEPT_ALL : null;
+
         if (config.useHttps) {
-            HttpsURLConnection.setDefaultSSLSocketFactory(mSSLSocketFactory);
-            HttpsURLConnection.setDefaultHostnameVerifier(mHostVerifier);
+            if (config.keystoreRes!=0){
+               this.mSSLSocketFactory = config.useHttps ? createSocketFactory(context,config.keystoreRes,config.password) : null;
+               this.mHostVerifier = config.useHttps ? ACCEPT_ALL : null;
+                HttpsURLConnection.setDefaultSSLSocketFactory(mSSLSocketFactory);
+                HttpsURLConnection.setDefaultHostnameVerifier(mHostVerifier);
+            }
         }
         disableReuseConnectionIfNecessary(config.useHttps);
-
         enableHttpCacheIfAvailable(context, HTTP_CACHE_SIZE);
     }
 
-    private static SSLSocketFactory trustAll() {
+    private static SSLSocketFactory createSocketFactory(Context context,int certStoreId,String certPassword){
+        TrustManagerFactory tmf;
+        InputStream in = null;
         try {
-            SSLContext ssl = SSLContext.getInstance("TLS");
-            ssl.init(null, TRUST_MANAGERS, null);
-            return ssl.getSocketFactory();
-        } catch (NoSuchAlgorithmException e) {
-            throw new Error(e);
-        } catch (KeyManagementException e) {
-            throw new Error(e);
+            in = context.getResources().openRawResource(certStoreId);
+            KeyStore keyStore = KeyStore.getInstance("BKS");
+            keyStore.load(in,certPassword.toCharArray());
+
+            tmf = TrustManagerFactory.getInstance("X509");
+            tmf.init(keyStore);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null,tmf.getTrustManagers(),null);
+
+            return sslContext.getSocketFactory();
+        } catch (Exception e) {
+            throw new BaasRuntimeException(e);
+        }finally {
+            if(in != null){
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    // swallow
+                }
+            }
         }
     }
 
