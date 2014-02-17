@@ -8,6 +8,7 @@ import com.baasbox.android.BaasUser;
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
+import com.baasbox.android.test.R;
 
 
 /**
@@ -29,7 +30,6 @@ public class BaasTestBase extends TestBase {
     protected BaasBox initBaasbox() {
         BaasBox.Builder builder = new BaasBox.Builder(getContext());
         return builder.setApiDomain(IP_ADDRESS)
-                .setUseHttps(true)
                 .setAuthentication(BaasBox.Config.AuthType.SESSION_TOKEN)
                 .init();
     }

@@ -1,8 +1,6 @@
 package com.baasbox.android.test;
 
-import android.util.Log;
 import com.baasbox.android.*;
-import com.baasbox.android.impl.Logger;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.test.common.BaasTestBase;
@@ -118,6 +116,29 @@ public class DocumentsTest extends BaasTestBase{
 
     }
 
+    public void testCanDeleteDocument(){
+        BaasDocument doc = new BaasDocument(testColl);
+        RequestToken tok = doc.save(BaasHandler.NOOP);
+
+        BaasResult<BaasDocument> savedDoc =tok.await();
+
+        assertTrue(savedDoc.isSuccess());
+        String docId = doc.getId();
+
+        BaasResult<Void> test = doc.delete(null).await();
+        assertTrue(test.isSuccess());
+
+        try{
+            BaasResult<Void> r=doc.delete(null).await();
+            fail();
+        } catch (IllegalStateException e){
+            assertTrue("document is unbound after delete",true);
+        }
+
+        BaasResult<Void> failAgain =BaasDocument.delete(testColl,docId,null).await();
+        assertTrue(failAgain.isFailed());
+    }
+
     public void testCanUseLikeInWhere(){
         BaasDocument d = new BaasDocument(testColl).putString("value","simpletext");
         assertTrue(d.saveSync().isSuccess());
@@ -131,21 +152,6 @@ public class DocumentsTest extends BaasTestBase{
             fail("cannot fetch");
         }
     }
-
-//    public void testCanUseLikeAsParamInWhere(){
-//        BaasDocument d = new BaasDocument(testColl).putString("value","simpletext");
-//        assertTrue(d.saveSync().isSuccess());
-//        try {
-//            Filter f = Filter.where("value like ?","'%text%'");
-//            BaasResult<List<BaasDocument>> await = BaasDocument.fetchAll(testColl, f, BaasHandler.NOOP).await();
-//            List<BaasDocument> res =await.get();
-//            assertTrue(!res.isEmpty());
-//            assertEquals("simpletext",res.get(0).getString("value"));
-//        } catch (BaasException e){
-//            fail("cannot fetch");
-//        }
-//    }
-
 
     public void testVersioning(){
         BaasDocument doc =new  BaasDocument(testColl);
@@ -185,6 +191,5 @@ public class DocumentsTest extends BaasTestBase{
         BaasDocument d = new BaasDocument(testColl).putLong("n",i);
         assertTrue(d.saveSync().isSuccess());
     }
-
 
 }
