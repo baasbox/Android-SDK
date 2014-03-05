@@ -65,7 +65,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         }
     };
 
-    private final JsonObject data;
+    private final JsonWrapper data;
     private final String collection;
     private String id;
     private String author;
@@ -73,8 +73,9 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     private long version;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    BaasDocument(JsonObject data) {
+    BaasDocument(JsonObject o) {
         super();
+        JsonWrapper data = new JsonWrapper(o);
         this.collection = data.getString("@class");
         data.remove("@class");
         this.id = data.getString("id");
@@ -135,10 +136,11 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         this.collection = collection;
         data = checkObject(data);
         //fixme we copy the data to avoid insertion of forbidden fields, but this is a costly operation
-        this.data = data == null ? new JsonObject() : data.copy();
+        this.data = new JsonWrapper(data);
+        this.data.setDirty(true);
     }
 
-    private static JsonObject checkObject(JsonObject data) {
+    private static JsonWrapper checkObject(JsonObject data) {
         if (data == null) return null;
         if (data.contains("id")) throw new IllegalArgumentException("key 'id' is reserved");
         for (String k : data.getFieldNames()) {
@@ -149,7 +151,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
                     throw new IllegalArgumentException("key names starting with '_' or '@' are reserved");
             }
         }
-        return data;
+        return new JsonWrapper(data);
     }
 
     /**
@@ -167,11 +169,10 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         if (collection == null || collection.length() == 0)
             throw new IllegalArgumentException("collection name cannot be null");
         this.collection = collection;
-        this.data = values == null ? new JsonObject() : checkObject(JsonObject.from(values));
+        this.data = values == null ? new JsonWrapper(null) : checkObject(JsonObject.from(values));
     }
 
 // -------------------------- STATIC METHODS --------------------------
-
 
     private static JsonObject cleanObject(JsonObject data) {
         if (data == null) return new JsonObject();
@@ -513,6 +514,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         writeOptString(dest, author);
         writeOptString(dest, creation_date);
         dest.writeParcelable(data, 0);
+
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -524,7 +526,6 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      */
     public BaasDocument clear() {
         data.clear();
-        mDirty=true;
         return this;
     }
 
@@ -851,8 +852,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      */
     public BaasDocument merge(JsonObject other) {
         JsonObject o = checkObject(other);
-        data.merge(o == null ? null : o.copy());
-        mDirty = true;
+        data.merge(o);
         return this;
     }
 
@@ -866,7 +866,6 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      */
     public BaasDocument putArray(String name, JsonArray value) {
         data.putArray(checkKey(name), value);
-        mDirty=true;
         return this;
     }
 
@@ -917,8 +916,6 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      */
     public BaasDocument putDouble(String name, double value) {
         data.putDouble(checkKey(name), value);
-        mDirty=true;
-
         return this;
     }
 
@@ -1003,6 +1000,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         return refresh(null, handler);
     }
 
+
     /**
      * Removes the mapping with <code>name</code> key from the document.
      *
@@ -1078,6 +1076,12 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         data.remove("@version");
         data.remove("@rid");
         this.data.merge(data);
+        this.data.setDirty(false);
+    }
+
+    @Override
+    public boolean isDirty() {
+        return data.isDirty();
     }
 
     /**

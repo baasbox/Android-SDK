@@ -55,7 +55,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class BaasFile extends BaasObject {
 // ------------------------------ FIELDS ------------------------------
 
-    private JsonObject attachedData;
+    private JsonWrapper attachedData;
     private JsonObject metaData;
     private String mimeType;
     private String name;
@@ -81,11 +81,11 @@ public class BaasFile extends BaasObject {
     BaasFile(JsonObject data, boolean fromServer) {
         super();
         if (fromServer) {
-            this.attachedData = new JsonObject();
+            this.attachedData = new JsonWrapper(data);
             this.metaData = new JsonObject();
             update(data);
         } else {
-            this.attachedData = data;
+            this.attachedData = new JsonWrapper(data);
         }
     }
 
@@ -100,9 +100,15 @@ public class BaasFile extends BaasObject {
         this.name = fromServer.getString("fileName");
         this.contentLength = fromServer.getLong("contentLength");
         this.version = fromServer.getLong("@version");
+        attachedData.setDirty(false);
     }
 
-// -------------------------- STATIC METHODS --------------------------
+    @Override
+    public boolean isDirty() {
+        return attachedData.isDirty();
+    }
+
+    // -------------------------- STATIC METHODS --------------------------
 
     public static RequestToken fetchAll(BaasHandler<List<BaasFile>> handler) {
         return fetchAll(null, null, handler);

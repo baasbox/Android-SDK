@@ -28,7 +28,7 @@ import java.net.URLEncoder;
 import java.util.*;
 
 /**
- * Created by eto on 24/12/13.
+ * Created by Andrea Tortorella on 24/12/13.
  */
 class RequestFactory {
 // ------------------------------ FIELDS ------------------------------

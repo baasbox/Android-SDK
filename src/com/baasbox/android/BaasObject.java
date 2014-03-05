@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @since 0.7.3
  */
 public abstract class BaasObject {
-    protected volatile boolean mDirty;
 
 // --------------------------- CONSTRUCTORS ---------------------------
     // todo this should provide common interface among remote objects
@@ -116,9 +115,7 @@ public abstract class BaasObject {
         return getId() == null;
     }
 
-    public final boolean isDirty(){
-        return mDirty;
-    }
+    public abstract boolean isDirty();
 
     /**
      * The id of this object on the server. New objects created locally have no id.

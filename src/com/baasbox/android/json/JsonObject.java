@@ -65,7 +65,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         source.readMap(map, null);
     }
 
-    private JsonObject(JsonObject object) {
+    protected JsonObject(JsonObject object) {
         this();
         for (Map.Entry<String, Object> e : object) {
             String key = e.getKey();
@@ -118,21 +118,21 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     private JsonObject put(String name, Object value) {
         if (name == null) throw new IllegalArgumentException("name cannot be null");
         if (value == null) {
-            map.put(name, null);
+            putValue(name, null);
         } else if ((value instanceof String) ||
                 (value instanceof JsonStructure) ||
                 (value instanceof Boolean) ||
                 (value instanceof Long) ||
                 (value instanceof Double)) {
-            map.put(name, value);
+            putValue(name,value);
         } else if (value instanceof byte[]) {
-            map.put(name, Base64.encode((byte[]) value, Base64.DEFAULT));
+            putValue(name, Base64.encode((byte[]) value, Base64.DEFAULT));
         } else if (value instanceof Float) {
-            map.put(name, ((Float) value).doubleValue());
+            putValue(name, ((Float) value).doubleValue());
         } else if ((value instanceof Integer) ||
                 (value instanceof Short) ||
                 (value instanceof Byte)) {
-            map.put(name, ((Number) value).longValue());
+            putValue(name, ((Number) value).longValue());
         } else {
             throw new JsonException("Not a valid object");
         }
@@ -261,8 +261,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @return this object with the new mapping created
      */
     public JsonObject putString(String name, String value) {
-        if (name == null) throw new IllegalArgumentException("name cannot be null");
-        map.put(name, value);
+        putValue(name,value);
         return this;
     }
 
@@ -275,8 +274,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @return this object with the new mapping created
      */
     public JsonObject putBoolean(String name, boolean value) {
-        if (name == null) throw new IllegalArgumentException("name cannot be null");
-        map.put(name, value);
+        putValue(name,value);
         return this;
     }
 
@@ -289,8 +287,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @return this object with the new mapping created
      */
     public JsonObject putLong(String name, long value) {
-        if (name == null) throw new IllegalArgumentException("name cannot be null");
-        map.put(name, value);
+        putValue(name,value);
         return this;
     }
 
@@ -303,8 +300,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @return this object with the new mapping created
      */
     public JsonObject putDouble(String name, double value) {
-        if (name == null) throw new IllegalArgumentException("name cannot be null");
-        map.put(name, value);
+        putValue(name,value);
         return this;
     }
 
@@ -320,8 +316,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @see com.baasbox.android.json.JsonObject#remove(String)
      */
     public JsonObject putNull(String name) {
-        if (name == null) throw new IllegalArgumentException("name cannot be null");
-        map.put(name, null);
+        putValue(name, null);
         return this;
     }
 
@@ -334,10 +329,20 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @return this object with the new mapping created
      */
     public JsonObject putArray(String name, JsonArray value) {
-        if (name == null) throw new IllegalArgumentException("name cannot be null");
-        map.put(name, value);
+        putValue(name, value);
         return this;
     }
+
+    private void putValue(String name, Object value) {
+        if (name == null) throw new IllegalArgumentException("name cannot be null");
+        map.put(name,value);
+        onModify();
+    }
+
+    protected void onModify(){
+
+    }
+
 
     /**
      * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonObject} <code>value</code>
@@ -348,8 +353,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @return this object with the new mapping created
      */
     public JsonObject putObject(String name, JsonObject value) {
-        if (name == null) throw new IllegalArgumentException("name cannot be null");
-        map.put(name, value);
+        putValue(name,value);
         return this;
     }
 
@@ -441,6 +445,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      */
     public JsonObject clear() {
         map.clear();
+        onModify();
         return this;
     }
 
@@ -811,6 +816,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     public JsonObject merge(JsonObject other) {
         if (other == null) return this;
         map.putAll(other.map);
+        onModify();
         return this;
     }
 
@@ -829,6 +835,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
                 map.put(key, other.map.get(key));
             }
         }
+        onModify();
         return this;
     }
 
@@ -851,8 +858,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @return this object with the new mapping created
      */
     public JsonObject putBinary(String name, byte[] value) {
-        if (name == null) throw new IllegalArgumentException("name cannot be null");
-        map.put(name, value == null ? null : Base64.encode(value, Base64.DEFAULT));
+        putValue(name,value==null?null:Base64.encode(value,Base64.DEFAULT));
         return this;
     }
 
@@ -867,8 +873,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @see com.baasbox.android.json.JsonObject#putObject(String, com.baasbox.android.json.JsonObject)
      */
     public JsonObject putStructure(String name, JsonStructure value) {
-        if (name == null) throw new IllegalArgumentException("name cannot be null");
-        map.put(name, value);
+        putValue(name,value);
         return this;
     }
 
