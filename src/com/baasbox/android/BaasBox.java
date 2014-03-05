@@ -252,20 +252,37 @@ public class BaasBox {
         return asyncDispatcher.cancel(token.requestId, false);
     }
 
-    public RequestToken registerPush(String registrationId, BaasHandler<Void> handler) {
-        return registerPush(registrationId, null, handler);
-    }
 
-    public RequestToken registerPush(String registrationId, Priority priority, BaasHandler<Void> handler) {
-        if (registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
-        RegisterPush rp = new RegisterPush(this, registrationId, priority, handler);
+    public RequestToken enablePush(String registrationId,Priority priority,BaasHandler<Void> handler){
+        if(registrationId==null) throw new IllegalArgumentException("registrationId cannot be null");
+        RegisterPush rp = new RegisterPush(this,registrationId,true,priority,handler);
         return submitAsync(rp);
     }
 
-    public BaasResult<Void> registerPushSync(String registrationId) {
-        if (registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
-        RegisterPush req = new RegisterPush(this, registrationId, null, null);
+    public RequestToken enablePush(String registrationId,BaasHandler<Void> handler) {
+        return enablePush(registrationId,null,handler);
+    }
+
+    public BaasResult<Void> enablePushSync(String registrationId) {
+        if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
+        RegisterPush req = new RegisterPush(this,registrationId,true,null,null);
         return submitSync(req);
+    }
+
+
+    @Deprecated
+    public RequestToken registerPush(String registrationId, BaasHandler<Void> handler) {
+        return enablePush(registrationId, null, handler);
+    }
+
+    @Deprecated
+    public RequestToken registerPush(String registrationId, Priority priority, BaasHandler<Void> handler) {
+        return enablePush(registrationId,priority,handler);
+    }
+
+    @Deprecated
+    public BaasResult<Void> registerPushSync(String registrationId) {
+        return enablePushSync(registrationId);
     }
 
     /**
@@ -558,22 +575,33 @@ public class BaasBox {
         }
     }
 
+
     private static final class RegisterPush extends NetworkTask<Void> {
         private final String registrationId;
+        private final boolean enable;
 
-        protected RegisterPush(BaasBox box, String registrationId, Priority priority, BaasHandler<Void> handler) {
+        protected RegisterPush(BaasBox box, String registrationId,boolean enable,
+                               Priority priority, BaasHandler<Void> handler) {
             super(box, priority, handler);
             this.registrationId = registrationId;
+            this.enable = enable;
         }
 
         @Override
         protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
+            // todo since we know the used registrationId we can save and remove it from the preferences
+            // so we don't need it again to unregister.
+
             return null;
         }
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            return box.requestFactory.put(box.requestFactory.getEndpoint("push/device/android/?", registrationId));
+            String pushEnable = "push/device/android/?"; //0.7.3
+            pushEnable = "push/enable/android/?"; //0.7.4
+            String pushDisable = "push/disable/?";
+            String endpoint=enable?pushEnable:pushDisable;
+            return box.requestFactory.put(box.requestFactory.getEndpoint(endpoint, registrationId));
         }
     }
 
