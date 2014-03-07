@@ -491,7 +491,7 @@ public class BaasUser implements Parcelable {
         if (isCurrent()) {
             users = new FetchUsers(box, "followers", null, filter, priority, handler);
         } else {
-            users = new FetchUsers(box, "followers/?", username, filter, priority, handler);
+            users = new FetchUsers(box, "followers/{}", username, filter, priority, handler);
         }
         return box.submitAsync(users);
     }
@@ -527,7 +527,7 @@ public class BaasUser implements Parcelable {
         if (isCurrent()) {
             users = new FetchUsers(box, "followers", null, filter, null, null);
         } else {
-            users = new FetchUsers(box, "followers/?", username, filter, null, null);
+            users = new FetchUsers(box, "followers/{}", username, filter, null, null);
         }
         return box.submitSync(users);
     }
@@ -546,7 +546,7 @@ public class BaasUser implements Parcelable {
         if (isCurrent()) {
             users = new FetchUsers(box, "following", null, filter, priority, handler);
         } else {
-            users = new FetchUsers(box, "following/?", username, filter, priority, handler);
+            users = new FetchUsers(box, "following/{}", username, filter, priority, handler);
         }
         return box.submitAsync(users);
     }
@@ -561,7 +561,7 @@ public class BaasUser implements Parcelable {
         if (isCurrent()) {
             users = new FetchUsers(box, "following", null, filter, null, null);
         } else {
-            users = new FetchUsers(box, "following/?", username, filter, null, null);
+            users = new FetchUsers(box, "following/{}", username, filter, null, null);
         }
         return box.submitSync(users);
     }
@@ -990,7 +990,7 @@ public class BaasUser implements Parcelable {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("social/?", provider);
+            String endpoint = box.requestFactory.getEndpoint("social/{}", provider);
             return box.requestFactory.post(endpoint, new RequestFactory.Param("oauth_token", token),
                     new RequestFactory.Param("oauth_secret", secret));
         }
@@ -1013,7 +1013,7 @@ public class BaasUser implements Parcelable {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("push/message/?", name);
+            String endpoint = box.requestFactory.getEndpoint("push/message/{}", name);
             return box.requestFactory.post(endpoint, message);
         }
     }
@@ -1023,7 +1023,7 @@ public class BaasUser implements Parcelable {
 
         protected PasswordReset(BaasBox box, String name, Priority priority, BaasHandler<Void> handler) {
             super(box, priority, handler);
-            request = box.requestFactory.get(box.requestFactory.getEndpoint("user/?/password/reset", name));
+            request = box.requestFactory.get(box.requestFactory.getEndpoint("user/{}/password/reset", name));
         }
 
         @Override
@@ -1184,7 +1184,7 @@ public class BaasUser implements Parcelable {
             if (user.isCurrent()) {
                 String endpoint;
                 if (registration != null) {
-                    endpoint = box.requestFactory.getEndpoint("logout/?", registration);
+                    endpoint = box.requestFactory.getEndpoint("logout/{}", registration);
                 } else {
                     endpoint = box.requestFactory.getEndpoint("logout");
                 }
@@ -1219,7 +1219,7 @@ public class BaasUser implements Parcelable {
             if (user.isCurrent()) {
                 endpoint = box.requestFactory.getEndpoint("me");
             } else {
-                endpoint = box.requestFactory.getEndpoint("user/?", user.username);
+                endpoint = box.requestFactory.getEndpoint("user/{}", user.username);
             }
             return box.requestFactory.get(endpoint);
         }
@@ -1303,7 +1303,7 @@ public class BaasUser implements Parcelable {
             if (user.isCurrent()) {
                 return null;
             }
-            String endpoint = box.requestFactory.getEndpoint("follow/?", user.username);
+            String endpoint = box.requestFactory.getEndpoint("follow/{}", user.username);
             if (follow) {
                 return box.requestFactory.post(endpoint);
             } else {

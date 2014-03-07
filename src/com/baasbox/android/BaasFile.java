@@ -597,12 +597,12 @@ public class BaasFile extends BaasObject {
 
         @Override
         protected String userGrant(RequestFactory factory, Grant grant, String collection, String id, String to) {
-            return factory.getEndpoint("file/?/?/user/?", id, grant.action, to);
+            return factory.getEndpoint("file/{}/{}/user/{}", id, grant.action, to);
         }
 
         @Override
         protected String roleGrant(RequestFactory factory, Grant grant, String collection, String id, String to) {
-            return factory.getEndpoint("file/?/?/role/?", id, grant.action, to);
+            return factory.getEndpoint("file/{}/{}/role/{}", id, grant.action, to);
         }
     }
 
@@ -634,7 +634,7 @@ public class BaasFile extends BaasObject {
             } else if (sizeId >= 0) {
                 param = new RequestFactory.Param("sizeId", Integer.toString(sizeId));
             }
-            String endpoint = box.requestFactory.getEndpoint("file/?", id);
+            String endpoint = box.requestFactory.getEndpoint("file/{}", id);
             if (param != null) {
                 request = box.requestFactory.get(endpoint, param);
             } else {
@@ -670,7 +670,7 @@ public class BaasFile extends BaasObject {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            return box.requestFactory.get(box.requestFactory.getEndpoint("file/details/?", file.id));
+            return box.requestFactory.get(box.requestFactory.getEndpoint("file/details/{}", file.id));
         }
     }
 
@@ -706,7 +706,7 @@ public class BaasFile extends BaasObject {
             if (id == null) {
                 return null;
             } else {
-                String endpoint = box.requestFactory.getEndpoint("file/?", id);
+                String endpoint = box.requestFactory.getEndpoint("file/{}", id);
                 return box.requestFactory.delete(endpoint);
             }
         }

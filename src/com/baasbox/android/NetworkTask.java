@@ -15,6 +15,7 @@
 
 package com.baasbox.android;
 
+import android.os.storage.StorageManager;
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.impl.Task;
 import com.baasbox.android.json.JsonException;
@@ -43,7 +44,7 @@ abstract class NetworkTask<R> extends Task<R> {
     protected NetworkTask(BaasBox box, Priority priority, BaasHandler<R> handler, boolean retryLogin) {
         super(priority, handler);
         this.box = box;
-        retryOnFailedLogin = retryLogin;
+        retryOnFailedLogin = retryLogin && (!box.config.sessionTokenExpires);
     }
 
 // -------------------------- OTHER METHODS --------------------------

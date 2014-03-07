@@ -31,6 +31,7 @@ public class BaasTestBase extends TestBase {
         BaasBox.Builder builder = new BaasBox.Builder(getContext());
         return builder.setApiDomain(IP_ADDRESS)
                 .setAuthentication(BaasBox.Config.AuthType.SESSION_TOKEN)
+                .setSessionTokenExpires(false)
                 .init();
     }
 

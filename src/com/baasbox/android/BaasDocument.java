@@ -1132,7 +1132,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
             if (id == null) {
                 return null;
             } else {
-                String endpoint = box.requestFactory.getEndpoint("document/?/?", collection, id);
+                String endpoint = box.requestFactory.getEndpoint("document/{}/{}", collection, id);
                 return box.requestFactory.delete(endpoint);
             }
         }
@@ -1162,10 +1162,10 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
             String coll = document.collection;
             String docId = document.id;
             if (docId == null) {
-                String endpoint = box.requestFactory.getEndpoint("document/?", coll);
+                String endpoint = box.requestFactory.getEndpoint("document/{}", coll);
                 return box.requestFactory.post(endpoint, data);
             } else {
-                String endpoint = box.requestFactory.getEndpoint("document/?/?", coll, docId);
+                String endpoint = box.requestFactory.getEndpoint("document/{}/{}", coll, docId);
                 if (mode == SaveMode.CHECK_VERSION) {
                     data.putLong("@version", document.version);
                 }
@@ -1181,12 +1181,12 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
 
         @Override
         protected String userGrant(RequestFactory factory, Grant grant, String collection, String id, String to) {
-            return factory.getEndpoint("document/?/?/?/user/?", collection, id, grant.action, to);
+            return factory.getEndpoint("document/{}/{}/{}/user/{}", collection, id, grant.action, to);
         }
 
         @Override
         protected String roleGrant(RequestFactory factory, Grant grant, String collection, String id, String to) {
-            return factory.getEndpoint("document/?/?/?/role/?", collection, id, grant.action, to);
+            return factory.getEndpoint("document/{}/{}/{}/role/{}", collection, id, grant.action, to);
         }
     }
 
@@ -1207,7 +1207,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("document/?/?", document.getCollection(), document.getId());
+            String endpoint = box.requestFactory.getEndpoint("document/{}/{}", document.getCollection(), document.getId());
             return box.requestFactory.get(endpoint);
         }
     }
@@ -1239,7 +1239,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String ep = box.requestFactory.getEndpoint("document/?", collection);
+            String ep = box.requestFactory.getEndpoint("document/{}", collection);
             if (filter == null) {
                 return box.requestFactory.get(ep);
             } else {
@@ -1265,7 +1265,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String ep = box.requestFactory.getEndpoint("document/?/count", collection);
+            String ep = box.requestFactory.getEndpoint("document/{}/count", collection);
             if (params == null) {
                 return box.requestFactory.get(ep, params);
             } else {

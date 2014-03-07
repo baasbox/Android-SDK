@@ -16,6 +16,7 @@
 package com.baasbox.android;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Patterns;
 import com.baasbox.android.impl.Dispatcher;
 import com.baasbox.android.impl.ImmediateDispatcher;
@@ -361,9 +362,15 @@ public class BaasBox {
         private int mKeyStoreRes = 0;
         private String mKeyStorePass = null;
         private RestClient mRestClient = null;
+        private boolean mTokenExpires = false;
 
         public Builder(Context context){
             mContext=context;
+        }
+
+        public Builder setSessionTokenExpires(boolean expires){
+            mTokenExpires = expires;
+            return this;
         }
 
         public Builder setKeyStoreRes(int keyStoreRes) {
@@ -444,7 +451,7 @@ public class BaasBox {
             return new Config(mExceptionHandler,mUseHttps,
                               mHttpCharset,mPort,mHttpConnectionTimeout,
                               mHttpSocketTimeout,mApiDomain,
-                              mApiBasepath,mAppCode,mAuthType,mWorkerThreads,
+                              mApiBasepath,mAppCode,mAuthType,mTokenExpires,mWorkerThreads,
                               mKeyStoreRes,
                               mKeyStorePass);
         }
@@ -538,8 +545,12 @@ public class BaasBox {
          */
         public final int workerThreads;
 
+        /**
+         * True if session tokens are not auto refreshed upon expiration
+         */
+        public final boolean sessionTokenExpires;
 
-        public Config(ExceptionHandler exceptionHandler, boolean useHttps, String httpCharset, int httpPort, int httpConnectionTimeout, int httpSocketTimeout, String apiDomain, String apiBasepath, String appCode, AuthType authenticationType, int workerThreads,int keystoreRes,String keystorepass) {
+        Config(ExceptionHandler exceptionHandler, boolean useHttps, String httpCharset, int httpPort, int httpConnectionTimeout, int httpSocketTimeout, String apiDomain, String apiBasepath, String appCode, AuthType authenticationType,boolean sessionTokenExpires, int workerThreads,int keystoreRes,String keystorepass) {
             this.exceptionHandler = exceptionHandler;
             this.useHttps = useHttps;
             this.httpCharset = httpCharset;
@@ -553,6 +564,7 @@ public class BaasBox {
             this.workerThreads = workerThreads;
             this.keystoreRes=keystoreRes;
             this.password=keystorepass;
+            this.sessionTokenExpires=sessionTokenExpires;
         }
     }
 
@@ -597,9 +609,9 @@ public class BaasBox {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String pushEnable = "push/device/android/?"; //0.7.3
-            pushEnable = "push/enable/android/?"; //0.7.4
-            String pushDisable = "push/disable/?";
+            String pushEnable = "push/device/android/{}"; //0.7.3
+            pushEnable = "push/enable/android/{}"; //0.7.4
+            String pushDisable = "push/disable/{}";
             String endpoint=enable?pushEnable:pushDisable;
             return box.requestFactory.put(box.requestFactory.getEndpoint(endpoint, registrationId));
         }
@@ -618,7 +630,7 @@ public class BaasBox {
             } else if (sizeId >= 0) {
                 param = new RequestFactory.Param("sizeId", Integer.toString(sizeId));
             }
-            String endpoint = box.requestFactory.getEndpoint("asset/?", name);
+            String endpoint = box.requestFactory.getEndpoint("asset/{}", name);
             if (param != null) {
                 request = box.requestFactory.get(endpoint, param);
             } else {

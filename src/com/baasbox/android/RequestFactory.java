@@ -234,7 +234,7 @@ class RequestFactory {
     public String getEndpoint(String endpointPattern, Object... params) {
         if (params != null) {
             for (Object param : params)
-                endpointPattern = endpointPattern.replaceFirst("\\?", param.toString());
+                endpointPattern = endpointPattern.replaceFirst("\\{\\}", param.toString());
         }
         return this.apiRoot + endpointPattern;
     }

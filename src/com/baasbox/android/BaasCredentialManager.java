@@ -34,7 +34,7 @@ import java.util.Set;
 class BaasCredentialManager {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final Object NULL = new Object();
+//    private static final Object NULL = new Object();
 
     private static final String DISK_PREFERENCES_NAME = "BAAS_USER_INFO_PREFERENCES";
     private static final String USER_NAME_KEY = "USER_NAME_KEY";
@@ -93,7 +93,13 @@ class BaasCredentialManager {
     }
 
     private void erase() {
-        while (!diskCache.edit().clear().commit()) ;
+        while (!diskCache.edit().clear().commit()){
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                // swallow
+            }
+        }
     }
 
     final boolean refreshTokenRequest(int seq) throws BaasException {

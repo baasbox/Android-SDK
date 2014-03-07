@@ -34,7 +34,7 @@ class StreamRequest extends NetworkTask<BaasStream> {
     protected StreamRequest(BaasBox box, String resource, String id, String sizeSpec, int sizeId) {
         super(box, null, null);
         this.id = id;
-        String endpoint = box.requestFactory.getEndpoint("?/?", resource, id);
+        String endpoint = box.requestFactory.getEndpoint("{}/{}", resource, id);
         RequestFactory.Param param = null;
         if (sizeSpec != null) {
             param = new RequestFactory.Param("resize", sizeSpec);
