@@ -16,6 +16,8 @@
 package com.baasbox.android;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,7 +43,7 @@ public class Filter {
     StringBuilder where = null;
     List<CharSequence> params = null;
     String orderBy;
-    Paging paging;
+    BaasQuery.Paging paging;
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -60,6 +62,16 @@ public class Filter {
         f.setOrderBy(order + (asc ? " ASC" : " DESC"));
         f.setPaging(page, records);
         return f;
+    }
+
+    private Filter(){}
+
+    Filter(String where,List<CharSequence> params,String sort,BaasQuery.Paging paging){
+        this.where=where==null?null:new StringBuilder(where);
+        this.params = params==null||params.size()==0?null:new ArrayList<CharSequence>();
+        if(this.params!=null)this.params.addAll(params);
+        this.orderBy=sort;
+        this.paging=paging;
     }
 
     /**
@@ -82,10 +94,8 @@ public class Filter {
      */
     public Filter setPaging(int page, int numrecords) {
         if (this.paging == null) {
-            this.paging = new Paging();
+            this.paging = new BaasQuery.Paging(page,numrecords);
         }
-        paging.page = page;
-        paging.num = numrecords;
         return this;
     }
 
@@ -188,10 +198,10 @@ public class Filter {
     public Filter setPaging(String orderBy, int page, int numrecords) {
         this.orderBy = orderBy;
         if (this.paging == null) {
-            this.paging = new Paging();
+            this.paging = new BaasQuery.Paging(page,numrecords);
         }
         paging.page = page;
-        paging.num = numrecords;
+        paging.records = numrecords;
         return this;
     }
 
@@ -211,7 +221,7 @@ public class Filter {
         }
         if (paging != null) {
             reqParams.add(new RequestFactory.Param("page", Integer.toString(paging.page)));
-            reqParams.add(new RequestFactory.Param("recordsPerPage", Integer.toString(paging.num)));
+            reqParams.add(new RequestFactory.Param("recordsPerPage", Integer.toString(paging.records)));
         }
         if (reqParams.size() == 0) return null;
         return reqParams.toArray(new RequestFactory.Param[reqParams.size()]);
@@ -225,8 +235,8 @@ public class Filter {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private static class Paging {
-        int page;
-        int num;
-    }
+//    private static class Paging {
+//        int page;
+//        int num;
+//    }
 }
