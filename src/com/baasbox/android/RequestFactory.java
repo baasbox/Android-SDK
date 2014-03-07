@@ -231,6 +231,10 @@ class RequestFactory {
         }
     }
 
+    public String getEndpointRaw(String endpoint){
+        return this.apiRoot+endpoint;
+    }
+
     public String getEndpoint(String endpointPattern, Object... params) {
         if (params != null) {
             for (Object param : params)

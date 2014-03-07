@@ -298,7 +298,7 @@ public class BaasBox {
      */
     public RequestToken rest(int method, String endpoint, JsonObject body, Priority priority, BaasHandler<JsonObject> jsonHandler) {
         if (endpoint == null) throw new IllegalArgumentException("endpoint cannot be null");
-        endpoint = requestFactory.getEndpoint(endpoint);
+        endpoint = requestFactory.getEndpointRaw(endpoint);
         HttpRequest any = requestFactory.any(method, endpoint, body);
         RawRequest request = new RawRequest(this, any, priority, jsonHandler);
         return submitAsync(request);
@@ -332,7 +332,7 @@ public class BaasBox {
      */
     public BaasResult<JsonObject> restSync(int method, String endpoint, JsonObject body, boolean authenticate) {
         RequestFactory factory = requestFactory;
-        endpoint = factory.getEndpoint(endpoint);
+        endpoint = factory.getEndpointRaw(endpoint);
         HttpRequest any = factory.any(method, endpoint, body);
         return submitSync(new RawRequest(this, any, null, null));
     }
