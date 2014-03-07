@@ -79,11 +79,9 @@ public class QueryTest extends BaasTestBase{
             for (JsonObject o:obs){
                 Logger.error("RESULT %s",o);
             }
-
         } catch (BaasException e) {
             fail(e.getMessage());
         }
-
     }
 
 }
