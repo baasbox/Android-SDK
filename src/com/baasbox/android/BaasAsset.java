@@ -5,7 +5,7 @@ import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpResponse;
 
 /**
- * Collection of functions that works with assets.
+ * Collection of functions that work with assets.
  *
  * Created by Andrea Tortorella on 13/03/14.
  */
