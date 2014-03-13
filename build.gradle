@@ -32,7 +32,7 @@ def minPatchVersion = 3
 
 def releaseType = "SNAPSHOT";
 
-ext.version = "${majorVersion}.${minorVersion}.${patchVersion}.${sdkRevision}-${releaseType}"
+version = "${majorVersion}.${minorVersion}.${patchVersion}.${sdkRevision}-${releaseType}"
 
 def gitSha ={
     'git rev-parse --short HEAD'.execute().text.trim()
@@ -89,8 +89,9 @@ android {
             source = variant.javaCompile.source
             ext.androidJar = "${android.plugin.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
             destinationDir = file('docs');
-            exclude "**/impl/**";
-            exclude "**/BuildConfig**";
+            //exclude "**/impl/**"
+            //exclude "**/BuildConfig**"
+            failOnError = false
             options {
             }
             classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
@@ -106,8 +107,14 @@ task coreLibJar(type: Jar) {
     from fileTree(dir: 'build/classes/release').matching { 'com/baasbox/android/**' }
 }
 
+task docJar(type: Jar) {
+    classifier = 'javadoc'
+    from fileTree(dir: 'docs')
+}
+
 artifacts {
     archives coreLibJar
+    archives docJar
 }
 
 uploadArchives {
@@ -116,18 +123,18 @@ uploadArchives {
             repository(url: "file:///home/eto/baasbox-android")
             pom.groupId = 'com.baasbox'
             pom.artifactId = 'baasbox-android'
-            pom.version = version
+            pom.version = "${version}"
         }
     }
 }
-
-install {
-    repositories.mavenInstaller {
-        pom.version = version
-        pom.groupId = "com.baasbox"
-        pom.artifactId = "baasbox-android"
-    }
-}
+//
+//install {
+//    repositories.mavenInstaller {
+//        pom.version = version
+//        pom.groupId = "com.baasbox"
+//        pom.artifactId = "baasbox-android"
+//    }
+//}
 
 
 // support for local user configurations

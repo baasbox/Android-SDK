@@ -840,7 +840,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     }
 
     /**
-     * Returns a {@link java.util.Set<java.lang.String>} of all the keys contained in this document
+     * Returns a {@link java.util.Set} of all the keys contained in this document
      *
      * @return a set of the keys contained in this document
      */
