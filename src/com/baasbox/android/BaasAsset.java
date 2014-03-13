@@ -1,13 +1,67 @@
 package com.baasbox.android;
 
+import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
+import org.apache.http.HttpResponse;
 
 /**
+ * Collection of functions that works with assets.
+ *
  * Created by Andrea Tortorella on 13/03/14.
  */
 public final class BaasAsset {
 
     private BaasAsset(){}
+
+    /**
+     * Asynchronously retrieves named assets data,
+     * If the named asset is a document, the document is retrieved
+     * otherwise attached data to the file are returned.
+     * This version of the method uses default priority.
+     *
+     * @param id the name of the asset
+     * @param handler an handler that will be handed the response
+     * @return a request token
+     */
+    public static RequestToken getData(String id,BaasHandler<JsonObject> handler){
+        return getData(id,Priority.NORMAL,handler);
+    }
+
+
+    /**
+     * Asynchronously retrieves named assets data,
+     * If the named asset is a document, the document is retrieved
+     * otherwise attached data to the file are returned.
+     *
+     * @param id the name of the asset
+     * @param priority the priority at which the request will be executed
+     * @param handler an handler that will be handed the response
+     * @return a request token
+     */
+    public static RequestToken getData(String id,Priority priority,BaasHandler<JsonObject> handler){
+        if(id==null) throw new IllegalArgumentException("asset id cannot be null");
+        BaasBox box = BaasBox.getDefaultChecked();
+        AssetDataRequest req = new AssetDataRequest(box,id,priority,handler);
+        return box.submitAsync(req);
+    }
+
+
+    /**
+     * Synchronously retrieves named assets data,
+     * If the named asset is a document, the document is retrieved
+     * otherwise attached data to the file are returned.
+     *
+     * @param id the name of the asset
+     * @return a baas result wrapping the response.
+     *
+     */
+    public static BaasResult<JsonObject> getData(String id){
+        if (id == null) throw new IllegalArgumentException("asset id cannot be null");
+        BaasBox box = BaasBox.getDefaultChecked();
+        AssetDataRequest req = new AssetDataRequest(box,id,null,null);
+        return box.submitSync(req);
+    }
+
 
     /**
      * Streams the file using the provided data stream handler.
@@ -89,6 +143,7 @@ public final class BaasAsset {
 
     static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
         BaasBox box = BaasBox.getDefaultChecked();
+
         if (id == null) throw new IllegalArgumentException("id cannot be null");
         StreamRequest synReq = new StreamRequest(box, "asset", id, spec, sizeId);
         return box.submitSync(synReq);
@@ -100,6 +155,28 @@ public final class BaasAsset {
         if (name == null) throw new IllegalArgumentException("id cannot be null");
         AsyncStream<R> stream = new AssetStream<R>(box, name, sizeSpec, sizeIdx, priority, dataStreamHandler, handler);
         return box.submitAsync(stream);
+    }
+
+
+    private static class AssetDataRequest extends NetworkTask<JsonObject> {
+        private final String name;
+
+        protected AssetDataRequest(BaasBox box,String name, Priority priority, BaasHandler<JsonObject> handler) {
+            super(box, priority, handler, false);
+            this.name=name;
+        }
+
+        @Override
+        protected JsonObject onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
+            return parseJson(response,box);
+        }
+
+        @Override
+        protected HttpRequest request(BaasBox box) {
+            RequestFactory f = box.requestFactory;
+            String endpoint =f.getEndpoint("asset/{}/data",name);
+            return f.get(endpoint);
+        }
     }
 
     private static class AssetStream<R> extends AsyncStream<R> {
