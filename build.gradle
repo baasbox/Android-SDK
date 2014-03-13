@@ -4,7 +4,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.8.+'
-        classpath 'com.github.dcendents:android-maven-plugin:1.0'
+//        classpath 'com.github.dcendents:android-maven-plugin:1.0'
     }
 }
 
@@ -13,7 +13,8 @@ task wrapper(type: Wrapper) {
 }
 
 apply plugin: 'android-library'
-apply plugin: 'android-maven'
+apply plugin: 'maven'
+apply plugin: 'signing'
 
 repositories {
     mavenCentral()
@@ -107,6 +108,11 @@ task coreLibJar(type: Jar) {
     from fileTree(dir: 'build/classes/release').matching { 'com/baasbox/android/**' }
 }
 
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from fileTree(dir: 'src')
+}
+
 task docJar(type: Jar) {
     classifier = 'javadoc'
     from fileTree(dir: 'docs')
@@ -115,15 +121,56 @@ task docJar(type: Jar) {
 artifacts {
     archives coreLibJar
     archives docJar
+    archives sourceJar
+}
+
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+signing {
+    required {isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives")}
+    sign configurations.archives
 }
 
 uploadArchives {
     repositories {
         mavenDeployer {
             repository(url: "file:///home/eto/baasbox-android")
+
             pom.groupId = 'com.baasbox'
             pom.artifactId = 'baasbox-android'
             pom.version = "${version}"
+            pom.packaging = 'jar'
+            pom.project {
+                name  'BaasBox Android SDK'
+                description "A library providing bindings for BaasBox rest services"
+                url 'http://www.baasbox.com'
+                inceptionYear '2013'
+                licenses {
+                    license {
+                        name 'The Apache Sofware License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+                organization {
+                    name 'BaasBox'
+                    url 'http://www.baasbox.com'
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/baasbox/Android-SDK.git'
+                    developerConnection = 'scm:git:git://github.com/baasbox/Android-SDK.git'
+                    url = 'http://github.com/baasbox/Android-SDK'
+                }
+                developers {
+                    developer {
+                        id 'aKtor'
+                        name 'Andrea Tortorella'
+                        email 'a.tortorella@baasbox.com'
+                        organization = 'BaasBox'
+                        organizationUrl 'http://www.baasbox.com'
+                    }
+                }
+            }
         }
     }
 }
