@@ -127,15 +127,6 @@ uploadArchives {
         }
     }
 }
-//
-//install {
-//    repositories.mavenInstaller {
-//        pom.version = version
-//        pom.groupId = "com.baasbox"
-//        pom.artifactId = "baasbox-android"
-//    }
-//}
-
 
 // support for local user configurations
 if(new File("dev-config.gradle").exists()){
