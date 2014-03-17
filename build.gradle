@@ -33,7 +33,7 @@ def minPatchVersion = 3
 
 def releaseType = "SNAPSHOT";
 
-version = "${majorVersion}.${minorVersion}.${patchVersion}.${sdkRevision}-${releaseType}"
+version = "${majorVersion}.${minorVersion}.${patchVersion}-${releaseType}"
 
 def gitSha ={
     'git rev-parse --short HEAD'.execute().text.trim()
@@ -131,10 +131,21 @@ signing {
     sign configurations.archives
 }
 
+
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file:///home/eto/baasbox-android")
+            if(isReleaseVersion){
+              beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/"){
+
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/"){
+
+            }
 
             pom.groupId = 'com.baasbox'
             pom.artifactId = 'baasbox-android'
@@ -157,9 +168,9 @@ uploadArchives {
                     url 'http://www.baasbox.com'
                 }
                 scm {
-                    connection = 'scm:git:git://github.com/baasbox/Android-SDK.git'
-                    developerConnection = 'scm:git:git://github.com/baasbox/Android-SDK.git'
-                    url = 'http://github.com/baasbox/Android-SDK'
+                    connection = 'scm:git@github.com:baasbox/Android-SDK.git'
+                    developerConnection = 'scm:git@github.com:baasbox/Android-SDK.git'
+                    url 'http://github.com/baasbox/Android-SDK'
                 }
                 developers {
                     developer {
