@@ -71,15 +71,16 @@ public class QueryTest extends BaasTestBase{
         assertTrue(doc.grantAllSync(Grant.READ, Role.ANONYMOUS).isSuccess());
     }
 
-    public void testQueryCollections(){
 
-        final BaasQuery q =BaasQuery.builder()
-                              .collection(COLLECTION)
-                              .appendWhere("n >= 2")
-                              .projection("n, count(*) as c")
-                              .setGroupBy("@class")
-                              .orderBy("n desc")
-                              .build();
+    public void testQueryCollections(){
+        final BaasQuery q =
+                BaasQuery.builder()
+                         .collection(COLLECTION)
+                         .appendWhere("n >= 2")
+                         .projection("n, count(*) as c")
+                         .setGroupBy("@class")
+                         .orderBy("n desc")
+                         .build();
 
 
         RequestToken t=q.query(new BaasHandler<List<JsonObject>>() {

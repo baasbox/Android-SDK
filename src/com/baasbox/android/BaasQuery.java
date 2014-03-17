@@ -45,55 +45,84 @@ public class BaasQuery {
     }
 
     private final RequestFactory.Param[] params;
-    private final String collection;
+    private final String collOrUsr;
+    private final int mode;
 
     public static Builder builder(){
         return new Builder();
     }
 
-    private BaasQuery(String collection,RequestFactory.Param[] params){
+    private BaasQuery(int mode,String collectionOrUser,RequestFactory.Param[] params){
         this.params=params;
-        this.collection=collection;
+        this.mode =mode;
+        this.collOrUsr=collectionOrUser;
     }
 
     public RequestToken query(BaasHandler<List<JsonObject>> handler){
-        return query(collection,Priority.NORMAL,handler);
+        return query(collOrUsr,Priority.NORMAL,handler);
     }
 
-    public RequestToken query(String collection,BaasHandler<List<JsonObject>> handler){
-        return query(collection,Priority.NORMAL, handler);
+    public RequestToken query(String what,BaasHandler<List<JsonObject>> handler){
+        return query(what,Priority.NORMAL, handler);
     }
 
     public RequestToken query(Priority priority,BaasHandler<List<JsonObject>> handler){
-        return query(collection,priority,handler);
+        return query(collOrUsr,priority,handler);
     }
 
-    public RequestToken query(String collection,Priority priority,BaasHandler<List<JsonObject>> handler){
-        if (collection==null) throw new IllegalArgumentException("collection cannot be null");
+    public RequestToken query(String what,Priority priority,BaasHandler<List<JsonObject>> handler){
+        if (mode == COLLECTIONS && what==null) throw new IllegalArgumentException("collection cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        String endpoint =box.requestFactory.getEndpoint("document/{}",collection);
-        QueryRequest request = new QueryRequest(box,endpoint,params,priority,handler);
+        QueryRequest request = new QueryRequest(box,mode,collOrUsr,params,priority,handler);
         return box.submitAsync(request);
     }
 
     public BaasResult<List<JsonObject>> querySync(){
-        return querySync(collection);
+        return querySync(collOrUsr);
     }
 
-    public BaasResult<List<JsonObject>> querySync(String collection){
-        if (collection==null)throw new IllegalArgumentException("collection cannot be null");
+    public BaasResult<List<JsonObject>> querySync(String what){
+        if (mode == COLLECTIONS && what==null)throw new IllegalArgumentException("collection cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        String endpoint = box.requestFactory.getEndpoint("document/{}",collection);
-        QueryRequest req = new QueryRequest(box,endpoint,params,null,null);
+        QueryRequest req = new QueryRequest(box,mode,what,params,null,null);
         return box.submitSync(req);
     }
+
 
     private static class QueryRequest extends NetworkTask<List<JsonObject>>{
         private RequestFactory.Param[] params;
         private String endpoint;
-        protected QueryRequest(BaasBox box,String endpoint,RequestFactory.Param[] params, Priority priority, BaasHandler<List<JsonObject>> handler) {
+        protected QueryRequest(BaasBox box,int mode,String what,RequestFactory.Param[] params, Priority priority, BaasHandler<List<JsonObject>> handler) {
             super(box, priority, handler);
             this.params=params;
+            String endpoint;
+            switch (mode){
+                case COLLECTIONS:
+                    endpoint =box.requestFactory.getEndpoint("document/{}",what);
+                    break;
+                case USERS:
+                    endpoint =box.requestFactory.getEndpoint("users");
+                    break;
+                case FOLLOWERS:
+                    if(what == null){
+                        endpoint=box.requestFactory.getEndpoint("followers");
+                    } else {
+                        endpoint=box.requestFactory.getEndpoint("followers/{}");
+                    }
+                    break;
+                case FILES:
+                    endpoint = box.requestFactory.getEndpoint("file/details");
+                    break;
+                case FOLLOWING:
+                    if(what == null){
+                        endpoint=box.requestFactory.getEndpoint("following");
+                    } else {
+                        endpoint=box.requestFactory.getEndpoint("following/{}");
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("unsupported mode");
+            }
             this.endpoint=endpoint;
         }
 
@@ -119,14 +148,22 @@ public class BaasQuery {
         }
     }
 
+    private static final int COLLECTIONS = 1;
+    public static final int USERS = 3;
+    public static final int FILES = 2;
+    public static final int FOLLOWERS = 4;
+    public static final int FOLLOWING = 5;
+
     public static class Builder{
+        private int mMode;
         private StringBuilder whereBuilder;
         private List<CharSequence> params;
         private String sortOrder = null;
         private String fields = null;
         private String groupBy = null;
         private Paging paging = null;
-        private String boundCollection = null;
+        private String target = null;
+
 
         public Filter filter(){
             String where = whereBuilder==null?null:whereBuilder.toString();
@@ -134,7 +171,7 @@ public class BaasQuery {
         }
 
         public BaasQuery build(){
-            return new BaasQuery(boundCollection,toParams());
+            return new BaasQuery(mMode,target,toParams());
         }
 
         private void validate(){
@@ -172,8 +209,35 @@ public class BaasQuery {
             return reqParams.toArray(new RequestFactory.Param[reqParams.size()]);
         }
 
+        public Builder users(){
+            mMode = USERS;
+            target =null;
+            return this;
+        }
+
+        public Builder files(){
+            mMode = FILES;
+            target =null;
+            return this;
+        }
+
+        public Builder followers(){
+            mMode  = FOLLOWERS;
+            target = null;
+            return this;
+        }
+
+        public Builder followers(String userId){
+            mMode = FOLLOWERS;
+            target =userId;
+            return this;
+        }
+
+        //fixme add following when baasbox will support it
+
         public Builder collection(String collection){
-            this.boundCollection=collection;
+            this.mMode = COLLECTIONS;
+            target=collection;
             return this;
         }
 
