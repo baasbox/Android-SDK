@@ -150,6 +150,13 @@ class BaasCredentialManager {
         return box.requestFactory.post(endpoint, formBody);
     }
 
+    void unbindUser() {
+        synchronized (lock){
+            current =null;
+            loaded=false;
+        }
+    }
+
     public void storeUser(BaasUser user) {
         synchronized (lock) {
             current = user;
@@ -187,4 +194,5 @@ class BaasCredentialManager {
         }
         while (!edit.commit()) ;
     }
+
 }

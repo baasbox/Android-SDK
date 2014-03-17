@@ -129,7 +129,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
                 (o instanceof Double)) {
             list.add(o);
         } else if (o instanceof byte[]) {
-            list.add(Base64.encode((byte[]) o, Base64.DEFAULT));
+            list.add(Base64.encode((byte[]) o, Base64.NO_WRAP));
         } else if (o instanceof Float) {
             list.add(((Float) o).doubleValue());
         } else if ((o instanceof Integer)
@@ -364,7 +364,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 // -------------------------- OTHER METHODS --------------------------
 
     public JsonArray addBinary(byte[] v) {
-        list.add(v == null ? null : Base64.encode(v, Base64.DEFAULT));
+        list.add(v == null ? null : Base64.encode(v, Base64.NO_WRAP));
         return this;
     }
 
@@ -397,7 +397,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
             } else if (o instanceof Double) {
                 w.value((Double) o);
             } else if (o instanceof byte[]) {
-                String encoded = Base64.encodeToString((byte[]) o, Base64.DEFAULT);
+                String encoded = Base64.encodeToString((byte[]) o, Base64.NO_WRAP);
                 w.value(encoded);
             } else if (o instanceof JsonArray) {
                 ((JsonArray) o).encode(w);
@@ -441,7 +441,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         if (o == null) return otherwise;
         if (o instanceof String) {
             try {
-                return Base64.decode((String) o, Base64.DEFAULT);
+                return Base64.decode((String) o, Base64.NO_WRAP);
             } catch (IllegalArgumentException e) {
                 throw new JsonException(e);
             }
@@ -569,7 +569,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         Object o = list.get(index);
         if (o == null) return otherwise;
         if (o instanceof String) return (String) o;
-        if (o instanceof byte[]) return Base64.encodeToString((byte[]) o, Base64.DEFAULT);
+        if (o instanceof byte[]) return Base64.encodeToString((byte[]) o, Base64.NO_WRAP);
         throw new JsonException("not a string");
     }
 
@@ -623,7 +623,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     }
 
     public JsonArray setBinary(int index, byte[] value) {
-        list.set(index, value == null ? null : Base64.encode(value, Base64.DEFAULT));
+        list.set(index, value == null ? null : Base64.encode(value, Base64.NO_WRAP));
         return this;
     }
 

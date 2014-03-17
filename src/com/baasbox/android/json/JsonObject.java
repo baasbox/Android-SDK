@@ -126,7 +126,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
                 (value instanceof Double)) {
             putValue(name,value);
         } else if (value instanceof byte[]) {
-            putValue(name, Base64.encode((byte[]) value, Base64.DEFAULT));
+            putValue(name, Base64.encode((byte[]) value, Base64.NO_WRAP));
         } else if (value instanceof Float) {
             putValue(name, ((Float) value).doubleValue());
         } else if ((value instanceof Integer) ||
@@ -476,7 +476,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
             } else if (v instanceof Double) {
                 w.value((Double) v);
             } else if (v instanceof byte[]) {
-                String encoded = Base64.encodeToString((byte[]) v, Base64.DEFAULT);
+                String encoded = Base64.encodeToString((byte[]) v, Base64.NO_WRAP);
                 w.value(encoded);
             } else if (v instanceof JsonArray) {
                 ((JsonArray) v).encode(w);
@@ -551,7 +551,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         if (o == null) return otherwise;
         if (o instanceof String) {
             try {
-                return Base64.decode((String) o, Base64.DEFAULT);
+                return Base64.decode((String) o, Base64.NO_WRAP);
             } catch (IllegalArgumentException e) {
                 throw new JsonException("not a binary",e);
             }
@@ -858,7 +858,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @return this object with the new mapping created
      */
     public JsonObject putBinary(String name, byte[] value) {
-        putValue(name,value==null?null:Base64.encode(value,Base64.DEFAULT));
+        putValue(name,value==null?null:Base64.encode(value,Base64.NO_WRAP));
         return this;
     }
 

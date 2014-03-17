@@ -121,6 +121,18 @@ public class BaasBox {
         return new Builder(context).init();
     }
 
+    public static void quitClient(){
+        if(sDefaultClient!=null){
+            synchronized (LOCK){
+                if(sDefaultClient!=null){
+                    sDefaultClient.asyncDispatcher.stop();
+                    sDefaultClient.store.unbindUser();
+                    sDefaultClient = null;
+                }
+            }
+        }
+    }
+
     /**
      * Returns the baasbox instance for this device if one has been
      * initialized through {@link BaasBox#initDefault(android.content.Context)}

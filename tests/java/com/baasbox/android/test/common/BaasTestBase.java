@@ -25,7 +25,6 @@ import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.test.R;
 
-
 /**
  * Created by Andrea Tortorella on 01/02/14.
  */
@@ -38,14 +37,14 @@ public class BaasTestBase extends TestBase {
     protected void beforeClass() throws Exception {
         super.beforeClass();
         mHandler = new Handler(Looper.myLooper());
-        box = initBaasbox();
+        box = initBaasbox(BaasBox.Config.AuthType.SESSION_TOKEN);
         Logger.debug("Baasbox initialized");
     }
 
-    protected BaasBox initBaasbox() {
+    protected BaasBox initBaasbox(BaasBox.Config.AuthType auth) {
         BaasBox.Builder builder = new BaasBox.Builder(getContext());
         return builder.setApiDomain(IP_ADDRESS)
-                .setAuthentication(BaasBox.Config.AuthType.SESSION_TOKEN)
+                .setAuthentication(auth)
                 .setSessionTokenExpires(false)
                 .init();
     }
@@ -78,5 +77,4 @@ public class BaasTestBase extends TestBase {
         BaasResult<Void> logout = user.value().logoutSync();
         if (logout.isFailed()) fail(logout.error().toString());
     }
-
 }

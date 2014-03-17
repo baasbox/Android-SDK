@@ -166,7 +166,7 @@ class RequestFactory {
             if(BaasBox.Config.AuthType.BASIC_AUTHENTICATION == config.authenticationType){
                  if (credentials.getName() != null && credentials.getPassword() != null) {
                         String plain = credentials.getName() + ':' + credentials.getPassword();
-                        String encoded = Base64.encodeToString(plain.getBytes(), Base64.DEFAULT).trim();
+                        String encoded = Base64.encodeToString(plain.getBytes(), Base64.NO_WRAP).trim();
                         headers.put(BASIC_AUTH_HEADER_NAME, "Basic " + encoded);
                     }
             } else {

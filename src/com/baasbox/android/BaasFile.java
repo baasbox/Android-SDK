@@ -369,7 +369,6 @@ public class BaasFile extends BaasObject {
         return box.submitSync(access);
     }
 
-
     public RequestToken extractedContent(Priority priority,BaasHandler<String> handler){
         BaasBox box = BaasBox.getDefault();
         if (id == null) throw new IllegalArgumentException("id cannot be null");
