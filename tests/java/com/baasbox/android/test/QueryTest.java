@@ -29,6 +29,7 @@ import java.util.List;
 public class QueryTest extends BaasTestBase{
     private static final String COLLECTION = "queriable";
     private static final String ALT_COLLECTION = "queriable2";
+
     @Override
     protected void beforeClass() throws Exception {
         super.beforeClass();
@@ -36,7 +37,6 @@ public class QueryTest extends BaasTestBase{
         asAdmin(new Runnable() {
             @Override
             public void run() {
-
                 BaasResult<JsonObject> res = box.restSync(HttpRequest.POST, "admin/collection/" + COLLECTION, null, true);
                 assertTrue(res.isSuccess());
                 res = box.restSync(HttpRequest.POST,"admin/collection/"+ALT_COLLECTION,null,true);
@@ -70,7 +70,6 @@ public class QueryTest extends BaasTestBase{
                 doc.saveSync(SaveMode.IGNORE_VERSION).isSuccess());
         assertTrue(doc.grantAllSync(Grant.READ, Role.ANONYMOUS).isSuccess());
     }
-
 
     public void testQueryCollections(){
         final BaasQuery q =

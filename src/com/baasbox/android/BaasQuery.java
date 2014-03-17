@@ -134,6 +134,7 @@ public class BaasQuery {
                 if(o instanceof JsonObject){
                     JsonObject jo = (JsonObject)o;
                     jo.remove("@rid");
+                    //fixme what do i clean?
                     r.add(jo);
                 } else {
                     throw new BaasIOException("unable to parse json");
