@@ -23,6 +23,7 @@ import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
 
 import java.io.*;
 import java.net.URLConnection;
@@ -239,11 +240,6 @@ public class BaasFile extends BaasObject {
         return metaData;
     }
 
-    public String getTextContent(){
-        //todo implement text content
-        return null;
-    }
-
     @Override
     public String getAuthor() {
         return author;
@@ -373,6 +369,48 @@ public class BaasFile extends BaasObject {
         return box.submitSync(access);
     }
 
+
+    public RequestToken extractedContent(Priority priority,BaasHandler<String> handler){
+        BaasBox box = BaasBox.getDefault();
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
+        ContentRequest req = new ContentRequest(box,id,priority,handler);
+        return box.submitAsync(req);
+    }
+
+    private static class ContentRequest extends NetworkTask<String> {
+        private final String file;
+
+        protected ContentRequest(BaasBox box,String file, Priority priority, BaasHandler<String> handler) {
+            super(box, priority, handler);
+            this.file =file;
+        }
+
+        @Override
+        protected String onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
+            try {
+                return EntityUtils.toString(response.getEntity());
+            } catch (IOException e) {
+                throw new BaasIOException("unable to parse content");
+            }
+        }
+
+        @Override
+        protected HttpRequest request(BaasBox box) {
+            String ep= box.requestFactory.getEndpoint("file/content/{}", file);
+            return box.requestFactory.get(ep);
+        }
+    }
+
+    public RequestToken extractedContent(BaasHandler<String> handler){
+        return extractedContent(Priority.NORMAL,handler);
+    }
+
+    public BaasResult<String> extractedContentSync(){
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
+        ContentRequest req  = new ContentRequest(box,id,null,null);
+        return box.submitSync(req);
+    }
 
     public RequestToken stream(BaasHandler<BaasFile> handler) {
         return doStream(-1, null, Priority.NORMAL, handler);
