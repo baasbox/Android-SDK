@@ -42,9 +42,10 @@ import org.apache.http.HttpResponse;
  *         &#64;Override
  *         public void onCreate() {
  *             super.onCreate();
- *             BaasBox.Config config = new BaasBox.Config();
- *             // set your configuration
- *             box = BaasBox.initDefault(this,config);
+ *             BaasBox.Builder b = new BaasBox.Builder();
+ *             //set your configuration
+ *             //on builder class
+ *             box = b.init();
  *         }
  *
  *         public BaasBox getBaasBox(){
@@ -351,6 +352,11 @@ public class BaasBox {
     }
 
     // -------------------------- INNER CLASSES --------------------------
+
+    /**
+     * Builder for {@link com.baasbox.android.BaasBox} client
+     * @since 0.7.4
+     */
     public static class Builder {
         private final Context mContext;
         private ExceptionHandler mExceptionHandler =  ExceptionHandler.DEFAULT;
@@ -369,10 +375,20 @@ public class BaasBox {
         private RestClient mRestClient = null;
         private boolean mTokenExpires = false;
 
+        /**
+         * Creates a new builder
+         * @param context
+         */
         public Builder(Context context){
-            mContext=context;
+            mContext=context.getApplicationContext();
         }
 
+        /**
+         * Sets if the session token will expire, defaults to false.
+         *
+         * @param expires tue if you want the session token not to be refreshed
+         * @return this builder
+         */
         public Builder setSessionTokenExpires(boolean expires){
             mTokenExpires = expires;
             return this;
@@ -388,6 +404,12 @@ public class BaasBox {
             return this;
         }
 
+        /**
+         * Sets the charset to use defaults to 'UTF-8'.
+         *
+         * @param charset
+         * @return this builder
+         */
         public Builder setHttpCharset(String charset){
             mHttpCharset =charset==null?"UTF-8":charset;
             return this;
@@ -398,31 +420,62 @@ public class BaasBox {
             return this;
         }
 
+        /**
+         * Sets the authentication type, defaults to {@link com.baasbox.android.BaasBox.Config.AuthType#SESSION_TOKEN}
+         *
+         * @param auth
+         * @return this builder
+         */
         public Builder setAuthentication(Config.AuthType auth){
             mAuthType = auth==null? Config.AuthType.SESSION_TOKEN:auth;
             return this;
         }
 
+        /**
+         * Sets the port this client will connect to
+         * @param port
+         * @return this builder
+         */
         public Builder setPort(int port){
             mPort = port;
             return this;
         }
 
+        /**
+         * Sets the api basePath prefix
+         * @param basepath
+         * @return this builder
+         */
         public Builder setApiBasepath(String basepath){
             mApiBasepath = basepath==null?"/":basepath;
             return this;
         }
 
+        /**
+         * Sets the connection timeout for this client
+         * @param timeout
+         * @return this builder
+         */
         public Builder setHttpConnectionTimeout(int timeout) {
             mHttpConnectionTimeout = timeout;
             return this;
         }
 
+        /**
+         * Sets the read timeout for this client
+         * @param timeout
+         * @return this builder
+         */
         public Builder setHttpSocketTimeout(int timeout) {
             mHttpSocketTimeout = timeout;
             return this;
         }
 
+        /**
+         * Sets the host this client will connect to
+         * @param domain
+         * @return this builder
+         */
         public Builder setApiDomain(String domain){
             if (domain==null) mApiDomain = "10.0.2.2";
             if(Patterns.IP_ADDRESS.matcher(domain).matches()||
@@ -432,6 +485,11 @@ public class BaasBox {
             return this;
         }
 
+        /**
+         * Sets the app code for this client
+         * @param code
+         * @return this builder
+         */
         public Builder setAppCode(String code){
             mAppCode = code==null?mAppCode:code;
             return this;
@@ -461,7 +519,10 @@ public class BaasBox {
                               mKeyStorePass);
         }
 
-
+        /**
+         * Initializes a BaasBox client based on this builder
+         * @return a singleton {@link BaasBox} client
+         */
         public BaasBox init(){
             if (sDefaultClient==null){
                 synchronized (LOCK){
@@ -540,7 +601,7 @@ public class BaasBox {
 
         /**
          * The authentication type used by the SDK, default is
-         * <code>BASIC_AUTHENTICATION</code>.
+         * <code>SESSION_TOKEN</code>.
          */
         public final AuthType authenticationType;
 
