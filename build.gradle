@@ -4,7 +4,6 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.8.+'
-//        classpath 'com.github.dcendents:android-maven-plugin:1.0'
     }
 }
 
@@ -124,69 +123,77 @@ artifacts {
     archives sourceJar
 }
 
-ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
-signing {
-    required {isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives")}
-    sign configurations.archives
+
+if(project.hasProperty("local.config")
+   && new File(project.property("local.config")+".gradle").exists()) {
+
+  apply from: project.property("local.config")+".gradle";
+
+  ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+  signing {
+      required {isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives")}
+      sign configurations.archives
+  }
+
+
+  uploadArchives {
+      repositories {
+          mavenDeployer {
+              if(isReleaseVersion){
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+              }
+
+              repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/"){
+                authentication(userName: sonatypeUser, password: sonatypePass)
+              }
+
+              snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/"){
+                authentication(userName: sonatypeUser, password: sonatypePass)
+              }
+
+              pom.groupId = 'com.baasbox'
+              pom.artifactId = 'baasbox-android'
+              pom.version = "${version}"
+              pom.packaging = 'jar'
+              pom.project {
+                  name  'BaasBox Android SDK'
+                  description "A library providing bindings for BaasBox rest services"
+                  url 'http://www.baasbox.com'
+                  inceptionYear '2013'
+                  licenses {
+                      license {
+                          name 'The Apache Sofware License, Version 2.0'
+                          url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                          distribution 'repo'
+                      }
+                  }
+                  organization {
+                      name 'BAASBOX'
+                      url 'http://www.baasbox.com'
+                  }
+                  scm {
+                      connection = 'scm:git@github.com:baasbox/Android-SDK.git'
+                      developerConnection = 'scm:git@github.com:baasbox/Android-SDK.git'
+                      url 'http://github.com/baasbox/Android-SDK'
+                  }
+                  developers {
+                      developer {
+                          id 'aKtor'
+                          name 'Andrea Tortorella'
+                          email 'a.tortorella@baasbox.com'
+                          organization = 'BAASBOX'
+                          organizationUrl 'http://www.baasbox.com'
+                      }
+                  }
+              }
+          }
+      }
+  }
 }
 
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            if(isReleaseVersion){
-              beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-            }
-
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/"){
-
-            }
-
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/"){
-
-            }
-
-            pom.groupId = 'com.baasbox'
-            pom.artifactId = 'baasbox-android'
-            pom.version = "${version}"
-            pom.packaging = 'jar'
-            pom.project {
-                name  'BaasBox Android SDK'
-                description "A library providing bindings for BaasBox rest services"
-                url 'http://www.baasbox.com'
-                inceptionYear '2013'
-                licenses {
-                    license {
-                        name 'The Apache Sofware License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        distribution 'repo'
-                    }
-                }
-                organization {
-                    name 'BAASBOX'
-                    url 'http://www.baasbox.com'
-                }
-                scm {
-                    connection = 'scm:git@github.com:baasbox/Android-SDK.git'
-                    developerConnection = 'scm:git@github.com:baasbox/Android-SDK.git'
-                    url 'http://github.com/baasbox/Android-SDK'
-                }
-                developers {
-                    developer {
-                        id 'aKtor'
-                        name 'Andrea Tortorella'
-                        email 'a.tortorella@baasbox.com'
-                        organization = 'BAASBOX'
-                        organizationUrl 'http://www.baasbox.com'
-                    }
-                }
-            }
-        }
-    }
-}
-
-// support for local user configurations
+// support for local extensions to configuration
 if(new File("dev-config.gradle").exists()){
     apply from: "dev-config.gradle"
 }
