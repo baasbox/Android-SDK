@@ -89,8 +89,8 @@ android {
             source = variant.javaCompile.source
             ext.androidJar = "${android.plugin.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
             destinationDir = file('docs');
-            //exclude "**/impl/**"
-            //exclude "**/BuildConfig**"
+            exclude "**/impl/**"
+            exclude "**/BuildConfig**"
             failOnError = false
             options {
             }
