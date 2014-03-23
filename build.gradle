@@ -22,7 +22,7 @@ repositories {
 // versioning
 def majorVersion = 0
 def minorVersion = 7
-def patchVersion = 4
+def patchVersion = 5
 def sdkRevision  = 0 // sdk revision of a release
 
 
@@ -32,7 +32,7 @@ def minPatchVersion = 3
 
 def releaseType = "SNAPSHOT";
 
-version = "${majorVersion}.${minorVersion}.${patchVersion}"
+version = "${majorVersion}.${minorVersion}.${patchVersion}-${releaseType}"
 
 def gitSha ={
     'git rev-parse --short HEAD'.execute().text.trim()
