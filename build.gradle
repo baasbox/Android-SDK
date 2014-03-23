@@ -32,7 +32,7 @@ def minPatchVersion = 3
 
 def releaseType = "SNAPSHOT";
 
-version = "${majorVersion}.${minorVersion}.${patchVersion}-${releaseType}"
+version = "${majorVersion}.${minorVersion}.${patchVersion}"
 
 def gitSha ={
     'git rev-parse --short HEAD'.execute().text.trim()
