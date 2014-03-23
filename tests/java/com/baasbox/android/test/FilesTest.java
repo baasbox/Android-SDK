@@ -18,11 +18,13 @@ package com.baasbox.android.test;
 import android.annotation.TargetApi;
 import android.os.Build;
 import com.baasbox.android.*;
+import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.test.common.BaasTestBase;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.List;
 
 /**
  * Created by Andrea Tortorella on 05/02/14.
@@ -79,7 +81,6 @@ public class FilesTest extends BaasTestBase {
             fail("upload failed");
         }
     }
-
 
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     private InputStream getStringInput(){

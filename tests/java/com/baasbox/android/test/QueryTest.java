@@ -75,9 +75,9 @@ public class QueryTest extends BaasTestBase{
         final BaasQuery q =
                 BaasQuery.builder()
                          .collection(COLLECTION)
-                         .appendWhere("n >= 2")
+                         .where("n >= 2")
                          .projection("n, count(*) as c")
-                         .setGroupBy("@class")
+                         .groupBy("@class")
                          .orderBy("n desc")
                          .build();
 

@@ -243,7 +243,7 @@ public class BaasQuery {
             return this;
         }
 
-        public Builder appendWhere(String where){
+        public Builder where(String where){
             if (where!=null){
                 if(whereBuilder ==null){
                     whereBuilder = new StringBuilder(where.length()+16);
@@ -264,7 +264,7 @@ public class BaasQuery {
                 sb.setLength(sb.length()-1);
                 this.fields= sb.toString();//Arrays.toString(fields);//.substring(1,fields.length-1);
             }
-            Logger.error("REQI: %s",this.fields);
+//            Logger.error("REQI: %s",this.fields);
             return this;
         }
 
@@ -273,7 +273,7 @@ public class BaasQuery {
             return this;
         }
 
-        public Builder setWhereParams(String ...params){
+        public Builder whereParams(String... params){
             if(params!=null&&params.length==0){
                 this.params = new ArrayList<CharSequence>();
                 Collections.addAll(this.params, params);
@@ -286,7 +286,7 @@ public class BaasQuery {
             return this;
         }
 
-        public Builder setPagination(int page,int records){
+        public Builder pagination(int page,int records){
             if(paging==null){
                 paging = new Paging(page,records);
             } else {
@@ -296,7 +296,7 @@ public class BaasQuery {
             return this;
         }
 
-        public Builder setGroupBy(String groupBy){
+        public Builder groupBy(String groupBy){
             this.groupBy=groupBy;
             return this;
         }

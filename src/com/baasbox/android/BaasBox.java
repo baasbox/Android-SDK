@@ -185,6 +185,22 @@ public class BaasBox {
         return enablePush(registrationId,null,handler);
     }
 
+    public RequestToken disablePush(String registrationId,BaasHandler<Void> handler){
+        return disablePush(registrationId,Priority.NORMAL,handler);
+    }
+
+    public RequestToken disablePush(String registrationId,Priority priority,BaasHandler<Void> handler){
+        if (registrationId==null) throw new IllegalArgumentException("registrationId cannot be null");
+        RegisterPush rp = new RegisterPush(this,registrationId,false,priority,handler);
+        return submitAsync(rp);
+    }
+
+    public BaasResult<Void> disablePushSync(String registrationId) {
+        if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
+        RegisterPush req = new RegisterPush(this,registrationId,false,null,null);
+        return submitSync(req);
+    }
+
     public BaasResult<Void> enablePushSync(String registrationId) {
         if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
         RegisterPush req = new RegisterPush(this,registrationId,true,null,null);
@@ -652,6 +668,7 @@ public class BaasBox {
             return request;
         }
     }
+
 
 
     private static final class RegisterPush extends NetworkTask<Void> {

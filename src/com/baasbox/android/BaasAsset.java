@@ -38,8 +38,8 @@ public final class BaasAsset {
      * @param handler an handler that will be handed the response
      * @return a request token
      */
-    public static RequestToken getData(String id,BaasHandler<JsonObject> handler){
-        return getData(id,Priority.NORMAL,handler);
+    public static RequestToken fetchData(String id, BaasHandler<JsonObject> handler){
+        return fetchData(id, Priority.NORMAL, handler);
     }
 
 
@@ -53,7 +53,7 @@ public final class BaasAsset {
      * @param handler an handler that will be handed the response
      * @return a request token
      */
-    public static RequestToken getData(String id,Priority priority,BaasHandler<JsonObject> handler){
+    public static RequestToken fetchData(String id, Priority priority, BaasHandler<JsonObject> handler){
         if(id==null) throw new IllegalArgumentException("asset id cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
         AssetDataRequest req = new AssetDataRequest(box,id,priority,handler);
@@ -70,14 +70,24 @@ public final class BaasAsset {
      * @return a baas result wrapping the response.
      *
      */
-    public static BaasResult<JsonObject> getData(String id){
+    public static BaasResult<JsonObject> fetchDataSync(String id){
         if (id == null) throw new IllegalArgumentException("asset id cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
         AssetDataRequest req = new AssetDataRequest(box,id,null,null);
         return box.submitSync(req);
     }
 
+    public static RequestToken streamAsset(String id,BaasHandler<byte[]> handler){
+        return BaasAsset.streamAsset(id,new AssetStreamer(),handler);
+    }
 
+
+    private static class AssetStreamer extends StreamBody<byte[]> {
+        @Override
+        protected byte[] convert(byte[] body, String id, String contentType, long contentLength) {
+            return body;
+        }
+    };
     /**
      * Streams the file using the provided data stream handler.
      *
