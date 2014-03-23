@@ -27,3 +27,6 @@ local.properties
 # Gradle generated artifacts
 build/**
 .gradle/**
+gradle.properties
+dev-config.gradle
+dev-config/**
