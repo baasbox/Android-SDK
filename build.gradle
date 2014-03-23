@@ -125,7 +125,6 @@ artifacts {
 }
 
 
-
 if(project.hasProperty("local.config")
    && new File(project.property("local.config")+".gradle").exists()) {
 
@@ -135,11 +134,6 @@ if(project.hasProperty("local.config")
 
   signing {
       required {isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives")}
-
-      keyId = ext.signingKeyID
-      password = ext.signingPassphrase
-      secretKeyRingFile = ext.signingGPGFile
-
       sign configurations.archives
   }
 
