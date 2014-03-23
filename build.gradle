@@ -91,6 +91,7 @@ android {
             destinationDir = file('docs');
             exclude "**/impl/**"
             exclude "**/BuildConfig**"
+
             failOnError = false
             options {
             }

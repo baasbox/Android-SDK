@@ -449,7 +449,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         return box.submitSync(save);
     }
 
-    private static final void writeOptString(Parcel p, String s) {
+    private static void writeOptString(Parcel p, String s) {
         if (s == null) {
             p.writeByte((byte) 0);
         } else {

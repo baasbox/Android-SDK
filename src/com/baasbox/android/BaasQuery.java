@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * A query with specific parameters to a collection endpoint
  * Created by Andrea Tortorella on 07/03/14.
  */
 public class BaasQuery {
