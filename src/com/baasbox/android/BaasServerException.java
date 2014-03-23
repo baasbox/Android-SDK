@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andlimitations under the License.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package com.baasbox.android;
@@ -18,6 +18,7 @@ package com.baasbox.android;
 import com.baasbox.android.json.JsonObject;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A subclass of {@link BaasApiException} indicating an error due a problem
@@ -29,17 +30,19 @@ import java.util.HashMap;
  * @author Davide Caroselli
  */
 public class BaasServerException extends BaasApiException {
+// ------------------------------ FIELDS ------------------------------
 
     private static final long serialVersionUID = 3343497779336452255L;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+    public BaasServerException(int status, JsonObject jsonResponse) {
+        super(status, jsonResponse);
+    }
+
     public BaasServerException(int code, int httpStatus, String resource, String method,
-                               HashMap<String, String> requestHeader, String apiVersion,
+                               Map<String, String> requestHeader, String apiVersion,
                                String detailMessage) {
         super(code, httpStatus, resource, method, requestHeader, apiVersion,
                 detailMessage);
-    }
-
-    public BaasServerException(int status, JsonObject jsonResponse) {
-        super(status, jsonResponse);
     }
 }

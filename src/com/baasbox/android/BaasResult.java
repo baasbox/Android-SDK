@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andlimitations under the License.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package com.baasbox.android;
@@ -24,9 +24,15 @@ package com.baasbox.android;
  * @since 0.7.3
  */
 public abstract class BaasResult<T> {
+// --------------------------- CONSTRUCTORS ---------------------------
+    private BaasResult() {
+    }
+
+// -------------------------- STATIC METHODS --------------------------
 
     /**
      * Returns a new failed BaasResult
+     *
      * @param t
      * @param <T>
      * @return
@@ -37,6 +43,7 @@ public abstract class BaasResult<T> {
 
     /**
      * Returns a new canceled BaasResult
+     *
      * @param <T>
      * @return
      */
@@ -46,6 +53,7 @@ public abstract class BaasResult<T> {
 
     /**
      * Returns a new successful BaasResult
+     *
      * @param result
      * @param <T>
      * @return
@@ -54,12 +62,66 @@ public abstract class BaasResult<T> {
         return new Success<T>(result);
     }
 
-    private BaasResult() {
+    static void throwEx(Throwable t){
+        BaasResult.<RuntimeException>sneakyThrow(t);
     }
 
+    private static <T extends Throwable> T sneakyThrow(Throwable e)throws T{
+        throw (T)e;
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    /**
+     * Returns the error represented by this result
+     * or null if this result is not an error.
+     *
+     * @return a {@link com.baasbox.android.BaasException}
+     */
+    public abstract BaasException error();
+
+    /**
+     * Tries to return the value if there was an error
+     * it will be thrown instead.
+     *
+     * @return the value contained in this result
+     * @throws BaasException if the request was canceled or there was an errror
+     */
+    public abstract T get() throws BaasException;
+
+    /**
+     * True if this result represent a cancelled request
+     *
+     * @return true if this result is canceled
+     */
+    public abstract boolean isCanceled();
+
+
+    /**
+     * True if this result represents a failure
+     *
+     * @return true if this result is a failure
+     */
+    public abstract boolean isFailed();
+
+    /**
+     * True if the result represent a success
+     *
+     * @return true if this result is a success
+     */
+    public abstract boolean isSuccess();
+
+    /**
+     * Returns the value represented by this result
+     * if there was no error, null otherwise
+     *
+     * @return a value
+     */
+    public abstract T value();
+
+// -------------------------- INNER CLASSES --------------------------
 
     private static class Cancel<T> extends Error<T> {
-
         Cancel() {
             super(new BaasCancellationException());
         }
@@ -79,13 +141,14 @@ public abstract class BaasResult<T> {
         private final BaasException error;
 
         Error(BaasException e) {
-            if (e==null)throw new NullPointerException("error cannot be null");
+            if (e == null) throw new IllegalArgumentException("error cannot be null");
             this.error = e;
         }
 
         @Override
         public final T value() {
-            throw new RuntimeException(error);
+            throwEx(error);
+            return null; // compiler is happy!
         }
 
         @Override
@@ -115,7 +178,7 @@ public abstract class BaasResult<T> {
 
         @Override
         public String toString() {
-            return "Error{error=" + error +'}';
+            return "Error{error=" + error + '}';
         }
 
         @Override
@@ -175,7 +238,7 @@ public abstract class BaasResult<T> {
 
         @Override
         public String toString() {
-            return "Success{value=" + value +'}';
+            return "Success{value=" + value + '}';
         }
 
         @Override
@@ -192,48 +255,4 @@ public abstract class BaasResult<T> {
             return value != null ? value.hashCode() : 0;
         }
     }
-
-
-
-    /**
-     * True if this result represents a failure
-     * @return true if this result is a failure
-     */
-    public abstract boolean isFailed();
-
-    /**
-     * True if the result represent a success
-     * @return true if this result is a success
-     */
-    public abstract boolean isSuccess();
-
-    /**
-     * True if this result represent a cancelled request
-     * @return true if this result is canceled
-     */
-    public abstract boolean isCanceled();
-
-    /**
-     * Returns the error represented by this result
-     * or null if this result is not an error.
-     * @return a {@link com.baasbox.android.BaasException}
-     */
-    public abstract BaasException error();
-
-    /**
-     * Returns the value represented by this result
-     * if there was no error, null otherwise
-     * @return a value
-     */
-    public abstract T value();
-
-    /**
-     * Tries to return the value if there was an error
-     * it will be thrown instead.
-     *
-     * @return the value contained in this result
-     * @throws BaasException if the request was canceled or there was an errror
-     */
-    public abstract T get() throws BaasException;
-
 }

@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andlimitations under the License.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package com.baasbox.android.json;
@@ -19,8 +19,11 @@ package com.baasbox.android.json;
  * Created by Andrea Tortorella on 01/01/14.
  */
 public class JsonException extends RuntimeException {
+// ------------------------------ FIELDS ------------------------------
+
     private static final long serialVersionUID = -3383190900059424412L;
 
+// --------------------------- CONSTRUCTORS ---------------------------
     public JsonException() {
     }
 
@@ -28,11 +31,11 @@ public class JsonException extends RuntimeException {
         super(detailMessage);
     }
 
-    public JsonException(String detailMessage, Throwable throwable) {
-        super(detailMessage, throwable);
-    }
-
     public JsonException(Throwable throwable) {
         super(throwable);
+    }
+
+    public JsonException(String detailMessage, Throwable throwable) {
+        super(detailMessage, throwable);
     }
 }

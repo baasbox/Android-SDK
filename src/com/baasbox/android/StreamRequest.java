@@ -10,12 +10,11 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andlimitations under the License.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package com.baasbox.android;
 
-import com.baasbox.android.impl.DiskLruCache;
 import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -26,17 +25,19 @@ import java.io.IOException;
  * Created by Andrea Tortorella on 17/01/14.
  */
 class StreamRequest extends NetworkTask<BaasStream> {
+// ------------------------------ FIELDS ------------------------------
+
     private final String id;
     private final HttpRequest request;
 
-    protected StreamRequest(BaasBox box,String resource, String id, String sizeSpec, int sizeId) {
+// --------------------------- CONSTRUCTORS ---------------------------
+    protected StreamRequest(BaasBox box, String resource, String id, String sizeSpec, int sizeId) {
         super(box, null, null);
         this.id = id;
-        String endpoint = box.requestFactory.getEndpoint("?/?",resource, id);
+        String endpoint = box.requestFactory.getEndpoint("{}/{}", resource, id);
         RequestFactory.Param param = null;
         if (sizeSpec != null) {
             param = new RequestFactory.Param("resize", sizeSpec);
-
         } else if (sizeId >= 0) {
             param = new RequestFactory.Param("sizeId", Integer.toString(sizeId));
         }
@@ -46,6 +47,8 @@ class StreamRequest extends NetworkTask<BaasStream> {
             request = box.requestFactory.get(endpoint);
         }
     }
+
+// -------------------------- OTHER METHODS --------------------------
 
     @Override
     protected BaasStream getFromCache(BaasBox box) throws BaasException {
@@ -71,6 +74,7 @@ class StreamRequest extends NetworkTask<BaasStream> {
                         entity.consumeContent();
                     }
                 } catch (IOException e) {
+                    // ignored
                 }
             }
         }

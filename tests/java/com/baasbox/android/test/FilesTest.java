@@ -1,11 +1,30 @@
+/*
+ * Copyright (C) 2014. BaasBox
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
+ */
+
 package com.baasbox.android.test;
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import com.baasbox.android.*;
+import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.test.common.BaasTestBase;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.List;
 
 /**
  * Created by Andrea Tortorella on 05/02/14.
@@ -31,8 +50,8 @@ public class FilesTest extends BaasTestBase {
         BaasResult<BaasUser> res = BaasUser.withUserName("test")
                 .setPassword("test")
                 .signupSync();
-        assertTrue(res.isSuccess());
     }
+
 
     @Override
     protected void beforeTest() throws Exception {
@@ -43,50 +62,27 @@ public class FilesTest extends BaasTestBase {
         fileId = file.getId();
     }
 
-    public void testStream(){
-        stream();
+    public void testPreconditions(){
+        assertNotNull("User is signed up",BaasUser.current());
+        assertNotNull("default file is uploaded",fileId);
     }
 
+    public void testUploadNewFile(){
+        byte[] smallFile = "ciao mondo".getBytes();
 
-    public void testStreamTwo(){
-        stream();
-        stream();
-    }
-
-    private void stream() {
-        RequestToken t = BaasFile.fetchStream(fileId, new BaasHandler<BaasFile>() {
-            @Override
-            public void handle(BaasResult<BaasFile> result) {
-
-            }
-        });
-        BaasResult<BaasFile> await = t.await();
+        BaasFile f = new BaasFile();
+        BaasResult<BaasFile> await = f.upload(smallFile, BaasHandler.NOOP).await();
         try {
-            BaasFile f = await.get();
-            assertNotNull(f.getId());
-            assertNotNull(f.getData());
+            BaasFile file = await.get();
+            assertNotNull(file.getId());
+            assertNotNull(file.getAuthor());
+            assertEquals(file.getAuthor(),BaasUser.current().getName());
         } catch (BaasException e) {
-            e.printStackTrace();
+            fail("upload failed");
         }
     }
 
-    public void testUpload(){
-        BaasFile file = new BaasFile();
-        RequestToken token=file.upload(getStringInput(), new BaasHandler<BaasFile>() {
-            @Override
-            public void handle(BaasResult<BaasFile> result) {
-
-            }
-        });
-        BaasResult<BaasFile> w = token.await();
-        try {
-            BaasFile fileRes =w.get();
-            assertNotNull(fileRes.getId());
-        } catch (BaasException e) {
-            fail(e.getMessage());
-        }
-    }
-
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     private InputStream getStringInput(){
         return new ByteArrayInputStream(TEXT_FILE.getBytes(Charset.defaultCharset()));
     }

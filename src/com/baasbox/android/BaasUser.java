@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andlimitations under the License.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package com.baasbox.android;
@@ -51,8 +51,9 @@ import java.util.*;
  * Created by Andrea Tortorella on 02/01/14.
  */
 public class BaasUser implements Parcelable {
+// ------------------------------ FIELDS ------------------------------
 
-    public final static Creator<BaasUser> CREATOR = new Creator<BaasUser>() {
+    public static final Creator<BaasUser> CREATOR = new Creator<BaasUser>() {
         @Override
         public BaasUser createFromParcel(Parcel source) {
             return new BaasUser(source);
@@ -63,8 +64,10 @@ public class BaasUser implements Parcelable {
             return new BaasUser[size];
         }
     };
-    private final Set<String> roles = new HashSet<String>();
+
     String social;
+
+    private final Set<String> roles = new HashSet<String>();
     private JsonObject privateData;
     private JsonObject friendVisibleData;
     private JsonObject registeredVisibleData;
@@ -75,6 +78,7 @@ public class BaasUser implements Parcelable {
     private String signupDate;
     private String status;
 
+// --------------------------- CONSTRUCTORS ---------------------------
     BaasUser(String username) {
         super();
         if (TextUtils.isEmpty(username)) throw new IllegalArgumentException("username cannot be empty");
@@ -93,27 +97,36 @@ public class BaasUser implements Parcelable {
         super();
         init(user);
     }
-//
-//    BaasUser(String username, JsonObject data) {
-//        super();
-//        this.username = username;
-//        this.privateData = data.getObject(Scope.PRIVATE.visibility, new JsonObject());
-//        this.friendVisibleData = data.getObject(Scope.FRIEND.visibility, new JsonObject());
-//        this.registeredVisibleData = data.getObject(Scope.REGISTERED.visibility, new JsonObject());
-//        this.publicVisibleData = data.getObject(Scope.PUBLIC.visibility, new JsonObject());
-//    }
 
-    BaasUser(String username, String password, String signupDate, String status, String token, JsonArray roles, JsonObject profile) {
-        this.username = username;
-        this.password = password;
-        this.signupDate = signupDate;
-        this.status = status;
-        this.authToken = token;
-        addRoleNames(this.roles, roles);
-        this.privateData = profile.getObject(Scope.PRIVATE.visibility);
-        this.friendVisibleData = profile.getObject(Scope.FRIEND.visibility);
-        this.registeredVisibleData = profile.getObject(Scope.REGISTERED.visibility);
-        this.publicVisibleData = profile.getObject(Scope.PUBLIC.visibility);
+    private void init(JsonObject user) {
+        JsonObject accountData = user.getObject("user");
+        this.username = accountData.getString("name");
+        this.roles.clear();
+        addRoles(this.roles, accountData.getArray("roles"));
+        this.status = accountData.getString("status");
+        this.privateData = fetchOptionalData(user, Scope.PRIVATE.visibility);
+        this.friendVisibleData = fetchOptionalData(user, Scope.FRIEND.visibility);
+        this.registeredVisibleData = fetchOptionalData(user, Scope.REGISTERED.visibility);
+        this.publicVisibleData = fetchOptionalData(user, Scope.PUBLIC.visibility);
+        this.signupDate = user.getString("signUpDate");
+    }
+
+    private static void addRoles(Set<String> roles, JsonArray jsonRoles) {
+        for (Object roleSpec : jsonRoles) {
+            String role = ((JsonObject) roleSpec).getString("name");
+            if (role != null) {
+                roles.add(role);
+            }
+        }
+    }
+
+    private static JsonObject fetchOptionalData(JsonObject userObject, String visibility) {
+        if (userObject.isNull(visibility)) {
+            return null;
+        } else {
+            JsonObject o = userObject.getObject(visibility);
+            return o == null ? new JsonObject() : o;
+        }
     }
 
     BaasUser(Parcel source) {
@@ -128,20 +141,53 @@ public class BaasUser implements Parcelable {
         this.publicVisibleData = readOptJson(source);
     }
 
-    /**
-     * Creates a new user bound to username.
-     * If the provided username is the same one of the currently logged in account
-     * the same instance of {@link #current()} is returned.
-     *
-     * @param username a non empty username
-     * @return a <code>BaasUser</code>
-     */
-    public static BaasUser withUserName(String username) {
-        BaasUser current = current();
-        if (current != null && current.username.equals(username)) {
-            return current;
+
+    private static void readStringSet(Parcel p, Set<String> set) {
+        int size = p.readInt();
+        String[] arr = new String[size];
+        p.readStringArray(arr);
+        Collections.addAll(set, arr);
+    }
+
+    private static JsonObject readOptJson(Parcel p) {
+        if (p.readByte() == 1) {
+            return p.readParcelable(JsonArray.class.getClassLoader());
+        } else {
+            return null;
         }
-        return new BaasUser(username);
+    }
+
+    BaasUser(String username, String password, String signupDate, String status, String token, JsonArray roles, JsonObject profile) {
+        this.username = username;
+        this.password = password;
+        this.signupDate = signupDate;
+        this.status = status;
+        this.authToken = token;
+        addRoleNames(this.roles, roles);
+        this.privateData = profile.getObject(Scope.PRIVATE.visibility);
+        this.friendVisibleData = profile.getObject(Scope.FRIEND.visibility);
+        this.registeredVisibleData = profile.getObject(Scope.REGISTERED.visibility);
+        this.publicVisibleData = profile.getObject(Scope.PUBLIC.visibility);
+    }
+
+    private static void addRoleNames(Set<String> roles, JsonArray jsonRoles) {
+        for (Object roleNames : jsonRoles) {
+            String role = (String) roleNames;
+            if (role != null) {
+                roles.add(role);
+            }
+        }
+    }
+
+// -------------------------- STATIC METHODS --------------------------
+
+    /**
+     * Verifies if there is a currently logged in user on this device
+     *
+     * @return true if there is an authenticated user on this device
+     */
+    public static boolean isAuthentcated() {
+        return current() != null;
     }
 
     /**
@@ -152,15 +198,6 @@ public class BaasUser implements Parcelable {
      */
     public static BaasUser current() {
         return BaasBox.getDefaultChecked().store.currentUser();
-    }
-
-    /**
-     * Verifies if there is a currently logged in user on this device
-     *
-     * @return true if there is an authenticated user on this device
-     */
-    public static boolean isAuthentcated() {
-        return current() != null;
     }
 
     public static BaasResult<BaasUser> signupWithProviderSync(String provider, String token, String secret) {
@@ -181,7 +218,7 @@ public class BaasUser implements Parcelable {
 
     public static BaasResult<Void> requestPasswordResetSync(String username) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (username == null) throw new NullPointerException("username cannot be null");
+        if (username == null) throw new IllegalArgumentException("username cannot be null");
         return box.submitSync(new PasswordReset(box, username, null, null));
     }
 
@@ -191,7 +228,7 @@ public class BaasUser implements Parcelable {
 
     public static RequestToken requestPasswordReset(String username, Priority priority, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        if (username == null) throw new NullPointerException("username cannot be null");
+        if (username == null) throw new IllegalArgumentException("username cannot be null");
         return box.submitAsync(new PasswordReset(box, username, priority, handler));
     }
 
@@ -209,6 +246,26 @@ public class BaasUser implements Parcelable {
     }
 
     /**
+     * Creates a new user bound to username.
+     * If the provided username is the same one of the currently logged in account
+     * the same instance of {@link #current()} is returned.
+     *
+     * @param username a non empty username
+     * @return a <code>BaasUser</code>
+     */
+    public static BaasUser withUserName(String username) {
+        BaasUser current = current();
+        if (current != null && current.username.equals(username)) {
+            return current;
+        }
+        return new BaasUser(username);
+    }
+
+    public RequestToken refresh(BaasHandler<BaasUser> handler) {
+        return refresh(Priority.NORMAL, handler);
+    }
+
+    /**
      * Asynchronously fetches an existing {@link com.baasbox.android.BaasUser} from the server
      * given it's username
      *
@@ -222,9 +279,21 @@ public class BaasUser implements Parcelable {
         return user.refresh(priority, handler);
     }
 
+    public RequestToken refresh(Priority priority, BaasHandler<BaasUser> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        FetchUser fetch = new FetchUser(box, this, priority, handler);
+        return box.submitAsync(fetch);
+    }
+
     public static BaasResult<BaasUser> fetchSync(String username) {
         BaasUser user = new BaasUser(username);
         return user.refreshSync();
+    }
+
+    public BaasResult<BaasUser> refreshSync() {
+        BaasBox box = BaasBox.getDefaultChecked();
+        FetchUser fetch = new FetchUser(box, this, null, null);
+        return box.submitSync(fetch);
     }
 
     public static BaasResult<List<BaasUser>> fetchAllSync() {
@@ -273,48 +342,6 @@ public class BaasUser implements Parcelable {
         return box.submitAsync(users);
     }
 
-    private static void addRoleNames(Set<String> roles, JsonArray jsonRoles) {
-        for (Object roleNames : jsonRoles) {
-            String role = (String) roleNames;
-            if (role != null) {
-                roles.add(role);
-            }
-        }
-    }
-
-    private static void addRoles(Set<String> roles, JsonArray jsonRoles) {
-        for (Object roleSpec : jsonRoles) {
-            String role = ((JsonObject) roleSpec).getString("name");
-            if (role != null) {
-                roles.add(role);
-            }
-        }
-    }
-
-    private static JsonObject fetchOptionalData(JsonObject userObject, String visibility) {
-        if (userObject.isNull(visibility)) {
-            return null;
-        } else {
-            JsonObject o = userObject.getObject(visibility);
-            return o == null ? new JsonObject() : o;
-        }
-    }
-
-    private static JsonObject readOptJson(Parcel p) {
-        if (p.readByte() == 1) {
-            return p.readParcelable(JsonArray.class.getClassLoader());
-        } else {
-            return null;
-        }
-    }
-
-    private static void readStringSet(Parcel p, Set<String> set) {
-        int size = p.readInt();
-        String[] arr = new String[size];
-        p.readStringArray(arr);
-        Collections.addAll(set, arr);
-    }
-
     private static void writeStringSet(Parcel p, Set<String> s) {
         p.writeInt(s.size());
         p.writeStringArray(s.toArray(new String[s.size()]));
@@ -329,6 +356,146 @@ public class BaasUser implements Parcelable {
         }
     }
 
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+    /**
+     * Returns the password of this user, if there is one.
+     *
+     * @return a {@link java.lang.String} representing the password of the user.
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * Returns the signupdate for this user if available or null.
+     *
+     * @return the signup date
+     */
+    public String getSignupDate() {
+        return signupDate;
+    }
+
+    /**
+     * Returns the registration status of the user if available or null.
+     *
+     * @return a string representing the status of the user
+     */
+    public String getStatus() {
+        return status;
+    }
+
+// ------------------------ CANONICAL METHODS ------------------------
+
+    public String toString() {
+        return String.format(Locale.US, "BaasUser" + toJson());
+    }
+
+    private JsonObject toJson() {
+        JsonObject object = new JsonObject();
+        object.putString("username", username);
+        object.putString("password", password);
+        object.putString("token", authToken);
+        object.putObject(Scope.PRIVATE.visibility, privateData)
+                .putObject(Scope.FRIEND.visibility, friendVisibleData)
+                .putObject(Scope.REGISTERED.visibility, registeredVisibleData)
+                .putObject(Scope.PUBLIC.visibility, publicVisibleData);
+        return object;
+    }
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface Parcelable ---------------------
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(username);
+        dest.writeString(signupDate);
+        dest.writeString(status);
+        writeStringSet(dest, roles);
+        writeOptJson(dest, privateData);
+        writeOptJson(dest, friendVisibleData);
+        writeOptJson(dest, registeredVisibleData);
+        writeOptJson(dest, publicVisibleData);
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    public RequestToken changePassword(String password, BaasHandler<Void> handler) {
+        return changePassword(password, null, handler);
+    }
+
+    public RequestToken changePassword(String password, Priority priority, BaasHandler<Void> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (password == null) throw new IllegalArgumentException("password cannot be null");
+        if (this.password == null) throw new IllegalStateException("Current user has no password");
+        ChangePassword cp = new ChangePassword(box, this, password, priority, handler);
+        return box.submitAsync(cp);
+    }
+
+    public BaasResult<Void> changePasswordSync(String password) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (password == null) throw new IllegalArgumentException("password cannot be null");
+        if (this.password == null) throw new IllegalStateException("Current user has no password");
+        ChangePassword cp = new ChangePassword(box, this, password, null, null);
+        return box.submitSync(cp);
+    }
+
+    /**
+     * Asynchronously requests to follow the user,
+     * using not tag and default {@link com.baasbox.android.Priority}
+     *
+     * @param handler an handler to be invoked when the request completes
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public RequestToken follow(BaasHandler<BaasUser> handler) {
+        return follow(null, handler);
+    }
+
+    /**
+     * Asynchronously requests to follow the user.
+     *
+     * @param priority a {@link com.baasbox.android.Priority}
+     * @param handler  an handler to be invoked when the request completes
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public RequestToken follow(Priority priority, BaasHandler<BaasUser> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Follow follow = new Follow(box, true, this, priority, handler);
+        return box.submitAsync(follow);
+    }
+
+    public BaasResult<BaasUser> followSync() {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Follow follow = new Follow(box, true, this, null, null);
+        return box.submitSync(follow);
+    }
+
+    public RequestToken followers(BaasHandler<List<BaasUser>> handler) {
+        return followers(null, null, handler);
+    }
+
+    public RequestToken followers(Filter filter, BaasHandler<List<BaasUser>> handler) {
+        return followers(filter, null, handler);
+    }
+
+    public RequestToken followers(Filter filter, Priority priority, BaasHandler<List<BaasUser>> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        FetchUsers users;
+        if (isCurrent()) {
+            users = new FetchUsers(box, "followers", null, filter, priority, handler);
+        } else {
+            users = new FetchUsers(box, "followers/{}", username, filter, priority, handler);
+        }
+        return box.submitAsync(users);
+    }
+
     /**
      * Checks if this user is the currently logged in user on this device.
      *
@@ -341,37 +508,72 @@ public class BaasUser implements Parcelable {
         return current.username.equals(username);
     }
 
-    private void init(JsonObject user) {
-        JsonObject accountData = user.getObject("user");
-        this.username = accountData.getString("name");
-        this.roles.clear();
-        addRoles(this.roles, accountData.getArray("roles"));
-        this.status = accountData.getString("status");
-        this.privateData = fetchOptionalData(user, Scope.PRIVATE.visibility);
-        this.friendVisibleData = fetchOptionalData(user, Scope.FRIEND.visibility);
-        this.registeredVisibleData = fetchOptionalData(user, Scope.REGISTERED.visibility);
-        this.publicVisibleData = fetchOptionalData(user, Scope.PUBLIC.visibility);
-        this.signupDate = user.getString("signUpDate");
+    /**
+     * Returns the name of the user.
+     *
+     * @return the name of the user.
+     */
+    public String getName() {
+        return username;
     }
 
-    private void update(JsonObject user) {
-        init(user);
+    public BaasResult<List<BaasUser>> followersSync() {
+        return followersSync(null);
     }
 
-    public RequestToken send(JsonObject message, Priority priority, BaasHandler<Void> handler) {
+    public BaasResult<List<BaasUser>> followersSync(Filter filter) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Push push = new Push(box, username, message, priority, handler);
-        return box.submitAsync(push);
+        FetchUsers users;
+        if (isCurrent()) {
+            users = new FetchUsers(box, "followers", null, filter, null, null);
+        } else {
+            users = new FetchUsers(box, "followers/{}", username, filter, null, null);
+        }
+        return box.submitSync(users);
     }
 
-    public RequestToken send(JsonObject message, BaasHandler<Void> handler) {
-        return send(message, null, handler);
+    public RequestToken following(BaasHandler<List<BaasUser>> handler) {
+        return following(null, null, handler);
     }
 
-    public BaasResult<Void> sendSync(JsonObject message) {
+    public RequestToken following(Filter filter, BaasHandler<List<BaasUser>> handler) {
+        return following(filter, null, handler);
+    }
+
+    public RequestToken following(Filter filter, Priority priority, BaasHandler<List<BaasUser>> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Push push = new Push(box, username, message, null, null);
-        return box.submitSync(push);
+        FetchUsers users;
+        if (isCurrent()) {
+            users = new FetchUsers(box, "following", null, filter, priority, handler);
+        } else {
+            users = new FetchUsers(box, "following/{}", username, filter, priority, handler);
+        }
+        return box.submitAsync(users);
+    }
+
+    public BaasResult<List<BaasUser>> followingSync() {
+        return followingSync(null);
+    }
+
+    public BaasResult<List<BaasUser>> followingSync(Filter filter) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        FetchUsers users;
+        if (isCurrent()) {
+            users = new FetchUsers(box, "following", null, filter, null, null);
+        } else {
+            users = new FetchUsers(box, "following/{}", username, filter, null, null);
+        }
+        return box.submitSync(users);
+    }
+
+    /**
+     * Returns an unmodifialble set of the roles
+     * to which the user belongs if it's available
+     *
+     * @return a {@link java.util.Set} of role names
+     */
+    public Set<String> getRoles() {
+        return Collections.unmodifiableSet(roles);
     }
 
     /**
@@ -398,59 +600,8 @@ public class BaasUser implements Parcelable {
             case PUBLIC:
                 return publicVisibleData;
             default:
-                throw new NullPointerException("scope cannot be null");
+                throw new IllegalArgumentException("scope cannot be null");
         }
-    }
-
-    /**
-     * Returns the signupdate for this user if available or null.
-     *
-     * @return the signup date
-     */
-    public String getSignupDate() {
-        return signupDate;
-    }
-
-    /**
-     * Returns the registration status of the user if available or null.
-     *
-     * @return a string representing the status of the user
-     */
-    public String getStatus() {
-        return status;
-    }
-
-    /**
-     * Returns an unmodifialble set of the roles
-     * to which the user belongs if it's available
-     *
-     * @return a {@link java.util.Set} of role names
-     */
-    public Set<String> getRoles() {
-        return Collections.unmodifiableSet(roles);
-    }
-
-    /**
-     * Returns the password of this user, if there is one.
-     *
-     * @return a {@link java.lang.String} representing the password of the user.
-     */
-    public String getPassword() {
-        return password;
-    }
-
-    /**
-     * Sets the password for this user.
-     * This should be called prior of any signup/login request, with
-     * a non null argument.
-     * Calling this with a null argument has the effect of erasing the password.
-     *
-     * @param password the password
-     * @return this user with the password set.
-     */
-    public BaasUser setPassword(String password) {
-        this.password = password;
-        return this;
     }
 
     /**
@@ -463,10 +614,6 @@ public class BaasUser implements Parcelable {
         return authToken;
     }
 
-    void setToken(String session) {
-        this.authToken = session;
-    }
-
     /**
      * Checks if the user has a specific role
      *
@@ -475,56 +622,8 @@ public class BaasUser implements Parcelable {
      * @throws java.lang.NullPointerException if <code>role</code> is <code>null</code>
      */
     public boolean hasRole(String role) {
-        if (role == null) throw new NullPointerException("role cannot be null");
+        if (role == null) throw new IllegalArgumentException("role cannot be null");
         return roles.contains(role);
-    }
-
-    /**
-     * Returns the name of the user.
-     *
-     * @return the name of the user.
-     */
-    public String getName() {
-        return username;
-    }
-
-    /**
-     * Synchronously signups this user to BaasBox.
-     *
-     * @return the result of the request
-     */
-    public BaasResult<BaasUser> signupSync() {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (password == null) throw new NullPointerException("password cannot be null");
-        SignupRequest signup = new SignupRequest(box, this, null, null);
-        return box.submitSync(signup);
-    }
-
-    /**
-     * Asynchronously signups this user to baasbox
-     * using provided password and default {@link com.baasbox.android.Priority#NORMAL}
-     *
-     * @param handler an handler to be invoked when the request completes
-     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
-     */
-    public RequestToken signup(BaasHandler<BaasUser> handler) {
-        return signup(null, handler);
-    }
-
-    /**
-     * Asynchronously signups this user to baasbox
-     * using provided password and priority
-     *
-     * @param priority a {@link com.baasbox.android.Priority}
-     * @param handler  an handler to be invoked when the request completes
-     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
-     */
-    public RequestToken signup(Priority priority, BaasHandler<BaasUser> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (password == null) throw new NullPointerException("password cannot be null");
-
-        SignupRequest req = new SignupRequest(box, this, priority, handler);
-        return box.submitAsync(req);
     }
 
     /**
@@ -562,7 +661,7 @@ public class BaasUser implements Parcelable {
      */
     public RequestToken login(String regitrationId, Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefault();
-        if (password == null) throw new NullPointerException("password cannot be null");
+        if (password == null) throw new IllegalStateException("password cannot be null");
         NetworkTask<BaasUser> task = new LoginRequest(box, this, regitrationId, priority, handler);
         return box.submitAsync(task);
     }
@@ -584,84 +683,9 @@ public class BaasUser implements Parcelable {
      */
     public BaasResult<BaasUser> loginSync(String registrationId) {
         BaasBox box = BaasBox.getDefault();
-        if (password == null) throw new NullPointerException("password cannot be null");
+        if (password == null) throw new IllegalStateException("password cannot be null");
         NetworkTask<BaasUser> task = new LoginRequest(box, this, registrationId, null, null);
         return box.submitSync(task);
-    }
-
-    /**
-     * Synchronously saves the updates made to the current user.
-     *
-     * @return the result of the request
-     */
-    public BaasResult<BaasUser> saveSync() {
-        BaasBox box = BaasBox.getDefaultChecked();
-        SaveUser task = new SaveUser(box, this, null, null);
-        return box.submitSync(task);
-    }
-
-    /**
-     * Asynchronously saves the updates made to the current user.
-     *
-     * @param priority a {@link com.baasbox.android.Priority}
-     * @param handler  an handler to be invoked when the request completes
-     * @return a {@link com.baasbox.android.RequestToken} to handle the async request
-     */
-    public RequestToken save(Priority priority, BaasHandler<BaasUser> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        SaveUser task = new SaveUser(box, this, priority, handler);
-        return box.submitAsync(task);
-    }
-
-    /**
-     * Asynchronously saves the updates made to the current user.
-     *
-     * @param handler an handler to be invoked when the request completes
-     * @return a {@link android.app.DownloadManager.Request} to handle the request
-     */
-    public RequestToken save(BaasHandler<BaasUser> handler) {
-        return save(null, handler);
-    }
-
-    public BaasResult<Void> changePasswordSync(String password) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (password == null) throw new NullPointerException("password cannot be null");
-        if (this.password == null) throw new NullPointerException("Current user has no password");
-        ChangePassword cp = new ChangePassword(box, this, password, null, null);
-        return box.submitSync(cp);
-    }
-
-    public RequestToken changePassword(String password, BaasHandler<Void> handler) {
-        return changePassword(password, null, handler);
-    }
-
-    public RequestToken changePassword(String password, Priority priority, BaasHandler<Void> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (password == null) throw new NullPointerException("password cannot be null");
-        if (this.password == null) throw new NullPointerException("Current user has no password");
-        ChangePassword cp = new ChangePassword(box, this, password, priority, handler);
-        return box.submitAsync(cp);
-    }
-
-    /**
-     * Synchronously logouts current user from the server.
-     *
-     * @param registration a registration id to remove
-     * @return the result of the request
-     */
-    public BaasResult<Void> logoutSync(String registration) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        LogoutRequest request = new LogoutRequest(box, this, registration, null, null);
-        return box.submitSync(request);
-    }
-
-    /**
-     * Sychronously logouts current user from the server
-     *
-     * @return the result of the request
-     */
-    public BaasResult<Void> logoutSync() {
-        return logoutSync(null);
     }
 
     /**
@@ -704,141 +728,132 @@ public class BaasUser implements Parcelable {
         return box.submitAsync(request);
     }
 
-    public RequestToken refresh(BaasHandler<BaasUser> handler) {
-        return refresh(Priority.NORMAL, handler);
-    }
-
-    public BaasResult<BaasUser> refreshSync() {
-        BaasBox box = BaasBox.getDefaultChecked();
-        FetchUser fetch = new FetchUser(box, this, null, null);
-        return box.submitSync(fetch);
-    }
-
-    public RequestToken refresh(Priority priority, BaasHandler<BaasUser> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        FetchUser fetch = new FetchUser(box, this, priority, handler);
-        return box.submitAsync(fetch);
-    }
-
-    public BaasResult<List<BaasUser>> followersSync() {
-        return followersSync(null);
-    }
-
-    public BaasResult<List<BaasUser>> followersSync(Filter filter) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        FetchUsers users;
-        if (isCurrent()) {
-            users = new FetchUsers(box, "followers", null, filter, null, null);
-        } else {
-            users = new FetchUsers(box, "followers/?", getName(), filter, null, null);
-        }
-        return box.submitSync(users);
-    }
-
-    public RequestToken followers(BaasHandler<List<BaasUser>> handler) {
-        return followers(null, null, handler);
-    }
-
-    public RequestToken followers(Filter filter, BaasHandler<List<BaasUser>> handler) {
-        return followers(filter, null, handler);
-    }
-
-    public RequestToken followers(Filter filter, Priority priority, BaasHandler<List<BaasUser>> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        FetchUsers users;
-        if (isCurrent()) {
-            users = new FetchUsers(box, "followers", null, filter, priority, handler);
-        } else {
-            users = new FetchUsers(box, "followers/?", getName(), filter, priority, handler);
-        }
-        return box.submitAsync(users);
-    }
-
-    public BaasResult<List<BaasUser>> followingSync() {
-        return followingSync(null);
-    }
-
-    public BaasResult<List<BaasUser>> followingSync(Filter filter) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        FetchUsers users;
-        if (isCurrent()) {
-            users = new FetchUsers(box, "following", null, filter, null, null);
-        } else {
-            users = new FetchUsers(box, "following/?", getName(), filter, null, null);
-        }
-        return box.submitSync(users);
-    }
-
-    public RequestToken following(BaasHandler<List<BaasUser>> handler) {
-        return following(null, null, handler);
-    }
-
-    public RequestToken following(Filter filter, BaasHandler<List<BaasUser>> handler) {
-        return following(filter, null, handler);
-    }
-
-    public RequestToken following(Filter filter, Priority priority, BaasHandler<List<BaasUser>> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        FetchUsers users;
-        if (isCurrent()) {
-            users = new FetchUsers(box, "following", null, filter, priority, handler);
-        } else {
-            users = new FetchUsers(box, "following/?", getName(), filter, priority, handler);
-        }
-        return box.submitAsync(users);
-    }
-
-    public BaasResult<BaasUser> followSync() {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Follow follow = new Follow(box, true, this, null, null);
-        return box.submitSync(follow);
+    /**
+     * Sychronously logouts current user from the server
+     *
+     * @return the result of the request
+     */
+    public BaasResult<Void> logoutSync() {
+        return logoutSync(null);
     }
 
     /**
-     * Asynchronously requests to follow the user,
-     * using not tag and default {@link com.baasbox.android.Priority}
+     * Synchronously logouts current user from the server.
+     *
+     * @param registration a registration id to remove
+     * @return the result of the request
+     */
+    public BaasResult<Void> logoutSync(String registration) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        LogoutRequest request = new LogoutRequest(box, this, registration, null, null);
+        return box.submitSync(request);
+    }
+
+    /**
+     * Asynchronously saves the updates made to the current user.
      *
      * @param handler an handler to be invoked when the request completes
-     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     * @return a {@link android.app.DownloadManager.Request} to handle the request
      */
-    public RequestToken follow(BaasHandler<BaasUser> handler) {
-        return follow(null, handler);
+    public RequestToken save(BaasHandler<BaasUser> handler) {
+        return save(null, handler);
     }
 
     /**
-     * Asynchronously requests to follow the user.
+     * Asynchronously saves the updates made to the current user.
      *
      * @param priority a {@link com.baasbox.android.Priority}
      * @param handler  an handler to be invoked when the request completes
-     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the async request
      */
-    public RequestToken follow(Priority priority, BaasHandler<BaasUser> handler) {
+    public RequestToken save(Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Follow follow = new Follow(box, true, this, priority, handler);
-        return box.submitAsync(follow);
-    }
-
-    public RequestToken unfollow(BaasHandler<BaasUser> user) {
-        return unfollow(null, user);
-    }
-
-    public BaasResult<BaasUser> unfollowSync() {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Follow follow = new Follow(box, false, this, null, null);
-        return box.submitSync(follow);
+        SaveUser task = new SaveUser(box, this, priority, handler);
+        return box.submitAsync(task);
     }
 
     /**
-     * Asynchronously requests to unfollow the user
+     * Synchronously saves the updates made to the current user.
+     *
+     * @return the result of the request
+     */
+    public BaasResult<BaasUser> saveSync() {
+        BaasBox box = BaasBox.getDefaultChecked();
+        SaveUser task = new SaveUser(box, this, null, null);
+        return box.submitSync(task);
+    }
+
+    public RequestToken send(JsonObject message, BaasHandler<Void> handler) {
+        return send(message, null, handler);
+    }
+
+    public RequestToken send(JsonObject message, Priority priority, BaasHandler<Void> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Push push = new Push(box, username, message, priority, handler);
+        return box.submitAsync(push);
+    }
+
+    public BaasResult<Void> sendSync(JsonObject message) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Push push = new Push(box, username, message, null, null);
+        return box.submitSync(push);
+    }
+
+    /**
+     * Sets the password for this user.
+     * This should be called prior of any signup/login request, with
+     * a non null argument.
+     * Calling this with a null argument has the effect of erasing the password.
+     *
+     * @param password the password
+     * @return this user with the password set.
+     */
+    public BaasUser setPassword(String password) {
+        this.password = password;
+        return this;
+    }
+
+    void setToken(String session) {
+        this.authToken = session;
+    }
+
+    /**
+     * Asynchronously signups this user to baasbox
+     * using provided password and default {@link com.baasbox.android.Priority#NORMAL}
+     *
+     * @param handler an handler to be invoked when the request completes
+     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
+     */
+    public RequestToken signup(BaasHandler<BaasUser> handler) {
+        return signup(null, handler);
+    }
+
+    /**
+     * Asynchronously signups this user to baasbox
+     * using provided password and priority
      *
      * @param priority a {@link com.baasbox.android.Priority}
      * @param handler  an handler to be invoked when the request completes
-     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
-    public RequestToken unfollow(Priority priority, BaasHandler<BaasUser> handler) {
+    public RequestToken signup(Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Follow follow = new Follow(box, false, this, priority, handler);
-        return box.submitAsync(follow);
+        if (password == null) throw new IllegalStateException("password cannot be null");
+
+        SignupRequest req = new SignupRequest(box, this, priority, handler);
+        return box.submitAsync(req);
+    }
+
+    /**
+     * Synchronously signups this user to BaasBox.
+     *
+     * @return the result of the request
+     */
+    public BaasResult<BaasUser> signupSync() {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (password == null) throw new IllegalStateException("password cannot be null");
+        SignupRequest signup = new SignupRequest(box, this, null, null);
+        return box.submitSync(signup);
     }
 
     JsonObject toJsonBody(boolean credentials) {
@@ -854,39 +869,50 @@ public class BaasUser implements Parcelable {
         return object;
     }
 
-    public String toString() {
-        return String.format(Locale.US, "BaasUser" + toJson());
+    public RequestToken unfollow(BaasHandler<BaasUser> user) {
+        return unfollow(null, user);
     }
 
-    private JsonObject toJson() {
-        JsonObject object = new JsonObject();
-        object.putString("username", username);
-        object.putString("password", password);
-        object.putString("token", authToken);
-        object.putObject(Scope.PRIVATE.visibility, privateData)
-                .putObject(Scope.FRIEND.visibility, friendVisibleData)
-                .putObject(Scope.REGISTERED.visibility, registeredVisibleData)
-                .putObject(Scope.PUBLIC.visibility, publicVisibleData);
-        return object;
+    /**
+     * Asynchronously requests to unfollow the user
+     *
+     * @param priority a {@link com.baasbox.android.Priority}
+     * @param handler  an handler to be invoked when the request completes
+     * @return a {@link com.baasbox.android.RequestToken} to manage the request
+     */
+    public RequestToken unfollow(Priority priority, BaasHandler<BaasUser> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Follow follow = new Follow(box, false, this, priority, handler);
+        return box.submitAsync(follow);
+    }
+
+    public BaasResult<BaasUser> unfollowSync() {
+        BaasBox box = BaasBox.getDefaultChecked();
+        Follow follow = new Follow(box, false, this, null, null);
+        return box.submitSync(follow);
+    }
+
+    private void update(JsonObject user) {
+        init(user);
     }
 
     @Override
-    public int describeContents() {
-        return 0;
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (o == null) return false;
+        if (o.getClass().equals(BaasUser.class)){
+            if(((BaasUser) o).getName().equals(username)) return true;
+        }
+        return false;
     }
 
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(username);
-        dest.writeString(signupDate);
-        dest.writeString(status);
-        writeStringSet(dest, roles);
-        writeOptJson(dest, privateData);
-        writeOptJson(dest, friendVisibleData);
-        writeOptJson(dest, registeredVisibleData);
-        writeOptJson(dest, publicVisibleData);
+    public int hashCode() {
+        return username.hashCode();
     }
 
+
+    // -------------------------- ENUMERATIONS --------------------------
 
     /**
      * Scopes of visibility of  user related data.
@@ -899,7 +925,6 @@ public class BaasUser implements Parcelable {
          * of user private data
          */
         PRIVATE("visibleByTheUser"),
-
         /**
          * Scope used to access a {@link com.baasbox.android.json.JsonObject}
          * whose fields are accessible by the friends of the user
@@ -928,9 +953,11 @@ public class BaasUser implements Parcelable {
         }
     }
 
-    public final static class Social {
-        public final static String GOOGLE = "google";
-        public final static String FACEBOOK = "facebook";
+// -------------------------- INNER CLASSES --------------------------
+
+    public static final class Social {
+        public static final String GOOGLE = "google";
+        public static final String FACEBOOK = "facebook";
 
         private Social() {
         }
@@ -952,10 +979,10 @@ public class BaasUser implements Parcelable {
         protected BaasUser onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             JsonObject data = parseJson(response, box).getObject("data");
             Logger.debug("RECEIVED " + data.toString());
-            String token = data.getString("X-BB-SESSION");
-            if (token == null) throw new BaasException("Could not parse server response, missing token");
+            String tok = data.getString("X-BB-SESSION");
+            if (tok == null) throw new BaasException("Could not parse server response, missing token");
             BaasUser user = new BaasUser(data);
-            user.authToken = token;
+            user.authToken = tok;
             user.social = provider;
             box.store.storeUser(user);
             return user;
@@ -963,7 +990,7 @@ public class BaasUser implements Parcelable {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("social/?", provider);
+            String endpoint = box.requestFactory.getEndpoint("social/{}", provider);
             return box.requestFactory.post(endpoint, new RequestFactory.Param("oauth_token", token),
                     new RequestFactory.Param("oauth_secret", secret));
         }
@@ -986,7 +1013,7 @@ public class BaasUser implements Parcelable {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("push/message/?", name);
+            String endpoint = box.requestFactory.getEndpoint("push/message/{}", name);
             return box.requestFactory.post(endpoint, message);
         }
     }
@@ -996,7 +1023,7 @@ public class BaasUser implements Parcelable {
 
         protected PasswordReset(BaasBox box, String name, Priority priority, BaasHandler<Void> handler) {
             super(box, priority, handler);
-            request = box.requestFactory.get(box.requestFactory.getEndpoint("user/?/password/reset", name));
+            request = box.requestFactory.get(box.requestFactory.getEndpoint("user/{}/password/reset", name));
         }
 
         @Override
@@ -1036,8 +1063,7 @@ public class BaasUser implements Parcelable {
         }
     }
 
-    final static class LoginRequest extends NetworkTask<BaasUser> {
-
+    static final class LoginRequest extends NetworkTask<BaasUser> {
         private final String regId;
         private final BaasUser user;
 
@@ -1058,12 +1084,10 @@ public class BaasUser implements Parcelable {
             return user;
         }
 
-
         @Override
         protected HttpRequest request(BaasBox box) {
             return box.store.loginRequest(user.username, user.password, regId);
         }
-
     }
 
     private static class ChangePassword extends NetworkTask<Void> {
@@ -1084,7 +1108,6 @@ public class BaasUser implements Parcelable {
             box.store.storeUser(user);
             return null;
         }
-
 
         @Override
         protected Void onSkipRequest() throws BaasException {
@@ -1128,7 +1151,7 @@ public class BaasUser implements Parcelable {
         }
     }
 
-    private final static class LogoutRequest extends NetworkTask<Void> {
+    private static final class LogoutRequest extends NetworkTask<Void> {
         private final String registration;
         private final BaasUser user;
 
@@ -1136,7 +1159,6 @@ public class BaasUser implements Parcelable {
             super(box, priority, handler, false);
             this.registration = registration;
             this.user = user;
-
         }
 
         @Override
@@ -1162,7 +1184,7 @@ public class BaasUser implements Parcelable {
             if (user.isCurrent()) {
                 String endpoint;
                 if (registration != null) {
-                    endpoint = box.requestFactory.getEndpoint("logout/?", registration);
+                    endpoint = box.requestFactory.getEndpoint("logout/{}", registration);
                 } else {
                     endpoint = box.requestFactory.getEndpoint("logout");
                 }
@@ -1197,7 +1219,7 @@ public class BaasUser implements Parcelable {
             if (user.isCurrent()) {
                 endpoint = box.requestFactory.getEndpoint("me");
             } else {
-                endpoint = box.requestFactory.getEndpoint("user/?", user.getName());
+                endpoint = box.requestFactory.getEndpoint("user/{}", user.username);
             }
             return box.requestFactory.get(endpoint);
         }
@@ -1224,7 +1246,7 @@ public class BaasUser implements Parcelable {
         @Override
         protected final List<BaasUser> onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             JsonArray array = parseJson(response, box).getArray("data");
-            ArrayList<BaasUser> users = new ArrayList<BaasUser>(array.size());
+            List<BaasUser> users = new ArrayList<BaasUser>(array.size());
             BaasUser current = BaasUser.current();
             for (Object o : array) {
                 JsonObject userJson = (JsonObject) o;
@@ -1239,7 +1261,6 @@ public class BaasUser implements Parcelable {
                     user = new BaasUser(userJson);
                 }
                 users.add(user);
-
             }
             return users;
         }
@@ -1282,7 +1303,7 @@ public class BaasUser implements Parcelable {
             if (user.isCurrent()) {
                 return null;
             }
-            String endpoint = box.requestFactory.getEndpoint("follow/?", user.getName());
+            String endpoint = box.requestFactory.getEndpoint("follow/{}", user.username);
             if (follow) {
                 return box.requestFactory.post(endpoint);
             } else {

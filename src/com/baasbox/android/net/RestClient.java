@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andlimitations under the License.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package com.baasbox.android.net;
@@ -23,6 +23,7 @@ import org.apache.http.HttpResponse;
  * Created by Andrea Tortorella on 23/12/13.
  */
 public interface RestClient {
+// -------------------------- OTHER METHODS --------------------------
 
     /**
      * Execute the http request returning on success an HttpResponse
@@ -33,5 +34,5 @@ public interface RestClient {
      * @return an http response
      * @throws com.baasbox.android.BaasException
      */
-    public HttpResponse execute(HttpRequest request) throws BaasException;
+    HttpResponse execute(HttpRequest request) throws BaasException;
 }

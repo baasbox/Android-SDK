@@ -2,7 +2,7 @@
     package="com.baasbox.android"
     android:versionCode="2"
     android:versionName="1.0" >
-
+    <uses-permission android:name="android.permission.INTERNET"/>
     <uses-sdk
         android:minSdkVersion="8"
         android:targetSdkVersion="19" />

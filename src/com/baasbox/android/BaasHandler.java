@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andlimitations under the License.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package com.baasbox.android;
@@ -24,20 +24,24 @@ package com.baasbox.android;
  * @since 0.7.3
  */
 public interface BaasHandler<R> {
+// ------------------------------ FIELDS ------------------------------
+
     /**
      * A no op handler, that simply discards the received response
      */
-    public final static BaasHandler NOOP = new BaasHandler() {
+    BaasHandler NOOP = new BaasHandler() {
         @Override
         public void handle(BaasResult result) {
+            // do nothing
         }
     };
+
+// -------------------------- OTHER METHODS --------------------------
 
     /**
      * Method invoked with the result of an async request.
      *
      * @param result the result or an error wrapped in a {@link com.baasbox.android.BaasResult}
      */
-    public void handle(BaasResult<R> result);
-
+    void handle(BaasResult<R> result);
 }

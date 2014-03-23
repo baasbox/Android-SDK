@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andlimitations under the License.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package com.baasbox.android;
@@ -21,30 +21,33 @@ package com.baasbox.android;
  * Created by Andrea Tortorella on 18/01/14.
  */
 public final class Role {
-
-    private Role() {
-    }
+// ------------------------------ FIELDS ------------------------------
 
     /**
      * Role of anonymous users
      */
-    public final static String ANONYMOUS = "anonymous";
+    public static final String ANONYMOUS = "anonymous";
 
     /**
      * Role of registered users
      */
-    public final static String REGISTERED = "registered";
+    public static final String REGISTERED = "registered";
 
     /**
      * Role of administrators
      */
-    public final static String ADMIN = "administrator";
+    public static final String ADMIN = "administrator";
 
     /**
      * Role of backoffice users
      */
-    public final static String BACKOFFICE = "backoffice";
+    public static final String BACKOFFICE = "backoffice";
 
+// --------------------------- CONSTRUCTORS ---------------------------
+    private Role() {
+    }
+
+// -------------------------- STATIC METHODS --------------------------
 
     /**
      * Returns the role to whom belong all users
@@ -54,7 +57,7 @@ public final class Role {
      * @return the role of friends of user
      */
     public static String friendsOf(String user) {
-        if (user == null) throw new NullPointerException("user cannot be null");
-        return ("friends_of_" + user);
+        if (user == null) throw new IllegalArgumentException("user cannot be null");
+        return "friends_of_" + user;
     }
 }

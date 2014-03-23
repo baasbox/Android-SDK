@@ -16,21 +16,23 @@
 
 package com.baasbox.android.impl;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.charset.Charset;
 
-/** Junk drawer of utility methods. */
+/**
+ * Junk drawer of utility methods.
+ */
 final class Util {
+// ------------------------------ FIELDS ------------------------------
+
     static final Charset US_ASCII = Charset.forName("US-ASCII");
     static final Charset UTF_8 = Charset.forName("UTF-8");
 
+// --------------------------- CONSTRUCTORS ---------------------------
     private Util() {
     }
 
+// -------------------------- STATIC METHODS --------------------------
 
     static String readFully(Reader reader) throws IOException {
         try {
@@ -72,6 +74,7 @@ final class Util {
             } catch (RuntimeException rethrown) {
                 throw rethrown;
             } catch (Exception ignored) {
+                // ignored
             }
         }
     }

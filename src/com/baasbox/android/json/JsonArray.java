@@ -10,13 +10,14 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andlimitations under the License.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package com.baasbox.android.json;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import com.baasbox.android.BaasRuntimeException;
 import com.baasbox.android.impl.Base64;
 
 import java.io.IOException;
@@ -32,11 +33,25 @@ import java.util.List;
  * Created by Andrea Tortorella on 01/01/14.
  */
 public class JsonArray extends JsonStructure implements Iterable<Object>, Parcelable {
+// ------------------------------ FIELDS ------------------------------
+
+    public static final Creator<JsonArray> CREATOR = new Creator<JsonArray>() {
+        @Override
+        public JsonArray createFromParcel(Parcel source) {
+            return new JsonArray(source);
+        }
+
+        @Override
+        public JsonArray[] newArray(int size) {
+            return new JsonArray[size];
+        }
+    };
     //todo lazy copying
     //todo choose when to convert binary data to base64
 
     protected List<Object> list;
 
+// --------------------------- CONSTRUCTORS ---------------------------
     /**
      * Creates a new empty JsonArray
      */
@@ -65,8 +80,8 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     }
 
     @Override
-    public JsonArray values() {
-        return this;
+    public JsonArray copy() {
+        return new JsonArray(this);
     }
 
     JsonArray(JsonArray other) {
@@ -94,6 +109,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         source.readList(list, null);
     }
 
+// -------------------------- STATIC METHODS --------------------------
 
     public static JsonArray of(Object... values) {
         JsonArray a = new JsonArray();
@@ -103,315 +119,17 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return a;
     }
 
-    /**
-     * Adds the value at the end of this array
-     *
-     * @param value
-     * @return this array with the new value appended
-     */
-    public JsonArray addString(String value) {
-        list.add(value);
-        return this;
-    }
-
-    /**
-     * Returns the String at index or null if not found.
-     * @param index
-     * @return the value at index or null if not found
-     * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
-     */
-    public String getString(int index) {
-        return getString(index, null);
-    }
-
-    /**
-     * Returns the String at index or otherwise if not found
-     * @param index
-     * @param otherwise
-     * @return the value at index or otherwise
-     * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
-     */
-    public String getString(int index, String otherwise) {
-        Object o = list.get(index);
-        if (o == null) return otherwise;
-        if (o instanceof String) return (String) o;
-        if (o instanceof byte[]) return Base64.encodeToString((byte[]) o, Base64.DEFAULT);
-        throw new JsonException("not a string");
-    }
-
-    /**
-     * Sets the content at index to the value passed as parameter
-     * @param index
-     * @param value
-     * @return the array with the new mapping
-     */
-    public JsonArray setString(int index, String value) {
-        list.set(index, value);
-        return this;
-    }
-
-
-    /**
-     * Adds the value at the end of this array
-     *
-     * @param value
-     * @return this array with the new value appended
-     */
-    public JsonArray addBoolean(boolean value) {
-        list.add(value);
-        return this;
-    }
-
-
-    /**
-     * Returns the {@link java.lang.Boolean} at index or null if not found.
-     * @param index
-     * @return the value at index or null if not found
-     * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
-     */
-    public Boolean getBoolean(int index) {
-        Object bool = list.get(index);
-        if (bool == null) return null;
-        if (bool instanceof Boolean) return (Boolean) bool;
-        throw new JsonException("not a boolean");
-    }
-
-
-    /**
-     * Returns the <code>boolean</code> at index or otherwise if not found.
-     * @param index
-     * @return the value at index or null if not found
-     * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
-     */
-    public boolean getBoolean(int index, boolean otherwise) {
-        Boolean b = getBoolean(index);
-        return b == null ? otherwise : b;
-    }
-
-
-    /**
-     * Sets the content at index to the value passed as parameter
-     * @param index
-     * @param value
-     * @return the array with the new mapping
-     */
-    public JsonArray setBoolean(int index, boolean value) {
-        list.set(index, value);
-        return this;
-    }
-
-
-    /**
-     * Adds the value at the end of this array
-     *
-     * @param value
-     * @return this array with the new value appended
-     */
-    public JsonArray addLong(long value) {
-        list.add(value);
-        return this;
-    }
-
-    /**
-     * Returns the {@link java.lang.Long} at index or null if not found.
-     * @param index
-     * @return the value at index or null if not found
-     * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
-     */
-    public Long getLong(int index) {
-        Object number = list.get(index);
-        if (number == null) return null;
-        if (number instanceof Long) return (Long) number;
-        if (number instanceof Double) return ((Double) number).longValue();
-        throw new JsonException("not a long");
-    }
-
-    /**
-     * Returns the <code>long</code> at index or otherwise if not found.
-     * @param index
-     * @return the value at index or null if not found
-     * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
-     */
-    public long getLong(int index, long otherwise) {
-        Long l = getLong(index);
-        return l == null ? otherwise : l;
-    }
-
-    /**
-     * Sets the content at index to the value passed as parameter
-     * @param index
-     * @param value
-     * @return the array with the new mapping
-     */
-    public JsonArray setLong(int index, long value) {
-        list.set(index, value);
-        return this;
-    }
-
-    public Integer getInt(int index) {
-        Long l = getLong(index);
-        return l == null ? null : l.intValue();
-    }
-
-    public int getInt(int index, int otherwise) {
-        Long l = getLong(index);
-        return l == null ? otherwise : l.intValue();
-    }
-
-    public JsonArray addDouble(double d) {
-        list.add(d);
-        return this;
-    }
-
-    public Double getDouble(int index) {
-        Object number = list.get(index);
-        if (number == null) return null;
-        if (number instanceof Long) return ((Long) number).doubleValue();
-        if (number instanceof Double) return (Double) number;
-        throw new JsonException("not a double");
-    }
-
-    public double getDouble(int index, double otherwise) {
-        Double l = getDouble(index);
-        return l == null ? otherwise : l;
-    }
-
-    public JsonArray setDouble(int index, double value) {
-        list.set(index, value);
-        return this;
-    }
-
-    public Float getFloat(int index) {
-        Double l = getDouble(index);
-        return l == null ? null : l.floatValue();
-    }
-
-    public float getFloat(int index, int otherwise) {
-        Double l = getDouble(index);
-        return l == null ? otherwise : l.floatValue();
-    }
-
-
-    public JsonArray addNull() {
-        list.add(null);
-        return this;
-    }
-
-    public boolean isNull(int index) {
-        return list.get(index) == null;
-    }
-
-    public JsonArray setNull(int index) {
-        list.set(index, null);
-        return this;
-    }
-
-    public JsonArray addArray(JsonArray a) {
-        list.add(a);
-        return this;
-    }
-
-    public JsonArray getArray(int index) {
-        return getArray(index, null);
-    }
-
-    public JsonArray getArray(int index, JsonArray otherwise) {
-        Object a = list.get(index);
-        if (a == null) return otherwise;
-        if (a instanceof JsonArray) return (JsonArray) a;
-        throw new JsonException("not an array");
-    }
-
-    public JsonArray setArray(int index, JsonArray value) {
-        list.set(index, value);
-        return this;
-    }
-
-    public JsonArray addObject(JsonObject o) {
-        list.add(o);
-        return this;
-    }
-
-    public JsonObject getObject(int index) {
-        return getObject(index, null);
-    }
-
-
-    public JsonObject getObject(int index, JsonObject otherwise) {
-        Object o = list.get(index);
-        if (o == null) return otherwise;
-        if (o instanceof JsonObject) return (JsonObject) o;
-        throw new JsonException("not an object");
-    }
-
-    public JsonArray setObject(int index, JsonObject value) {
-        list.set(index, value);
-        return this;
-    }
-
-    public JsonArray addStructure(JsonStructure s) {
-        if (s instanceof JsonArray) addArray((JsonArray) s);
-        if (s instanceof JsonObject) addObject((JsonObject) s);
-        return this;
-    }
-
-
-    public JsonStructure getStructure(int index) {
-        return getStructure(index, null);
-    }
-
-    public JsonStructure getStructure(int index, JsonStructure otherwise) {
-        Object o = list.get(index);
-        if (o == null) return otherwise;
-        if ((o instanceof JsonStructure)) return (JsonStructure) o;
-        throw new JsonException("not a structure");
-    }
-
-    public JsonArray setStructure(int index, JsonStructure value) {
-        list.set(index, value);
-        return this;
-    }
-
-
-    public JsonArray addBinary(byte[] v) {
-        list.add(v == null ? null : Base64.encode(v,Base64.DEFAULT));
-        return this;
-    }
-
-    public byte[] getBinary(int index) {
-        return getBinary(index, null);
-    }
-
-
-    public byte[] getBinary(int index, byte[] otherwise) {
-        Object o = list.get(index);
-        if (o == null) return otherwise;
-        if (o instanceof String) {
-            try {
-                return Base64.decode((String) o, Base64.DEFAULT);
-            } catch (IllegalArgumentException e) {
-                throw new JsonException(e);
-            }
-        }
-        throw new JsonException("not a binary");
-    }
-
-    public JsonArray setBinary(int index, byte[] value) {
-        list.set(index, value == null ? null : Base64.encode(value,Base64.DEFAULT));
-        return this;
-    }
-
     public JsonArray add(Object o) {
         if (o == null) {
             list.add(null);
         } else if ((o instanceof String) ||
-                (o instanceof JsonStructure)||
+                (o instanceof JsonStructure) ||
                 (o instanceof Boolean) ||
                 (o instanceof Long) ||
                 (o instanceof Double)) {
             list.add(o);
-        } else if ((o instanceof byte[])) {
-            list.add(Base64.encode((byte[]) o, Base64.DEFAULT));
+        } else if (o instanceof byte[]) {
+            list.add(Base64.encode((byte[]) o, Base64.NO_WRAP));
         } else if (o instanceof Float) {
             list.add(((Float) o).doubleValue());
         } else if ((o instanceof Integer)
@@ -424,132 +142,30 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return this;
     }
 
-    public JsonArray append(JsonArray arr) {
-        list.addAll(arr.list);
-        return this;
+    public static JsonArray decode(String json) {
+        JsonReader reader = new JsonReader(new StringReader(json));
+        reader.setLenient(true);
+        return JsonArray.decodeFully(reader);
     }
 
-    public <T> T get(int index, T otherwise) {
-        Object o = list.get(index);
-        if (o == null) return otherwise;
+    static JsonArray decodeFully(JsonReader r) {
         try {
-            T t = (T) o;
-            return t;
-        } catch (ClassCastException e) {
-            throw new JsonException(e);
-        }
-    }
-
-    public Object remove(int index) {
-        Object o = list.remove(index);
-        return o;
-    }
-
-    public boolean contains(Object v) {
-        return list.contains(v);
-    }
-
-    public int size() {
-        return list.size();
-    }
-
-    @Override
-    public Iterator<Object> iterator() {
-        return new Iterator<Object>() {
-            Iterator<Object> iter = list.listIterator();
-
-            @Override
-            public boolean hasNext() {
-                return iter.hasNext();
+            JsonArray a = JsonArray.decode(r);
+            if (r.peek() != JsonToken.END_DOCUMENT) {
+                throw new JsonException("Not an array");
             }
-
-            @Override
-            public Object next() {
-                return iter.next();
-            }
-
-            @Override
-            public void remove() {
-                iter.remove();
-            }
-        };
-    }
-
-    @Override
-    public String encode() {
-        StringWriter w = new StringWriter();
-        JsonWriter jw = null;
-        try {
-            jw = new JsonWriter(w);
-            encode(jw);
-            return w.toString();
+            return a;
         } catch (IOException e) {
             throw new JsonException(e);
         } finally {
-            if (jw != null) {
+            if (r != null) {
                 try {
-                    jw.close();
+                    r.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    // ignored
                 }
             }
         }
-    }
-
-    void encode(JsonWriter w) throws IOException {
-        w.beginArray();
-        for (Object o : list) {
-            if (o == null) {
-                w.nullValue();
-            } else if (o instanceof String) {
-                w.value((String) o);
-            } else if (o instanceof Boolean) {
-                w.value((Boolean) o);
-            } else if (o instanceof Long) {
-                w.value((Long) o);
-            } else if (o instanceof Double) {
-                w.value((Double) o);
-            } else if (o instanceof byte[]) {
-                String encoded = Base64.encodeToString((byte[]) o, Base64.DEFAULT);
-                w.value(encoded);
-            } else if (o instanceof JsonArray) {
-                ((JsonArray) o).encode(w);
-            } else if (o instanceof JsonObject) {
-                ((JsonObject) o).encode(w);
-            } else {
-                throw new AssertionError("Array contains non json value");
-            }
-        }
-        w.endArray();
-    }
-
-    @Override
-    public JsonArray copy() {
-        return new JsonArray(this);
-    }
-
-    @Override
-    public String toString() {
-        return encode();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || ((Object) this).getClass() != o.getClass()) return false;
-        JsonArray that = (JsonArray) o;
-        if (list.size() != that.list.size()) return false;
-        Iterator<?> iter = that.list.iterator();
-        for (Object element : list) {
-            Object other = iter.next();
-            if (!element.equals(other)) return false;
-        }
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return list.hashCode();
     }
 
     static JsonArray decode(JsonReader reader) {
@@ -606,32 +222,367 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         }
     }
 
-    public static JsonArray decode(String json) {
-        JsonReader reader = new JsonReader(new StringReader(json));
-        reader.setLenient(true);
-        return JsonArray.decodeFully(reader);
+    /**
+     * Adds the value at the end of this array
+     *
+     * @param value
+     * @return this array with the new value appended
+     */
+    public JsonArray addBoolean(boolean value) {
+        list.add(value);
+        return this;
     }
 
-    static JsonArray decodeFully(JsonReader r) {
+    /**
+     * Adds the value at the end of this array
+     *
+     * @param value
+     * @return this array with the new value appended
+     */
+    public JsonArray addString(String value) {
+        list.add(value);
+        return this;
+    }
+
+    /**
+     * Adds the value at the end of this array
+     *
+     * @param value
+     * @return this array with the new value appended
+     */
+    public JsonArray addLong(long value) {
+        list.add(value);
+        return this;
+    }
+
+    public JsonArray addDouble(double d) {
+        list.add(d);
+        return this;
+    }
+
+    public JsonArray addNull() {
+        list.add(null);
+        return this;
+    }
+
+    public JsonArray addObject(JsonObject o) {
+        list.add(o);
+        return this;
+    }
+
+    public JsonArray addArray(JsonArray a) {
+        list.add(a);
+        return this;
+    }
+
+// ------------------------ CANONICAL METHODS ------------------------
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || ((Object) this).getClass() != o.getClass()) return false;
+        JsonArray that = (JsonArray) o;
+        if (list.size() != that.list.size()) return false;
+        Iterator<?> iter = that.list.iterator();
+        for (Object element : list) {
+            Object other = iter.next();
+            if (!element.equals(other)) return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return list.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return encode();
+    }
+
+    @Override
+    public String encode() {
+        StringWriter w = new StringWriter();
+        JsonWriter jw = null;
         try {
-            JsonArray a = JsonArray.decode(r);
-            if (r.peek() != JsonToken.END_DOCUMENT) {
-                throw new JsonException("Not an array");
-            }
-            return a;
+            jw = new JsonWriter(w);
+            encode(jw);
+            return w.toString();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new JsonException(e);
         } finally {
-            if (r != null) {
+            if (jw != null) {
                 try {
-                    r.close();
+                    jw.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    // ignored
                 }
             }
         }
     }
 
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface Iterable ---------------------
+
+    @Override
+    public Iterator<Object> iterator() {
+        return new Iterator<Object>() {
+            Iterator<Object> iter = list.listIterator();
+
+            @Override
+            public boolean hasNext() {
+                return iter.hasNext();
+            }
+
+            @Override
+            public Object next() {
+                return iter.next();
+            }
+
+            @Override
+            public void remove() {
+                iter.remove();
+            }
+        };
+    }
+
+// --------------------- Interface Parcelable ---------------------
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeList(list);
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    public JsonArray addBinary(byte[] v) {
+        list.add(v == null ? null : Base64.encode(v, Base64.NO_WRAP));
+        return this;
+    }
+
+    public JsonArray addStructure(JsonStructure s) {
+        if (s instanceof JsonArray) addArray((JsonArray) s);
+        if (s instanceof JsonObject) addObject((JsonObject) s);
+        return this;
+    }
+
+    public JsonArray append(JsonArray arr) {
+        list.addAll(arr.list);
+        return this;
+    }
+
+    public boolean contains(Object v) {
+        return list.contains(v);
+    }
+
+    void encode(JsonWriter w) throws IOException {
+        w.beginArray();
+        for (Object o : list) {
+            if (o == null) {
+                w.nullValue();
+            } else if (o instanceof String) {
+                w.value((String) o);
+            } else if (o instanceof Boolean) {
+                w.value((Boolean) o);
+            } else if (o instanceof Long) {
+                w.value((Long) o);
+            } else if (o instanceof Double) {
+                w.value((Double) o);
+            } else if (o instanceof byte[]) {
+                String encoded = Base64.encodeToString((byte[]) o, Base64.NO_WRAP);
+                w.value(encoded);
+            } else if (o instanceof JsonArray) {
+                ((JsonArray) o).encode(w);
+            } else if (o instanceof JsonObject) {
+                ((JsonObject) o).encode(w);
+            } else {
+                throw new AssertionError("Array contains non json value");
+            }
+        }
+        w.endArray();
+    }
+
+    public <T> T get(int index, T otherwise) {
+        Object o = list.get(index);
+        if (o == null) return otherwise;
+        try {
+            T t = (T) o;
+            return t;
+        } catch (ClassCastException e) {
+            throw new JsonException(e);
+        }
+    }
+
+    public JsonArray getArray(int index) {
+        return getArray(index, null);
+    }
+
+    public JsonArray getArray(int index, JsonArray otherwise) {
+        Object a = list.get(index);
+        if (a == null) return otherwise;
+        if (a instanceof JsonArray) return (JsonArray) a;
+        throw new JsonException("not an array");
+    }
+
+    public byte[] getBinary(int index) {
+        return getBinary(index, null);
+    }
+
+    public byte[] getBinary(int index, byte[] otherwise) {
+        Object o = list.get(index);
+        if (o == null) return otherwise;
+        if (o instanceof String) {
+            try {
+                return Base64.decode((String) o, Base64.NO_WRAP);
+            } catch (IllegalArgumentException e) {
+                throw new JsonException(e);
+            }
+        }
+        throw new JsonException("not a binary");
+    }
+
+    /**
+     * Returns the {@link java.lang.Boolean} at index or null if not found.
+     *
+     * @param index
+     * @return the value at index or null if not found
+     * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
+     */
+    public Boolean getBoolean(int index) {
+        Object bool = list.get(index);
+        if (bool == null) return null;
+        if (bool instanceof Boolean) return (Boolean) bool;
+        throw new JsonException("not a boolean");
+    }
+
+    /**
+     * Returns the <code>boolean</code> at index or otherwise if not found.
+     *
+     * @param index
+     * @return the value at index or null if not found
+     * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
+     */
+    public boolean getBoolean(int index, boolean otherwise) {
+        Boolean b = getBoolean(index);
+        return b == null ? otherwise : b;
+    }
+
+    public double getDouble(int index, double otherwise) {
+        Double l = getDouble(index);
+        return l == null ? otherwise : l;
+    }
+
+    public Float getFloat(int index) {
+        Double l = getDouble(index);
+        return l == null ? null : l.floatValue();
+    }
+
+    public Double getDouble(int index) {
+        Object number = list.get(index);
+        if (number == null) return null;
+        if (number instanceof Long) return ((Long) number).doubleValue();
+        if (number instanceof Double) return (Double) number;
+        throw new JsonException("not a double");
+    }
+
+    public float getFloat(int index, int otherwise) {
+        Double l = getDouble(index);
+        return l == null ? otherwise : l.floatValue();
+    }
+
+    public Integer getInt(int index) {
+        Long l = getLong(index);
+        return l == null ? null : l.intValue();
+    }
+
+    /**
+     * Returns the {@link java.lang.Long} at index or null if not found.
+     *
+     * @param index
+     * @return the value at index or null if not found
+     * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
+     */
+    public Long getLong(int index) {
+        Object number = list.get(index);
+        if (number == null) return null;
+        if (number instanceof Long) return (Long) number;
+        if (number instanceof Double) return ((Double) number).longValue();
+        throw new JsonException("not a long");
+    }
+
+    public int getInt(int index, int otherwise) {
+        Long l = getLong(index);
+        return l == null ? otherwise : l.intValue();
+    }
+
+    /**
+     * Returns the <code>long</code> at index or otherwise if not found.
+     *
+     * @param index
+     * @return the value at index or null if not found
+     * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
+     */
+    public long getLong(int index, long otherwise) {
+        Long l = getLong(index);
+        return l == null ? otherwise : l;
+    }
+
+    public JsonObject getObject(int index) {
+        return getObject(index, null);
+    }
+
+    public JsonObject getObject(int index, JsonObject otherwise) {
+        Object o = list.get(index);
+        if (o == null) return otherwise;
+        if (o instanceof JsonObject) return (JsonObject) o;
+        throw new JsonException("not an object");
+    }
+
+    /**
+     * Returns the String at index or null if not found.
+     *
+     * @param index
+     * @return the value at index or null if not found
+     * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
+     */
+    public String getString(int index) {
+        return getString(index, null);
+    }
+
+    /**
+     * Returns the String at index or otherwise if not found
+     *
+     * @param index
+     * @param otherwise
+     * @return the value at index or otherwise
+     * @throws java.lang.IndexOutOfBoundsException if the index is out of the array bounds
+     */
+    public String getString(int index, String otherwise) {
+        Object o = list.get(index);
+        if (o == null) return otherwise;
+        if (o instanceof String) return (String) o;
+        if (o instanceof byte[]) return Base64.encodeToString((byte[]) o, Base64.NO_WRAP);
+        throw new JsonException("not a string");
+    }
+
+    public JsonStructure getStructure(int index) {
+        return getStructure(index, null);
+    }
+
+    public JsonStructure getStructure(int index, JsonStructure otherwise) {
+        Object o = list.get(index);
+        if (o == null) return otherwise;
+        if (o instanceof JsonStructure) return (JsonStructure) o;
+        throw new JsonException("not a structure");
+    }
 
     public int getType(int index) {
         if (index < 0) throw new IndexOutOfBoundsException("inde x must be positive");
@@ -650,28 +601,90 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         } else if (o instanceof Boolean) {
             return BOOLEAN;
         }
-        throw new Error("Object contains wrong type: " + o.getClass());
+        throw new BaasRuntimeException("Object contains wrong type: " + o.getClass());
+    }
+
+    public int size() {
+        return list.size();
+    }
+
+    public boolean isNull(int index) {
+        return list.get(index) == null;
+    }
+
+    public Object remove(int index) {
+        Object o = list.remove(index);
+        return o;
+    }
+
+    public JsonArray setArray(int index, JsonArray value) {
+        list.set(index, value);
+        return this;
+    }
+
+    public JsonArray setBinary(int index, byte[] value) {
+        list.set(index, value == null ? null : Base64.encode(value, Base64.NO_WRAP));
+        return this;
+    }
+
+    /**
+     * Sets the content at index to the value passed as parameter
+     *
+     * @param index
+     * @param value
+     * @return the array with the new mapping
+     */
+    public JsonArray setBoolean(int index, boolean value) {
+        list.set(index, value);
+        return this;
+    }
+
+    public JsonArray setDouble(int index, double value) {
+        list.set(index, value);
+        return this;
+    }
+
+    /**
+     * Sets the content at index to the value passed as parameter
+     *
+     * @param index
+     * @param value
+     * @return the array with the new mapping
+     */
+    public JsonArray setLong(int index, long value) {
+        list.set(index, value);
+        return this;
+    }
+
+    public JsonArray setNull(int index) {
+        list.set(index, null);
+        return this;
+    }
+
+    public JsonArray setObject(int index, JsonObject value) {
+        list.set(index, value);
+        return this;
+    }
+
+    /**
+     * Sets the content at index to the value passed as parameter
+     *
+     * @param index
+     * @param value
+     * @return the array with the new mapping
+     */
+    public JsonArray setString(int index, String value) {
+        list.set(index, value);
+        return this;
+    }
+
+    public JsonArray setStructure(int index, JsonStructure value) {
+        list.set(index, value);
+        return this;
     }
 
     @Override
-    public int describeContents() {
-        return 0;
+    public JsonArray values() {
+        return this;
     }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeList(list);
-    }
-
-    public final static Creator<JsonArray> CREATOR = new Creator<JsonArray>() {
-        @Override
-        public JsonArray createFromParcel(Parcel source) {
-            return new JsonArray(source);
-        }
-
-        @Override
-        public JsonArray[] newArray(int size) {
-            return new JsonArray[size];
-        }
-    };
 }

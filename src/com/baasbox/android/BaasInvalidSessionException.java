@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andlimitations under the License.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package com.baasbox.android;
@@ -18,6 +18,7 @@ package com.baasbox.android;
 import com.baasbox.android.json.JsonObject;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This is a particular subclass of {@link BaasClientException} indicating an
@@ -33,20 +34,21 @@ import java.util.HashMap;
  * @author Davide Caroselli
  */
 public class BaasInvalidSessionException extends BaasClientException {
+// ------------------------------ FIELDS ------------------------------
 
     public static final int INVALID_SESSION_TOKEN_CODE = 40101;
 
     private static final long serialVersionUID = -6923343849646015698L;
 
-    public BaasInvalidSessionException(JsonObject object){
-        super(401,object);
+// --------------------------- CONSTRUCTORS ---------------------------
+    public BaasInvalidSessionException(JsonObject object) {
+        super(401, object);
     }
 
     public BaasInvalidSessionException(String resource, String method,
-                                       HashMap<String, String> requestHeader, String apiVersion,
+                                       Map<String, String> requestHeader, String apiVersion,
                                        String detailMessage) {
         super(INVALID_SESSION_TOKEN_CODE, 401, resource, method, requestHeader,
                 apiVersion, detailMessage);
     }
-
 }

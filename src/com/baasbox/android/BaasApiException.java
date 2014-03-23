@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andlimitations under the License.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package com.baasbox.android;
@@ -31,6 +31,7 @@ import java.util.Map;
  * @since 0.7.3
  */
 public class BaasApiException extends BaasException {
+// ------------------------------ FIELDS ------------------------------
 
     private static final long serialVersionUID = -1060197139549630283L;
 
@@ -61,6 +62,7 @@ public class BaasApiException extends BaasException {
 
     private final JsonObject json;
 
+// --------------------------- CONSTRUCTORS ---------------------------
     public BaasApiException(int httpStatus, JsonObject error) {
         super(error.getString("message", ""));
         this.json = error;
@@ -75,14 +77,13 @@ public class BaasApiException extends BaasException {
             try {
                 String bbcodeString = error.getString("bb_code", "-1");
                 code = Integer.parseInt(bbcodeString);
-                ;
             } catch (NumberFormatException ex) {
                 code = -1;
             }
         }
         this.code = code;
         JsonObject headers = error.getObject("request_header");
-        LinkedHashMap<String, String> headersMap = new LinkedHashMap<String, String>();
+        Map<String, String> headersMap = new LinkedHashMap<String, String>();
         if (headers != null) {
             for (Map.Entry<String, Object> h : headers) {
                 headersMap.put(h.getKey(), h.getValue().toString());
@@ -103,6 +104,8 @@ public class BaasApiException extends BaasException {
         this.requestHeader = requestHeader;
         this.apiVersion = apiVersion;
     }
+
+// ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public String toString() {

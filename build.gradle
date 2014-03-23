@@ -4,44 +4,54 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.8.+'
-        classpath 'com.github.dcendents:android-maven-plugin:1.0'
     }
 }
 
 task wrapper(type: Wrapper) {
     gradleVersion = '1.10'
 }
+
 apply plugin: 'android-library'
-apply plugin: 'android-maven'
+apply plugin: 'maven'
+apply plugin: 'signing'
 
 repositories {
     mavenCentral()
 }
 
+// versioning
 def majorVersion = 0
 def minorVersion = 7
-def patchVersion = 3
+def patchVersion = 4
 def sdkRevision  = 0 // sdk revision of a release
 
-def releaseType = "final";
+
+def minMajorVersion = majorVersion
+def minMinorVersion = minorVersion
+def minPatchVersion = 3
+
+def releaseType = "SNAPSHOT";
+
+version = "${majorVersion}.${minorVersion}.${patchVersion}-${releaseType}"
 
 def gitSha ={
     'git rev-parse --short HEAD'.execute().text.trim()
 }()
 
-
 def buildTime ={
     new Date().format("yyyy-MM-dd'T'HH:m'Z'", TimeZone.getTimeZone("UTC"))
 }()
 
+// android configuration
 android {
     compileSdkVersion 19
     buildToolsVersion "19.0.1"
 
     defaultConfig {
         versionCode = majorVersion*10000+minorVersion*1000+patchVersion*100+sdkRevision
-        versionName = "${majorVersion}.${minorVersion}.${patchVersion}.${sdkRevision}-${releaseType}"
+        versionName = version
         buildConfigField "String", "API_VERSION", "\"${majorVersion}.${minorVersion}.${patchVersion}\""
+        buildConfigField "String", "MIN_API_VERSION", "\"${minMajorVersion}.${minMinorVersion}.${minPatchVersion}\""
         buildConfigField "String", "GIT_SHA", "\"${gitSha}\""
         buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
     }
@@ -60,6 +70,9 @@ android {
         // Move the tests to tests/java, tests/res, etc...
         instrumentTest.setRoot('tests')
 
+        testOptions {
+            reportDir = "$project.buildDir/test-reports"
+        }
         // Move the build types to build-types/<type>
         // For instance, build-types/debug/java, build-types/debug/AndroidManifest.xml, ...
         // This moves them out of them default location under src/<type>/... which would
@@ -76,8 +89,10 @@ android {
             source = variant.javaCompile.source
             ext.androidJar = "${android.plugin.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
             destinationDir = file('docs');
-            exclude "**/impl/**";
-            exclude "**/BuildConfig**";
+            exclude "**/impl/**"
+            exclude "**/BuildConfig**"
+
+            failOnError = false
             options {
             }
             classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
@@ -89,31 +104,102 @@ android {
     }
 }
 
-
-
-
 task coreLibJar(type: Jar) {
     from fileTree(dir: 'build/classes/release').matching { 'com/baasbox/android/**' }
 }
 
-artifacts {
-    archives coreLibJar
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from fileTree(dir: 'src')
 }
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "file:///home/eto/baasbox-android")
-            pom.groupId = 'com.baasbox'
-            pom.artifactId = 'baasbox-android'
-            pom.version = '0.7.3'
-        }
-    }
+task docJar(type: Jar) {
+    classifier = 'javadoc'
+    from fileTree(dir: 'docs')
 }
-install {
-    repositories.mavenInstaller {
-        pom.version = "0.7.3-SNAPSHOT"
-        pom.groupId = "com.baasbox"
-        pom.artifactId = "baasbox-android"
-    }
+
+artifacts {
+    archives coreLibJar
+    archives docJar
+    archives sourceJar
+}
+
+
+
+if(project.hasProperty("local.config")
+   && new File(project.property("local.config")+".gradle").exists()) {
+
+  apply from: project.property("local.config")+".gradle";
+
+  ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+  signing {
+      required {isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives")}
+
+      keyId = ext.signingKeyID
+      password = ext.signingPassphrase
+      secretKeyRingFile = ext.signingGPGFile
+
+      sign configurations.archives
+  }
+
+
+  uploadArchives {
+      repositories {
+          mavenDeployer {
+              if(isReleaseVersion){
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+              }
+
+              repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/"){
+                authentication(userName: sonatypeUser, password: sonatypePass)
+              }
+
+              snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/"){
+                authentication(userName: sonatypeUser, password: sonatypePass)
+              }
+
+              pom.groupId = 'com.baasbox'
+              pom.artifactId = 'baasbox-android'
+              pom.version = "${version}"
+              pom.packaging = 'jar'
+              pom.project {
+                  name  'BaasBox Android SDK'
+                  description "A library providing bindings for BaasBox rest services"
+                  url 'http://www.baasbox.com'
+                  inceptionYear '2013'
+                  licenses {
+                      license {
+                          name 'The Apache Sofware License, Version 2.0'
+                          url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                          distribution 'repo'
+                      }
+                  }
+                  organization {
+                      name 'BAASBOX'
+                      url 'http://www.baasbox.com'
+                  }
+                  scm {
+                      connection = 'scm:git@github.com:baasbox/Android-SDK.git'
+                      developerConnection = 'scm:git@github.com:baasbox/Android-SDK.git'
+                      url 'http://github.com/baasbox/Android-SDK'
+                  }
+                  developers {
+                      developer {
+                          id 'aKtor'
+                          name 'Andrea Tortorella'
+                          email 'a.tortorella@baasbox.com'
+                          organization = 'BAASBOX'
+                          organizationUrl 'http://www.baasbox.com'
+                      }
+                  }
+              }
+          }
+      }
+  }
+}
+
+// support for local extensions to configuration
+if(new File("dev-config.gradle").exists()){
+    apply from: "dev-config.gradle"
 }

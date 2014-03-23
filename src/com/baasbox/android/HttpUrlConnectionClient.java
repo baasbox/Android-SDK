@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andlimitations under the License.
+ * See the License for the specific language governing permissions and limitations under the License.
  */
 
 package com.baasbox.android;
@@ -21,6 +21,7 @@ import com.baasbox.android.impl.Logger;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
 import org.apache.http.*;
+import org.apache.http.conn.scheme.HostNameResolver;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
@@ -35,8 +36,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +46,10 @@ import java.util.Map;
  * Created by eto on 23/12/13.
  */
 class HttpUrlConnectionClient implements RestClient {
-    private final static long HTTP_CACHE_SIZE = 10 * 1024 * 1024;
-    private final static HostnameVerifier ACCEPT_ALL =
+// ------------------------------ FIELDS ------------------------------
+
+    private static final long HTTP_CACHE_SIZE = 10 * 1024 * 1024;
+    private static final HostnameVerifier ACCEPT_ALL =
             new HostnameVerifier() {
                 @Override
                 public boolean verify(String hostname, SSLSession session) {
@@ -54,7 +57,7 @@ class HttpUrlConnectionClient implements RestClient {
                 }
             };
 
-    private final static TrustManager[] TRUST_MANAGERS = new TrustManager[]{
+    private static final TrustManager[] TRUST_MANAGERS = new TrustManager[]{
             new X509TrustManager() {
                 @Override
                 public void checkClientTrusted(X509Certificate[] chain, String authType) {
@@ -75,27 +78,58 @@ class HttpUrlConnectionClient implements RestClient {
     private SSLSocketFactory mSSLSocketFactory;
     private HostnameVerifier mHostVerifier;
 
-    HttpUrlConnectionClient(Context context,BaasBox.Config config) {
+// --------------------------- CONSTRUCTORS ---------------------------
+    HttpUrlConnectionClient(Context context, BaasBox.Config config) {
         this.config = config;
-         this.mSSLSocketFactory = config.useHttps ? trustAll() : null;
-        this.mHostVerifier = config.useHttps ? ACCEPT_ALL : null;
-        if (config.useHttps){
-            HttpsURLConnection.setDefaultSSLSocketFactory(mSSLSocketFactory);
-            HttpsURLConnection.setDefaultHostnameVerifier(mHostVerifier);
+
+        if (config.useHttps) {
+//            if (config.keystoreRes!=0){
+//               this.mSSLSocketFactory = createSocketFactory(context,config.keystoreRes,config.password);
+//               this.mHostVerifier = ACCEPT_ALL;
+//                HttpsURLConnection.setDefaultSSLSocketFactory(mSSLSocketFactory);
+//                HttpsURLConnection.setDefaultHostnameVerifier(mHostVerifier);
+//            }
         }
         disableReuseConnectionIfNecessary(config.useHttps);
-
-        enableHttpCacheIfAvailable(context,HTTP_CACHE_SIZE);
+        enableHttpCacheIfAvailable(context, HTTP_CACHE_SIZE);
     }
 
-    private void disableReuseConnectionIfNecessary(boolean https){
-        if (https || Build.VERSION.SDK_INT<Build.VERSION_CODES.FROYO){
-            System.setProperty("http.keepAlive","false");
+    private static SSLSocketFactory createSocketFactory(Context context,int certStoreId,String certPassword){
+        TrustManagerFactory tmf;
+        InputStream in = null;
+        try {
+            in = context.getResources().openRawResource(certStoreId);
+            KeyStore keyStore = KeyStore.getInstance("BKS");
+            keyStore.load(in,certPassword.toCharArray());
+
+            tmf = TrustManagerFactory.getInstance("X509");
+            tmf.init(keyStore);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null,tmf.getTrustManagers(),null);
+
+            return sslContext.getSocketFactory();
+        } catch (Exception e) {
+            throw new BaasRuntimeException(e);
+        }finally {
+            if(in != null){
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    // swallow
+                }
+            }
         }
     }
 
-    private void enableHttpCacheIfAvailable(Context context,long cacheSize){
-        File httpCacheDir = new File(context.getCacheDir(),"baashttpcache");
+    private void disableReuseConnectionIfNecessary(boolean https) {
+        if (https || Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
+            System.setProperty("http.keepAlive", "false");
+        }
+    }
+
+    private void enableHttpCacheIfAvailable(Context context, long cacheSize) {
+        File httpCacheDir = new File(context.getCacheDir(), "baashttpcache");
         try {
             Class.forName("android.net.http.HttpResponseCache")
                     .getMethod("install", File.class, long.class)
@@ -105,18 +139,11 @@ class HttpUrlConnectionClient implements RestClient {
             Logger.debug("HttpResponseCache not available");
         }
     }
-    private static SSLSocketFactory trustAll() {
-        try {
-            SSLContext ssl = SSLContext.getInstance("TLS");
-            ssl.init(null, TRUST_MANAGERS, null);
-            return ssl.getSocketFactory();
-        } catch (NoSuchAlgorithmException e) {
-            throw new Error(e);
-        } catch (KeyManagementException e) {
-            throw new Error(e);
-        }
-    }
 
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface RestClient ---------------------
 
     @Override
     public HttpResponse execute(HttpRequest request) throws BaasException {
@@ -130,9 +157,9 @@ class HttpUrlConnectionClient implements RestClient {
             connection.connect();
 
             int responseCode = -1;
-            try{
-                responseCode =connection.getResponseCode();
-            }catch (IOException e){
+            try {
+                responseCode = connection.getResponseCode();
+            } catch (IOException e) {
                 responseCode = connection.getResponseCode();
             }
             Logger.info("Connection response received");
@@ -150,11 +177,12 @@ class HttpUrlConnectionClient implements RestClient {
                 }
             }
             return response;
-        }catch (IOException e) {
+        } catch (IOException e) {
             throw new BaasIOException(e);
         }
     }
 
+// -------------------------- OTHER METHODS --------------------------
 
     private HttpEntity asEntity(HttpURLConnection connection) {
         BasicHttpEntity entity = new BasicHttpEntity();
@@ -183,11 +211,6 @@ class HttpUrlConnectionClient implements RestClient {
         connection.setReadTimeout(config.httpSocketTimeout);
         connection.setInstanceFollowRedirects(true);
         connection.setDoInput(true);
-
-//        if (config.useHttps) {
-//            ((HttpsURLConnection) connection).setSSLSocketFactory(mSSLSocketFactory);
-//            ((HttpsURLConnection) connection).setHostnameVerifier(mHostVerifier);
-//        }
 
         return connection;
     }
