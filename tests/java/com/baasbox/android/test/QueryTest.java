@@ -71,6 +71,34 @@ public class QueryTest extends BaasTestBase{
         assertTrue(doc.grantAllSync(Grant.READ, Role.ANONYMOUS).isSuccess());
     }
 
+    public void testQueryWithParams(){
+        final BaasQuery q =
+                BaasQuery.builder()
+                         .collection(COLLECTION)
+                         .where("n >= ?")
+                         .whereParams("2")
+                         .projection("n","count(*) as c")
+                         .groupBy("@class")
+                         .orderBy("n desc")
+                         .build();
+        RequestToken t=q.query(new BaasHandler<List<JsonObject>>() {
+            @Override
+            public void handle(BaasResult<List<JsonObject>> result) {
+
+            }
+        });
+        BaasResult<List<JsonObject>> p=t.await();
+        try {
+            List<JsonObject> obs=p.get();
+            for (JsonObject o:obs){
+                Logger.error("RESULT %s",o);
+            }
+        } catch (BaasException e) {
+            fail(e.getMessage());
+        }
+
+    }
+
     public void testQueryCollections(){
         final BaasQuery q =
                 BaasQuery.builder()

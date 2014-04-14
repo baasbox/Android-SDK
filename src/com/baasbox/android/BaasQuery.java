@@ -48,15 +48,21 @@ public class BaasQuery {
     private final RequestFactory.Param[] params;
     private final String collOrUsr;
     private final int mode;
+    private final Builder originalBuilder;
 
     public static Builder builder(){
         return new Builder();
     }
 
-    private BaasQuery(int mode,String collectionOrUser,RequestFactory.Param[] params){
-        this.params=params;
+    public Builder buildUpon(){
+        return new Builder(originalBuilder);
+    }
+
+    private BaasQuery(int mode,String collectionOrUser,Builder builder){
         this.mode =mode;
         this.collOrUsr=collectionOrUser;
+        this.originalBuilder = builder;
+        this.params=originalBuilder.toParams();
     }
 
     public RequestToken query(BaasHandler<List<JsonObject>> handler){
@@ -166,14 +172,27 @@ public class BaasQuery {
         private Paging paging = null;
         private String target = null;
 
+        Builder(Builder builder){
+            mMode =builder.mMode;
+            whereBuilder= builder.whereBuilder==null?null:new StringBuilder(builder.whereBuilder.toString());
+            params = params==null?null:new ArrayList<CharSequence>(params);
+            sortOrder=builder.sortOrder;
+            fields=builder.fields;
+            groupBy=builder.groupBy;
+            paging=builder.paging==null?null:new Paging(builder.paging.page,builder.paging.records);
+            target=builder.target;
+        }
 
+        Builder(){
+
+        }
         public Filter filter(){
             String where = whereBuilder==null?null:whereBuilder.toString();
             return new Filter(where,params,sortOrder,paging);
         }
 
         public BaasQuery build(){
-            return new BaasQuery(mMode,target,toParams());
+            return new BaasQuery(mMode,target,this);
         }
 
         private void validate(){
@@ -234,9 +253,6 @@ public class BaasQuery {
             target =userId;
             return this;
         }
-
-        //fixme add following when baasbox will support it
-
         public Builder collection(String collection){
             this.mMode = COLLECTIONS;
             target=collection;
@@ -262,9 +278,8 @@ public class BaasQuery {
                     sb.append(f).append(',');
                 }
                 sb.setLength(sb.length()-1);
-                this.fields= sb.toString();//Arrays.toString(fields);//.substring(1,fields.length-1);
+                this.fields= sb.toString();
             }
-//            Logger.error("REQI: %s",this.fields);
             return this;
         }
 
@@ -274,9 +289,9 @@ public class BaasQuery {
         }
 
         public Builder whereParams(String... params){
-            if(params!=null&&params.length==0){
-                this.params = new ArrayList<CharSequence>();
-                Collections.addAll(this.params, params);
+            if (params!=null&&params.length>0){
+                this.params =new ArrayList<CharSequence>();
+                Collections.addAll(this.params,params);
             }
             return this;
         }
