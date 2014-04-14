@@ -3,12 +3,12 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.8.+'
+        classpath 'com.android.tools.build:gradle:0.9.+'
     }
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.10'
+    gradleVersion = '1.11'
 }
 
 apply plugin: 'android-library'
@@ -45,7 +45,7 @@ def buildTime ={
 // android configuration
 android {
     compileSdkVersion 19
-    buildToolsVersion "19.0.1"
+    buildToolsVersion "19.0.3"
 
     defaultConfig {
         versionCode = majorVersion*10000+minorVersion*1000+patchVersion*100+sdkRevision
@@ -100,7 +100,8 @@ android {
     }
 
     dependencies {
-        provided 'com.android.support:support-v4:19.0.0';
+        provided 'com.android.support:support-v4:19.+'
+        provided 'com.google.android.gms:play-services:4.3.+'
     }
 }
 

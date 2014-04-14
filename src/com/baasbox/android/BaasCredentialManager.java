@@ -33,9 +33,6 @@ import java.util.Set;
  */
 class BaasCredentialManager {
 // ------------------------------ FIELDS ------------------------------
-
-//    private static final Object NULL = new Object();
-
     private static final String DISK_PREFERENCES_NAME = "BAAS_USER_INFO_PREFERENCES";
     private static final String USER_NAME_KEY = "USER_NAME_KEY";
     private static final String PASSWORD_KEY = "PASSWORD_KEY";
@@ -47,7 +44,6 @@ class BaasCredentialManager {
     private static final String SOCIAL_NETWORK_KEY = "SOCIAL_KEY";
 
     private final SharedPreferences diskCache;
-
     private final BaasBox box;
     private final Object lock = new Object();
     private volatile boolean loaded = false;
@@ -194,5 +190,6 @@ class BaasCredentialManager {
         }
         while (!edit.commit()) ;
     }
+
 
 }

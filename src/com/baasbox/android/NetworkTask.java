@@ -138,7 +138,7 @@ abstract class NetworkTask<R> extends Task<R> {
     }
 
     @Override
-    protected final R asyncCall() throws BaasException {
+    protected R asyncCall() throws BaasException {
         HttpRequest request = request(box);
         if (request == null) {
             return onSkipRequest();

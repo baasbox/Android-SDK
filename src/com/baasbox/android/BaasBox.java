@@ -16,14 +16,19 @@
 package com.baasbox.android;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.util.Patterns;
 import com.baasbox.android.impl.Dispatcher;
+import com.baasbox.android.impl.GCMWrapper;
 import com.baasbox.android.impl.ImmediateDispatcher;
 import com.baasbox.android.impl.Task;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
 import org.apache.http.HttpResponse;
+
+import java.io.IOException;
 
 /**
  * This class represents the main context of BaasBox SDK.
@@ -83,14 +88,15 @@ public class BaasBox {
      * Configuration of this BaasBox client
      */
     public final Config config;
+
     final Cache mCache;
 
     final RequestFactory requestFactory;
     final RestClient restClient;
-
     final BaasCredentialManager store;
+    final Context context;
+    private BaasCloudMessagingService messagingService;
 
-    private final Context context;
     private final Dispatcher asyncDispatcher;
     private final ImmediateDispatcher syncDispatcher;
 
@@ -107,7 +113,10 @@ public class BaasBox {
         this.mCache = new Cache(context);
         this.syncDispatcher = new ImmediateDispatcher();
         this.asyncDispatcher = new Dispatcher(this);
+        this.messagingService=new BaasCloudMessagingService(this);
     }
+
+
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -145,6 +154,16 @@ public class BaasBox {
         return sDefaultClient;
     }
 
+    /**
+     * Returns the messaging service instance
+     * used by baasbox.
+     *
+     * @return BaasCloudMessagingService
+     */
+    public static BaasCloudMessagingService messagingService(){
+        return BaasBox.getDefaultChecked().messagingService;
+    }
+
     static BaasBox getDefaultChecked() {
         if (sDefaultClient == null)
             throw new IllegalStateException("Trying to use implicit client, but no default initialized");
@@ -175,32 +194,38 @@ public class BaasBox {
     }
 
 
+    @Deprecated
     public RequestToken enablePush(String registrationId,Priority priority,BaasHandler<Void> handler){
         if(registrationId==null) throw new IllegalArgumentException("registrationId cannot be null");
         RegisterPush rp = new RegisterPush(this,registrationId,true,priority,handler);
         return submitAsync(rp);
     }
 
+    @Deprecated
     public RequestToken enablePush(String registrationId,BaasHandler<Void> handler) {
         return enablePush(registrationId,null,handler);
     }
 
+    @Deprecated
     public RequestToken disablePush(String registrationId,BaasHandler<Void> handler){
         return disablePush(registrationId,Priority.NORMAL,handler);
     }
 
+    @Deprecated
     public RequestToken disablePush(String registrationId,Priority priority,BaasHandler<Void> handler){
         if (registrationId==null) throw new IllegalArgumentException("registrationId cannot be null");
         RegisterPush rp = new RegisterPush(this,registrationId,false,priority,handler);
         return submitAsync(rp);
     }
 
+    @Deprecated
     public BaasResult<Void> disablePushSync(String registrationId) {
         if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
         RegisterPush req = new RegisterPush(this,registrationId,false,null,null);
         return submitSync(req);
     }
 
+    @Deprecated
     public BaasResult<Void> enablePushSync(String registrationId) {
         if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
         RegisterPush req = new RegisterPush(this,registrationId,true,null,null);
@@ -210,7 +235,7 @@ public class BaasBox {
 
 
 
-    /**
+    /*
      * Streams the file using the provided data stream handler.
      *
      * @param id      the name of the asset to download
@@ -218,13 +243,14 @@ public class BaasBox {
      * @param handler the completion handler
      * @param <R>     the type to transform the bytes to.
      * @return a request token to handle the request
-     */
+
     @Deprecated
     public static <R> RequestToken streamAsset(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
         return BaasAsset.streamAsset(id, null, -1, null, data, handler);
     }
+    */
 
-    /**
+    /*
      * Streams the file using the provided data stream handler.
      *
      * @param id      the name of the asset to download
@@ -233,13 +259,13 @@ public class BaasBox {
      * @param handler the completion handler
      * @param <R>     the type to transform the bytes to.
      * @return a request token to handle the request
-     */
+
     @Deprecated
     public static <R> RequestToken streamAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
         return BaasAsset.streamAsset(id, null, size, null, data, handler);
     }
-
-    /**
+    */
+    /*
      * Streams the file using the provided data stream handler.
      *
      * @param id       the name of the asset to download
@@ -247,13 +273,13 @@ public class BaasBox {
      * @param handler  the completion handler
      * @param <R>      the type to transform the bytes to.
      * @return a request token to handle the request
-     */
+
     @Deprecated
     public static <R> RequestToken streamAsset(String id, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
         return BaasAsset.streamAsset(id, null, -1, priority, contentHandler, handler);
     }
-
-    /**
+    */
+    /*
      * Streams the file using the provided data stream handler.
      *
      * @param id       the name of the asset to download
@@ -263,36 +289,37 @@ public class BaasBox {
      * @param handler  the completion handler
      * @param <R>      the type to transform the bytes to.
      * @return a request token to handle the request
-     */
+
     @Deprecated
     public static <R> RequestToken streamAsset(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
         return BaasAsset.streamAsset(id, null, size, priority, data, handler);
     }
-
-    /**
+    */
+    /*
      * Synchronously streams the asset.
      *
      * @param id     the name of the asset to download
      * @param sizeId the size index if the asset is an image
      * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
-     */
     @Deprecated
     public static BaasResult<BaasStream> streamAssetSync(String id, int sizeId) {
         return BaasAsset.streamSync(id, null, sizeId);
     }
+     */
 
-    /**
+    /*
      * Synchronously streams the asset.
      *
      * @param id   the name of the asset to download
      * @param spec a size spec to specify the resize of an image asset
      * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
-     */
+
     @Deprecated
     public static BaasResult<BaasStream> streamAssetSync(String id, String spec) {
         return BaasAsset.streamSync(id, spec, -1);
     }
-
+    */
+    /*
     @Deprecated
     public RequestToken registerPush(String registrationId, BaasHandler<Void> handler) {
         return enablePush(registrationId, null, handler);
@@ -307,6 +334,7 @@ public class BaasBox {
     public BaasResult<Void> registerPushSync(String registrationId) {
         return enablePushSync(registrationId);
     }
+    */
 
     /**
      * Asynchronously sends a raw rest request to the server that is specified by
@@ -390,6 +418,7 @@ public class BaasBox {
         private String mKeyStorePass = null;
         private RestClient mRestClient = null;
         private boolean mTokenExpires = false;
+        private String[] mSenderIds;
 
         /**
          * Creates a new builder
@@ -402,11 +431,22 @@ public class BaasBox {
         /**
          * Sets if the session token will expire, defaults to false.
          *
-         * @param expires tue if you want the session token not to be refreshed
+         * @param expires true if you want the session token not to be refreshed
          * @return this builder
          */
         public Builder setSessionTokenExpires(boolean expires){
             mTokenExpires = expires;
+            return this;
+        }
+
+        /**
+         * Sets gcm sender id to use for notifications
+         *
+         * @param senderIds the senderIds to use
+         * @return this builder
+         */
+        public Builder setPushSenderId(String ... senderIds){
+            mSenderIds = senderIds;
             return this;
         }
 
@@ -497,6 +537,8 @@ public class BaasBox {
             if(Patterns.IP_ADDRESS.matcher(domain).matches()||
                Patterns.DOMAIN_NAME.matcher(domain).matches()){
                 mApiDomain = domain;
+            } else {
+                throw new RuntimeException("Invalid host name: "+domain+". Hint: don't specify protocol (eg. http) or path");
             }
             return this;
         }
@@ -532,7 +574,8 @@ public class BaasBox {
                               mHttpSocketTimeout,mApiDomain,
                               mApiBasepath,mAppCode,mAuthType,mTokenExpires,mWorkerThreads,
                               mKeyStoreRes,
-                              mKeyStorePass);
+                              mKeyStorePass,
+                              mSenderIds);
         }
 
         /**
@@ -632,7 +675,12 @@ public class BaasBox {
          */
         public final boolean sessionTokenExpires;
 
-        Config(ExceptionHandler exceptionHandler, boolean useHttps, String httpCharset, int httpPort, int httpConnectionTimeout, int httpSocketTimeout, String apiDomain, String apiBasepath, String appCode, AuthType authenticationType,boolean sessionTokenExpires, int workerThreads,int keystoreRes,String keystorepass) {
+        /**
+         * GCM SenderIds to use for notifications
+         */
+        public final String[] senderIds;
+
+        Config(ExceptionHandler exceptionHandler, boolean useHttps, String httpCharset, int httpPort, int httpConnectionTimeout, int httpSocketTimeout, String apiDomain, String apiBasepath, String appCode, AuthType authenticationType,boolean sessionTokenExpires, int workerThreads,int keystoreRes,String keystorepass,String[] senderIds) {
             this.exceptionHandler = exceptionHandler;
             this.useHttps = useHttps;
             this.httpCharset = httpCharset;
@@ -647,6 +695,7 @@ public class BaasBox {
             this.keystoreRes=keystoreRes;
             this.password=keystorepass;
             this.sessionTokenExpires=sessionTokenExpires;
+            this.senderIds = senderIds;
         }
     }
 
@@ -668,8 +717,6 @@ public class BaasBox {
             return request;
         }
     }
-
-
 
     private static final class RegisterPush extends NetworkTask<Void> {
         private final String registrationId;

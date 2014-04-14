@@ -16,8 +16,12 @@
 package com.baasbox.android.test;
 
 import com.baasbox.android.*;
+import com.baasbox.android.BaasHandler;
+import com.baasbox.android.BaasResult;
+import com.baasbox.android.BaasUser;
 import com.baasbox.android.test.common.BaasTestBase;
 
+import java.lang.Override;
 import java.util.List;
 
 /**
@@ -62,7 +66,6 @@ public class UserTest extends BaasTestBase {
 
         assertNotNull(res.value().getScope(BaasUser.Scope.FRIEND));
         assertEquals("friend2",res.value().getScope(BaasUser.Scope.FRIEND).getString(KEY));
-
         BaasResult<List<BaasUser>> following = BaasUser.current().following(null).await();
         assertTrue(following.isSuccess());
         assertEquals(1,following.value().size());
