@@ -66,21 +66,21 @@ public class BaasQuery {
     }
 
     public RequestToken query(BaasHandler<List<JsonObject>> handler){
-        return query(collOrUsr,Priority.NORMAL,handler);
+        return query(collOrUsr,Flags.DEFAULT,handler);
     }
 
     public RequestToken query(String what,BaasHandler<List<JsonObject>> handler){
-        return query(what,Priority.NORMAL, handler);
+        return query(what,Flags.DEFAULT, handler);
     }
 
-    public RequestToken query(Priority priority,BaasHandler<List<JsonObject>> handler){
-        return query(collOrUsr,priority,handler);
+    public RequestToken query(int flags,BaasHandler<List<JsonObject>> handler){
+        return query(collOrUsr,flags,handler);
     }
 
-    public RequestToken query(String what,Priority priority,BaasHandler<List<JsonObject>> handler){
+    public RequestToken query(String what,int flags,BaasHandler<List<JsonObject>> handler){
         if (mode == COLLECTIONS && what==null) throw new IllegalArgumentException("collection cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        QueryRequest request = new QueryRequest(box,mode,collOrUsr,params,Priority.toFlag(priority),handler);
+        QueryRequest request = new QueryRequest(box,mode,collOrUsr,params,Flags.DEFAULT,handler);
         return box.submitAsync(request);
     }
 

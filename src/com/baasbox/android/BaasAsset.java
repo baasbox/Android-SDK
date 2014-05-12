@@ -39,9 +39,8 @@ public final class BaasAsset {
      * @return a request token
      */
     public static RequestToken fetchData(String id, BaasHandler<JsonObject> handler){
-        return fetchData(id, Priority.NORMAL, handler);
+        return fetchData(id, Flags.DEFAULT, handler);
     }
-
 
     /**
      * Asynchronously retrieves named assets data,
@@ -49,17 +48,16 @@ public final class BaasAsset {
      * otherwise attached data to the file are returned.
      *
      * @param id the name of the asset
-     * @param priority the priority at which the request will be executed
+     * @param flags used for the request a bit or of {@link com.baasbox.android.Flags} constants
      * @param handler an handler that will be handed the response
      * @return a request token
      */
-    public static RequestToken fetchData(String id, Priority priority, BaasHandler<JsonObject> handler){
+    public static RequestToken fetchData(String id, int flags, BaasHandler<JsonObject> handler){
         if(id==null) throw new IllegalArgumentException("asset id cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        AssetDataRequest req = new AssetDataRequest(box,id,Priority.toFlag(priority),handler);
+        AssetDataRequest req = new AssetDataRequest(box,id,flags,handler);
         return box.submitAsync(req);
     }
-
 
     /**
      * Synchronously retrieves named assets data,
@@ -87,7 +85,8 @@ public final class BaasAsset {
         protected byte[] convert(byte[] body, String id, String contentType, long contentLength) {
             return body;
         }
-    };
+    }
+
     /**
      * Streams the file using the provided data stream handler.
      *
@@ -98,7 +97,7 @@ public final class BaasAsset {
      * @return a request token to handle the request
      */
     public static <R> RequestToken streamAsset(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, -1, null, data, handler);
+        return BaasAsset.streamAsset(id, null, -1, Flags.DEFAULT, data, handler);
     }
 
     /**
@@ -111,21 +110,21 @@ public final class BaasAsset {
      * @param <R>     the type to transform the bytes to.
      * @return a request token to handle the request
      */
-    public static <R> RequestToken streamAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, size, null, data, handler);
+    public static <R> RequestToken streamImageAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return BaasAsset.streamAsset(id, null, size, Flags.DEFAULT, data, handler);
     }
 
     /**
      * Streams the file using the provided data stream handler.
      *
      * @param id       the name of the asset to download
-     * @param priority a priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
+     * @param flags
      * @param handler  the completion handler
      * @param <R>      the type to transform the bytes to.
      * @return a request token to handle the request
      */
-    public static <R> RequestToken streamAsset(String id, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, -1, priority, contentHandler, handler);
+    public static <R> RequestToken streamAsset(String id, int flags, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
+        return BaasAsset.streamAsset(id, null, -1, flags, contentHandler, handler);
     }
 
     /**
@@ -133,14 +132,14 @@ public final class BaasAsset {
      *
      * @param id       the name of the asset to download
      * @param size     a size spec to specify the resize of an image asset
-     * @param priority a priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
+     * @param flags    {@link com.baasbox.android.Flags}
      * @param data     the data stream handler {@link com.baasbox.android.DataStreamHandler}
      * @param handler  the completion handler
      * @param <R>      the type to transform the bytes to.
      * @return a request token to handle the request
      */
-    public static <R> RequestToken streamAsset(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, size, priority, data, handler);
+    public static <R> RequestToken streamImageAsset(String id, int size, int flags, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return BaasAsset.streamAsset(id, null, size, flags, data, handler);
     }
 
     /**
@@ -174,11 +173,11 @@ public final class BaasAsset {
         return box.submitSync(synReq);
     }
 
-    static <R> RequestToken streamAsset(String name, String sizeSpec, int sizeIdx, Priority priority, DataStreamHandler<R> dataStreamHandler, BaasHandler<R> handler) {
+    static <R> RequestToken streamAsset(String name, String sizeSpec, int sizeIdx, int priority, DataStreamHandler<R> dataStreamHandler, BaasHandler<R> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (dataStreamHandler == null) throw new IllegalArgumentException("data handler cannot be null");
         if (name == null) throw new IllegalArgumentException("id cannot be null");
-        AsyncStream<R> stream = new AssetStream<R>(box, name, sizeSpec, sizeIdx, Priority.toFlag(priority), dataStreamHandler, handler);
+        AsyncStream<R> stream = new AssetStream<R>(box, name, sizeSpec, sizeIdx, priority, dataStreamHandler, handler);
         return box.submitAsync(stream);
     }
 

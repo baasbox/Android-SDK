@@ -194,43 +194,43 @@ public class BaasBox {
     }
 
 
-    @Deprecated
-    public RequestToken enablePush(String registrationId,Priority priority,BaasHandler<Void> handler){
-        if(registrationId==null) throw new IllegalArgumentException("registrationId cannot be null");
-        RegisterPush rp = new RegisterPush(this,registrationId,true,Priority.toFlag(priority),handler);
-        return submitAsync(rp);
-    }
-
-    @Deprecated
-    public RequestToken enablePush(String registrationId,BaasHandler<Void> handler) {
-        return enablePush(registrationId,null,handler);
-    }
-
-    @Deprecated
-    public RequestToken disablePush(String registrationId,BaasHandler<Void> handler){
-        return disablePush(registrationId,Priority.NORMAL,handler);
-    }
-
-    @Deprecated
-    public RequestToken disablePush(String registrationId,Priority priority,BaasHandler<Void> handler){
-        if (registrationId==null) throw new IllegalArgumentException("registrationId cannot be null");
-        RegisterPush rp = new RegisterPush(this,registrationId,false,Priority.toFlag(priority),handler);
-        return submitAsync(rp);
-    }
-
-    @Deprecated
-    public BaasResult<Void> disablePushSync(String registrationId) {
-        if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
-        RegisterPush req = new RegisterPush(this,registrationId,false,Flags.DEFAULT,null);
-        return submitSync(req);
-    }
-
-    @Deprecated
-    public BaasResult<Void> enablePushSync(String registrationId) {
-        if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
-        RegisterPush req = new RegisterPush(this,registrationId,true,Flags.DEFAULT,null);
-        return submitSync(req);
-    }
+//    @Deprecated
+//    public RequestToken enablePush(String registrationId,Priority priority,BaasHandler<Void> handler){
+//        if(registrationId==null) throw new IllegalArgumentException("registrationId cannot be null");
+//        RegisterPush rp = new RegisterPush(this,registrationId,true,Priority.toFlag(priority),handler);
+//        return submitAsync(rp);
+//    }
+//
+//    @Deprecated
+//    public RequestToken enablePush(String registrationId,BaasHandler<Void> handler) {
+//        return enablePush(registrationId,null,handler);
+//    }
+//
+//    @Deprecated
+//    public RequestToken disablePush(String registrationId,BaasHandler<Void> handler){
+//        return disablePush(registrationId,Priority.NORMAL,handler);
+//    }
+//
+//    @Deprecated
+//    public RequestToken disablePush(String registrationId,Priority priority,BaasHandler<Void> handler){
+//        if (registrationId==null) throw new IllegalArgumentException("registrationId cannot be null");
+//        RegisterPush rp = new RegisterPush(this,registrationId,false,Priority.toFlag(priority),handler);
+//        return submitAsync(rp);
+//    }
+//
+//    @Deprecated
+//    public BaasResult<Void> disablePushSync(String registrationId) {
+//        if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
+//        RegisterPush req = new RegisterPush(this,registrationId,false,Flags.DEFAULT,null);
+//        return submitSync(req);
+//    }
+//
+//    @Deprecated
+//    public BaasResult<Void> enablePushSync(String registrationId) {
+//        if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
+//        RegisterPush req = new RegisterPush(this,registrationId,true,Flags.DEFAULT,null);
+//        return submitSync(req);
+//    }
 
     /*
      * Streams the file using the provided data stream handler.
@@ -333,21 +333,6 @@ public class BaasBox {
     }
     */
 
-    /**
-     * Asynchronously sends a raw rest request to the server that is specified by
-     * the parameters passed in
-     *
-     * @param priority priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
-     * @param method   the method to use
-     * @param endpoint the resource
-     * @param body     an optional jsono bject
-     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
-     */
-    @Deprecated
-    public RequestToken rest(int method, String endpoint, JsonObject body, Priority priority, BaasHandler<JsonObject> jsonHandler) {
-       return rest(method,endpoint,body,Priority.toFlag(priority),jsonHandler);
-    }
-
 
     /**
      * Asynchronously sends a raw rest request to the server that is specified by
@@ -368,8 +353,7 @@ public class BaasBox {
     }
     /**
      * Asynchronously sends a raw rest request to the server that is specified by
-     * the parameters passed in, using default {@link com.baasbox.android.Priority#NORMAL}
-     * and no tag.
+     * the parameters passed in.
      *
      * @param method       the method to use
      * @param endpoint     the resource
@@ -379,7 +363,7 @@ public class BaasBox {
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
     public RequestToken rest(int method, String endpoint, JsonObject body, boolean authenticate, BaasHandler<JsonObject> handler) {
-        return rest(method, endpoint, body, null, handler);
+        return rest(method, endpoint, body, 0, handler);
     }
 
     /**
