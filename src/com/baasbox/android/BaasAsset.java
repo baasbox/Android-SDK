@@ -56,7 +56,7 @@ public final class BaasAsset {
     public static RequestToken fetchData(String id, Priority priority, BaasHandler<JsonObject> handler){
         if(id==null) throw new IllegalArgumentException("asset id cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        AssetDataRequest req = new AssetDataRequest(box,id,priority,handler);
+        AssetDataRequest req = new AssetDataRequest(box,id,Priority.toFlag(priority),handler);
         return box.submitAsync(req);
     }
 
@@ -73,7 +73,7 @@ public final class BaasAsset {
     public static BaasResult<JsonObject> fetchDataSync(String id){
         if (id == null) throw new IllegalArgumentException("asset id cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        AssetDataRequest req = new AssetDataRequest(box,id,null,null);
+        AssetDataRequest req = new AssetDataRequest(box,id,Flags.DEFAULT,null);
         return box.submitSync(req);
     }
 
@@ -178,7 +178,7 @@ public final class BaasAsset {
         BaasBox box = BaasBox.getDefaultChecked();
         if (dataStreamHandler == null) throw new IllegalArgumentException("data handler cannot be null");
         if (name == null) throw new IllegalArgumentException("id cannot be null");
-        AsyncStream<R> stream = new AssetStream<R>(box, name, sizeSpec, sizeIdx, priority, dataStreamHandler, handler);
+        AsyncStream<R> stream = new AssetStream<R>(box, name, sizeSpec, sizeIdx, Priority.toFlag(priority), dataStreamHandler, handler);
         return box.submitAsync(stream);
     }
 
@@ -186,8 +186,8 @@ public final class BaasAsset {
     private static class AssetDataRequest extends NetworkTask<JsonObject> {
         private final String name;
 
-        protected AssetDataRequest(BaasBox box,String name, Priority priority, BaasHandler<JsonObject> handler) {
-            super(box, priority, handler, false);
+        protected AssetDataRequest(BaasBox box,String name, int flags, BaasHandler<JsonObject> handler) {
+            super(box, flags, handler, false);
             this.name=name;
         }
 
@@ -208,8 +208,8 @@ public final class BaasAsset {
         private final String name;
         private HttpRequest request;
 
-        protected AssetStream(BaasBox box, String name, String sizeSpec, int sizeId, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
-            super(box, priority, dataStream, handler, false);
+        protected AssetStream(BaasBox box, String name, String sizeSpec, int sizeId, int flags, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
+            super(box, flags, dataStream, handler, false);
             this.name = name;
             RequestFactory.Param param = null;
             if (sizeSpec != null) {

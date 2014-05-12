@@ -42,19 +42,19 @@ public final class BaasCloudMessagingService {
 
     public RequestToken enable(BaasHandler<Void> handler){
         BaasBox box=BaasBox.getDefaultChecked();
-        RegisterMessaging req= new RegisterMessaging(true,this,box,Priority.NORMAL,handler);
+        RegisterMessaging req= new RegisterMessaging(true,this,box,Flags.DEFAULT,handler);
         return box.submitAsync(req);
     }
 
     public RequestToken disable(BaasHandler<Void> handler){
         BaasBox box = BaasBox.getDefaultChecked();
-        RegisterMessaging req=new RegisterMessaging(false,this,box,Priority.NORMAL,handler);
+        RegisterMessaging req=new RegisterMessaging(false,this,box,Flags.DEFAULT,handler);
         return box.submitAsync(req);
     }
 
     public BaasResult<Void> enableSync(){
         BaasBox box = BaasBox.getDefaultChecked();
-        RegisterMessaging req=new RegisterMessaging(true,this,box,null,null);
+        RegisterMessaging req=new RegisterMessaging(true,this,box,Flags.DEFAULT,null);
         return box.submitSync(req);
     }
 
@@ -64,7 +64,7 @@ public final class BaasCloudMessagingService {
 
     public BaasResult<Void> disableSync(){
         BaasBox box = BaasBox.getDefaultChecked();
-        RegisterMessaging req=new RegisterMessaging(false,this,box,null,null);
+        RegisterMessaging req=new RegisterMessaging(false,this,box,Flags.DEFAULT,null);
         return box.submitSync(req);
     }
 
@@ -112,8 +112,8 @@ public final class BaasCloudMessagingService {
         private String mRegistrationId;
         private final BaasCloudMessagingService service;
 
-        protected RegisterMessaging(boolean register,BaasCloudMessagingService service,BaasBox box, Priority priority, BaasHandler<Void> handler) {
-            super(box, priority, handler);
+        protected RegisterMessaging(boolean register,BaasCloudMessagingService service,BaasBox box, int flags, BaasHandler<Void> handler) {
+            super(box, flags, handler);
             mRegister = register;
             this.service=service;
         }

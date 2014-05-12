@@ -24,4 +24,13 @@ package com.baasbox.android;
  */
 public enum Priority {
     LOW, NORMAL, HIGH;
+
+    static int toFlag(Priority p){
+        switch (p){
+            case LOW: return 0;
+            case NORMAL: return 1;
+            case HIGH: return 2;
+            default:return 0;
+        }
+    }
 }

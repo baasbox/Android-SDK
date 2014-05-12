@@ -202,7 +202,7 @@ public class BaasUser implements Parcelable {
 
     public static BaasResult<BaasUser> signupWithProviderSync(String provider, String token, String secret) {
         BaasBox box = BaasBox.getDefaultChecked();
-        SocialSignup socialSignup = new SocialSignup(box, provider, token, secret, null, null);
+        SocialSignup socialSignup = new SocialSignup(box, provider, token, secret, 0, null);
         return box.submitSync(socialSignup);
     }
 
@@ -212,14 +212,14 @@ public class BaasUser implements Parcelable {
 
     public static RequestToken signupWithProvider(String provider, String token, String secret, Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        SocialSignup socialSignup = new SocialSignup(box, provider, token, secret, priority, handler);
+        SocialSignup socialSignup = new SocialSignup(box, provider, token, secret, Priority.toFlag(priority), handler);
         return box.submitAsync(socialSignup);
     }
 
     public static BaasResult<Void> requestPasswordResetSync(String username) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (username == null) throw new IllegalArgumentException("username cannot be null");
-        return box.submitSync(new PasswordReset(box, username, null, null));
+        return box.submitSync(new PasswordReset(box, username, 0, null));
     }
 
     public static RequestToken requestPaswordReset(String username, BaasHandler<Void> handler) {
@@ -229,7 +229,7 @@ public class BaasUser implements Parcelable {
     public static RequestToken requestPasswordReset(String username, Priority priority, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (username == null) throw new IllegalArgumentException("username cannot be null");
-        return box.submitAsync(new PasswordReset(box, username, priority, handler));
+        return box.submitAsync(new PasswordReset(box, username, Priority.toFlag(priority), handler));
     }
 
     /**
@@ -281,7 +281,7 @@ public class BaasUser implements Parcelable {
 
     public RequestToken refresh(Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        FetchUser fetch = new FetchUser(box, this, priority, handler);
+        FetchUser fetch = new FetchUser(box, this, Priority.toFlag(priority), handler);
         return box.submitAsync(fetch);
     }
 
@@ -292,19 +292,19 @@ public class BaasUser implements Parcelable {
 
     public BaasResult<BaasUser> refreshSync() {
         BaasBox box = BaasBox.getDefaultChecked();
-        FetchUser fetch = new FetchUser(box, this, null, null);
+        FetchUser fetch = new FetchUser(box, this, 0, null);
         return box.submitSync(fetch);
     }
 
     public static BaasResult<List<BaasUser>> fetchAllSync() {
         BaasBox box = BaasBox.getDefaultChecked();
-        FetchUsers users = new FetchUsers(box, "users", null, null, null, null);
+        FetchUsers users = new FetchUsers(box, "users", null, null, 0, null);
         return box.submitSync(users);
     }
 
     public static BaasResult<List<BaasUser>> fetchAllSync(Filter filter) {
         BaasBox box = BaasBox.getDefaultChecked();
-        FetchUsers users = new FetchUsers(box, "users", null, filter, null, null);
+        FetchUsers users = new FetchUsers(box, "users", null, filter, 0, null);
         return box.submitSync(users);
     }
 
@@ -338,7 +338,7 @@ public class BaasUser implements Parcelable {
      */
     public static RequestToken fetchAll(Filter filter, Priority priority, BaasHandler<List<BaasUser>> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        FetchUsers users = new FetchUsers(box, "users", null, filter, priority, handler);
+        FetchUsers users = new FetchUsers(box, "users", null, filter, Priority.toFlag(priority), handler);
         return box.submitAsync(users);
     }
 
@@ -435,7 +435,7 @@ public class BaasUser implements Parcelable {
         BaasBox box = BaasBox.getDefaultChecked();
         if (password == null) throw new IllegalArgumentException("password cannot be null");
         if (this.password == null) throw new IllegalStateException("Current user has no password");
-        ChangePassword cp = new ChangePassword(box, this, password, priority, handler);
+        ChangePassword cp = new ChangePassword(box, this, password, Priority.toFlag(priority), handler);
         return box.submitAsync(cp);
     }
 
@@ -443,7 +443,7 @@ public class BaasUser implements Parcelable {
         BaasBox box = BaasBox.getDefaultChecked();
         if (password == null) throw new IllegalArgumentException("password cannot be null");
         if (this.password == null) throw new IllegalStateException("Current user has no password");
-        ChangePassword cp = new ChangePassword(box, this, password, null, null);
+        ChangePassword cp = new ChangePassword(box, this, password, 0, null);
         return box.submitSync(cp);
     }
 
@@ -467,13 +467,13 @@ public class BaasUser implements Parcelable {
      */
     public RequestToken follow(Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Follow follow = new Follow(box, true, this, priority, handler);
+        Follow follow = new Follow(box, true, this, Priority.toFlag(priority), handler);
         return box.submitAsync(follow);
     }
 
     public BaasResult<BaasUser> followSync() {
         BaasBox box = BaasBox.getDefaultChecked();
-        Follow follow = new Follow(box, true, this, null, null);
+        Follow follow = new Follow(box, true, this, Flags.DEFAULT, null);
         return box.submitSync(follow);
     }
 
@@ -489,9 +489,9 @@ public class BaasUser implements Parcelable {
         BaasBox box = BaasBox.getDefaultChecked();
         FetchUsers users;
         if (isCurrent()) {
-            users = new FetchUsers(box, "followers", null, filter, priority, handler);
+            users = new FetchUsers(box, "followers", null, filter, Priority.toFlag(priority), handler);
         } else {
-            users = new FetchUsers(box, "followers/{}", username, filter, priority, handler);
+            users = new FetchUsers(box, "followers/{}", username, filter, Priority.toFlag(priority), handler);
         }
         return box.submitAsync(users);
     }
@@ -525,9 +525,9 @@ public class BaasUser implements Parcelable {
         BaasBox box = BaasBox.getDefaultChecked();
         FetchUsers users;
         if (isCurrent()) {
-            users = new FetchUsers(box, "followers", null, filter, null, null);
+            users = new FetchUsers(box, "followers", null, filter, Flags.DEFAULT, null);
         } else {
-            users = new FetchUsers(box, "followers/{}", username, filter, null, null);
+            users = new FetchUsers(box, "followers/{}", username, filter, Flags.DEFAULT, null);
         }
         return box.submitSync(users);
     }
@@ -544,9 +544,9 @@ public class BaasUser implements Parcelable {
         BaasBox box = BaasBox.getDefaultChecked();
         FetchUsers users;
         if (isCurrent()) {
-            users = new FetchUsers(box, "following", null, filter, priority, handler);
+            users = new FetchUsers(box, "following", null, filter, Priority.toFlag(priority), handler);
         } else {
-            users = new FetchUsers(box, "following/{}", username, filter, priority, handler);
+            users = new FetchUsers(box, "following/{}", username, filter, Priority.toFlag(priority), handler);
         }
         return box.submitAsync(users);
     }
@@ -559,9 +559,9 @@ public class BaasUser implements Parcelable {
         BaasBox box = BaasBox.getDefaultChecked();
         FetchUsers users;
         if (isCurrent()) {
-            users = new FetchUsers(box, "following", null, filter, null, null);
+            users = new FetchUsers(box, "following", null, filter, Flags.DEFAULT, null);
         } else {
-            users = new FetchUsers(box, "following/{}", username, filter, null, null);
+            users = new FetchUsers(box, "following/{}", username, filter, Flags.DEFAULT, null);
         }
         return box.submitSync(users);
     }
@@ -662,7 +662,7 @@ public class BaasUser implements Parcelable {
     public RequestToken login(String regitrationId, Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefault();
         if (password == null) throw new IllegalStateException("password cannot be null");
-        NetworkTask<BaasUser> task = new LoginRequest(box, this, regitrationId, priority, handler);
+        NetworkTask<BaasUser> task = new LoginRequest(box, this, regitrationId, Priority.toFlag(priority), handler);
         return box.submitAsync(task);
     }
 
@@ -684,7 +684,7 @@ public class BaasUser implements Parcelable {
     public BaasResult<BaasUser> loginSync(String registrationId) {
         BaasBox box = BaasBox.getDefault();
         if (password == null) throw new IllegalStateException("password cannot be null");
-        NetworkTask<BaasUser> task = new LoginRequest(box, this, registrationId, null, null);
+        NetworkTask<BaasUser> task = new LoginRequest(box, this, registrationId, Flags.DEFAULT, null);
         return box.submitSync(task);
     }
 
@@ -724,7 +724,7 @@ public class BaasUser implements Parcelable {
      */
     public RequestToken logout(String registration, Priority priority, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        LogoutRequest request = new LogoutRequest(box, this, registration, priority, handler);
+        LogoutRequest request = new LogoutRequest(box, this, registration, Priority.toFlag(priority), handler);
         return box.submitAsync(request);
     }
 
@@ -745,7 +745,7 @@ public class BaasUser implements Parcelable {
      */
     public BaasResult<Void> logoutSync(String registration) {
         BaasBox box = BaasBox.getDefaultChecked();
-        LogoutRequest request = new LogoutRequest(box, this, registration, null, null);
+        LogoutRequest request = new LogoutRequest(box, this, registration, Flags.DEFAULT, null);
         return box.submitSync(request);
     }
 
@@ -768,7 +768,7 @@ public class BaasUser implements Parcelable {
      */
     public RequestToken save(Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        SaveUser task = new SaveUser(box, this, priority, handler);
+        SaveUser task = new SaveUser(box, this, Priority.toFlag(priority), handler);
         return box.submitAsync(task);
     }
 
@@ -779,7 +779,7 @@ public class BaasUser implements Parcelable {
      */
     public BaasResult<BaasUser> saveSync() {
         BaasBox box = BaasBox.getDefaultChecked();
-        SaveUser task = new SaveUser(box, this, null, null);
+        SaveUser task = new SaveUser(box, this, Flags.DEFAULT, null);
         return box.submitSync(task);
     }
 
@@ -789,13 +789,13 @@ public class BaasUser implements Parcelable {
 
     public RequestToken send(JsonObject message, Priority priority, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Push push = new Push(box, username, message, priority, handler);
+        Push push = new Push(box, username, message, Priority.toFlag(priority), handler);
         return box.submitAsync(push);
     }
 
     public BaasResult<Void> sendSync(JsonObject message) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Push push = new Push(box, username, message, null, null);
+        Push push = new Push(box, username, message, Flags.DEFAULT, null);
         return box.submitSync(push);
     }
 
@@ -840,7 +840,7 @@ public class BaasUser implements Parcelable {
         BaasBox box = BaasBox.getDefaultChecked();
         if (password == null) throw new IllegalStateException("password cannot be null");
 
-        SignupRequest req = new SignupRequest(box, this, priority, handler);
+        SignupRequest req = new SignupRequest(box, this, Priority.toFlag(priority), handler);
         return box.submitAsync(req);
     }
 
@@ -852,7 +852,7 @@ public class BaasUser implements Parcelable {
     public BaasResult<BaasUser> signupSync() {
         BaasBox box = BaasBox.getDefaultChecked();
         if (password == null) throw new IllegalStateException("password cannot be null");
-        SignupRequest signup = new SignupRequest(box, this, null, null);
+        SignupRequest signup = new SignupRequest(box, this, Flags.DEFAULT, null);
         return box.submitSync(signup);
     }
 
@@ -882,13 +882,13 @@ public class BaasUser implements Parcelable {
      */
     public RequestToken unfollow(Priority priority, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Follow follow = new Follow(box, false, this, priority, handler);
+        Follow follow = new Follow(box, false, this, Priority.toFlag(priority), handler);
         return box.submitAsync(follow);
     }
 
     public BaasResult<BaasUser> unfollowSync() {
         BaasBox box = BaasBox.getDefaultChecked();
-        Follow follow = new Follow(box, false, this, null, null);
+        Follow follow = new Follow(box, false, this, Flags.DEFAULT, null);
         return box.submitSync(follow);
     }
 
@@ -968,8 +968,8 @@ public class BaasUser implements Parcelable {
         private String token;
         private String secret;
 
-        protected SocialSignup(BaasBox box, String provider, String token, String secret, Priority priority, BaasHandler<BaasUser> handler) {
-            super(box, priority, handler);
+        protected SocialSignup(BaasBox box, String provider, String token, String secret, int flags, BaasHandler<BaasUser> handler) {
+            super(box, flags, handler);
             this.provider = provider;
             this.token = token;
             this.secret = secret;
@@ -1000,8 +1000,8 @@ public class BaasUser implements Parcelable {
         private final String name;
         private final JsonObject message;
 
-        protected Push(BaasBox box, String user, JsonObject message, Priority priority, BaasHandler<Void> handler) {
-            super(box, priority, handler);
+        protected Push(BaasBox box, String user, JsonObject message, int flags, BaasHandler<Void> handler) {
+            super(box, flags, handler);
             this.name = user;
             this.message = message;
         }
@@ -1021,8 +1021,8 @@ public class BaasUser implements Parcelable {
     private static class PasswordReset extends NetworkTask<Void> {
         private final HttpRequest request;
 
-        protected PasswordReset(BaasBox box, String name, Priority priority, BaasHandler<Void> handler) {
-            super(box, priority, handler);
+        protected PasswordReset(BaasBox box, String name, int flags, BaasHandler<Void> handler) {
+            super(box, flags, handler);
             request = box.requestFactory.get(box.requestFactory.getEndpoint("user/{}/password/reset", name));
         }
 
@@ -1041,8 +1041,8 @@ public class BaasUser implements Parcelable {
     private static final class SignupRequest extends NetworkTask<BaasUser> {
         private final BaasUser userSignUp;
 
-        protected SignupRequest(BaasBox box, BaasUser user, Priority priority, BaasHandler<BaasUser> handler) {
-            super(box, priority, handler, false);
+        protected SignupRequest(BaasBox box, BaasUser user, int flags, BaasHandler<BaasUser> handler) {
+            super(box, flags, handler, false);
             this.userSignUp = user;
         }
 
@@ -1067,8 +1067,8 @@ public class BaasUser implements Parcelable {
         private final String regId;
         private final BaasUser user;
 
-        protected LoginRequest(BaasBox box, BaasUser user, String regId, Priority priority, BaasHandler<BaasUser> handler) {
-            super(box, priority, handler, false);
+        protected LoginRequest(BaasBox box, BaasUser user, String regId, int flags, BaasHandler<BaasUser> handler) {
+            super(box, flags, handler, false);
             this.regId = regId;
             this.user = user;
         }
@@ -1095,8 +1095,8 @@ public class BaasUser implements Parcelable {
         private BaasUser user;
         private String password;
 
-        protected ChangePassword(BaasBox box, BaasUser user, String password, Priority priority, BaasHandler<Void> handler) {
-            super(box, priority, handler);
+        protected ChangePassword(BaasBox box, BaasUser user, String password, int flags, BaasHandler<Void> handler) {
+            super(box, flags, handler);
             this.user = user;
             request = box.requestFactory.put("me/password", new JsonObject().putString("old", user.getPassword()).putString("new", password));
             this.password = password;
@@ -1124,8 +1124,8 @@ public class BaasUser implements Parcelable {
     private static class SaveUser extends NetworkTask<BaasUser> {
         private final BaasUser user;
 
-        protected SaveUser(BaasBox box, BaasUser user, Priority priority, BaasHandler<BaasUser> handler) {
-            super(box, priority, handler);
+        protected SaveUser(BaasBox box, BaasUser user, int flags, BaasHandler<BaasUser> handler) {
+            super(box, flags, handler);
             this.user = user;
         }
 
@@ -1155,8 +1155,8 @@ public class BaasUser implements Parcelable {
         private final String registration;
         private final BaasUser user;
 
-        protected LogoutRequest(BaasBox box, BaasUser user, String registration, Priority priority, BaasHandler<Void> handler) {
-            super(box, priority, handler, false);
+        protected LogoutRequest(BaasBox box, BaasUser user, String registration, int flags, BaasHandler<Void> handler) {
+            super(box, flags, handler, false);
             this.registration = registration;
             this.user = user;
         }
@@ -1198,8 +1198,8 @@ public class BaasUser implements Parcelable {
     private static class FetchUser extends NetworkTask<BaasUser> {
         private final BaasUser user;
 
-        protected FetchUser(BaasBox box, BaasUser user, Priority priority, BaasHandler<BaasUser> handler) {
-            super(box, priority, handler);
+        protected FetchUser(BaasBox box, BaasUser user, int flags, BaasHandler<BaasUser> handler) {
+            super(box, flags, handler);
             this.user = user;
         }
 
@@ -1229,8 +1229,8 @@ public class BaasUser implements Parcelable {
         protected final RequestFactory.Param[] params;
         protected final String endpoint;
 
-        protected FetchUsers(BaasBox box, String endpoint, String user, Filter filter, Priority priority, BaasHandler<List<BaasUser>> handler) {
-            super(box, priority, handler);
+        protected FetchUsers(BaasBox box, String endpoint, String user, Filter filter,int flags, BaasHandler<List<BaasUser>> handler) {
+            super(box, flags, handler);
             if (filter == null) {
                 params = null;
             } else {
@@ -1275,8 +1275,8 @@ public class BaasUser implements Parcelable {
         private final BaasUser user;
         private final boolean follow;
 
-        protected Follow(BaasBox box, boolean follow, BaasUser user, Priority priority, BaasHandler<BaasUser> handler) {
-            super(box, priority, handler);
+        protected Follow(BaasBox box, boolean follow, BaasUser user, int flags, BaasHandler<BaasUser> handler) {
+            super(box, flags, handler);
             this.user = user;
             this.follow = follow;
         }

@@ -41,15 +41,18 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
     private AtomicBoolean taken = new AtomicBoolean(false);
     private Handler postOn;
     private Dispatcher dispatcher;
-    private Priority priority;
+    private int priority;
     private final AtomicReference<BaasHandler<?>> suspendableHandler = new AtomicReference<BaasHandler<?>>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    protected Task(Priority priority, BaasHandler<R> handler) {
-        this.priority = priority == null ? Priority.NORMAL : priority;
+    protected Task(int flags, BaasHandler<R> handler) {
+        this.priority = parsePriority(flags);
         this.suspendableHandler.set(handler == null ? BaasHandler.NOOP : handler);
     }
 
+    private static int parsePriority(int flags){
+        return flags;
+    }
 // ------------------------ CANONICAL METHODS ------------------------
 
     @Override
@@ -76,11 +79,11 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
 
     @Override
     public int compareTo(Task<R> another) {
-        Priority me = priority;
-        Priority you = another.priority;
+        int me = priority;
+        int you = another.priority;
         return me == you ?
                 seqNumber - another.seqNumber :
-                you.ordinal() - me.ordinal();
+                you - me;
     }
 
 // --------------------- Interface Runnable ---------------------

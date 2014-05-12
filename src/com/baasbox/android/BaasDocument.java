@@ -229,7 +229,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     public static RequestToken fetchAll(String collection, Filter filter, Priority priority, BaasHandler<List<BaasDocument>> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
-        Fetch f = new Fetch(box, collection, filter, priority, handler);
+        Fetch f = new Fetch(box, collection, filter, Priority.toFlag(priority), handler);
         return box.submitAsync(f);
     }
 
@@ -247,7 +247,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     public static BaasResult<List<BaasDocument>> fetchAllSync(String collection, Filter filter) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
-        Fetch f = new Fetch(box, collection, filter, null, null);
+        Fetch f = new Fetch(box, collection, filter, Flags.DEFAULT, null);
         return box.submitSync(f);
     }
 
@@ -302,7 +302,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     private static RequestToken count(String collection, Filter filter, Priority priority, BaasHandler<Long> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
-        Count count = new Count(box, collection, filter, priority, handler);
+        Count count = new Count(box, collection, filter, Priority.toFlag(priority), handler);
         return box.submitAsync(count);
     }
 
@@ -327,7 +327,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     public static BaasResult<Long> countSync(String collection, Filter filter) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
-        Count request = new Count(box, collection, filter, null, null);
+        Count request = new Count(box, collection, filter, Flags.DEFAULT, null);
         return box.submitSync(request);
     }
 
@@ -365,7 +365,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         if (handler == null) throw new IllegalArgumentException("handler cannot be null");
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
-        Refresh refresh = new Refresh(box, this, priority, handler);
+        Refresh refresh = new Refresh(box, this, Priority.toFlag(priority), handler);
         return box.submitAsync(refresh);
     }
 
@@ -394,7 +394,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
-        Refresh refresh = new Refresh(box, this, null, null);
+        Refresh refresh = new Refresh(box, this, Flags.DEFAULT, null);
         return box.submitSync(refresh);
     }
 
@@ -406,7 +406,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         if (id == null) throw new IllegalArgumentException("id cannot be null");
-        Delete delete = new Delete(box, collection, id, priority, handler);
+        Delete delete = new Delete(box, collection, id, Priority.toFlag(priority), handler);
         return box.submitAsync(delete);
     }
 
@@ -414,7 +414,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         if (id == null) throw new IllegalArgumentException("id cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        Delete delete = new Delete(box, collection, id, null, null);
+        Delete delete = new Delete(box, collection, id, Flags.DEFAULT, null);
         return box.submitSync(delete);
     }
 
@@ -427,7 +427,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     public RequestToken save(SaveMode mode, Priority priority, BaasHandler<BaasDocument> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (mode == null) throw new IllegalArgumentException("mode cannot be null");
-        Save save = new Save(box, mode, this, priority, handler);
+        Save save = new Save(box, mode, this, Priority.toFlag(priority), handler);
         return box.submitAsync(save);
     }
 
@@ -445,7 +445,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     public BaasResult<BaasDocument> saveSync(SaveMode mode) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (mode == null) throw new IllegalArgumentException("mode cannot be null");
-        Save save = new Save(box, mode, this, null, null);
+        Save save = new Save(box, mode, this, Flags.DEFAULT, null);
         return box.submitSync(save);
     }
 
@@ -547,7 +547,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
-        Delete delete = new Delete(box, this, priority, handler);
+        Delete delete = new Delete(box, this, Priority.toFlag(priority), handler);
         return box.submitAsync(delete);
     }
 
@@ -555,7 +555,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
         BaasBox box = BaasBox.getDefaultChecked();
-        Delete delete = new Delete(box, this, null, null);
+        Delete delete = new Delete(box, this, Flags.DEFAULT, null);
         return box.submitSync(delete);
     }
 
@@ -1102,15 +1102,15 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         private final String id;
         private final String collection;
 
-        protected Delete(BaasBox box, String collection, String id, Priority priority, BaasHandler<Void> handler) {
-            super(box, priority, handler);
+        protected Delete(BaasBox box, String collection, String id, int flags, BaasHandler<Void> handler) {
+            super(box, flags, handler);
             this.document = null;
             this.collection = collection;
             this.id = id;
         }
 
-        protected Delete(BaasBox box, BaasDocument document, Priority priority, BaasHandler<Void> handler) {
-            super(box, priority, handler);
+        protected Delete(BaasBox box, BaasDocument document, int flags, BaasHandler<Void> handler) {
+            super(box, flags, handler);
             this.document = document;
             this.collection = document.collection;
             this.id = document.id;
@@ -1143,8 +1143,8 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         private final SaveMode mode;
         private JsonObject data;
 
-        protected Save(BaasBox box, SaveMode mode, BaasDocument document, Priority priority, BaasHandler<BaasDocument> handler) {
-            super(box, priority, handler);
+        protected Save(BaasBox box, SaveMode mode, BaasDocument document, int flags, BaasHandler<BaasDocument> handler) {
+            super(box, flags, handler);
             this.document = document;
             this.data = document.data.copy();
             this.mode = mode;
@@ -1176,7 +1176,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
 
     private static final class Access extends BaasObject.Access {
         protected Access(BaasBox box, boolean add, boolean isRole, String collection, String id, String to, Grant grant, Priority priority, BaasHandler<Void> handler) {
-            super(box, add, isRole, collection, id, to, grant, priority, handler);
+            super(box, add, isRole, collection, id, to, grant, Priority.toFlag(priority), handler);
         }
 
         @Override
@@ -1193,8 +1193,8 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     private static final class Refresh extends NetworkTask<BaasDocument> {
         private final BaasDocument document;
 
-        protected Refresh(BaasBox box, BaasDocument doc, Priority priority, BaasHandler<BaasDocument> handler) {
-            super(box, priority, handler);
+        protected Refresh(BaasBox box, BaasDocument doc, int flags, BaasHandler<BaasDocument> handler) {
+            super(box, flags, handler);
             this.document = doc;
         }
 
@@ -1216,8 +1216,8 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         private final String collection;
         private final RequestFactory.Param[] filter;
 
-        protected Fetch(BaasBox box, String collection, Filter filter, Priority priority, BaasHandler<List<BaasDocument>> handler) {
-            super(box, priority, handler);
+        protected Fetch(BaasBox box, String collection, Filter filter, int flags, BaasHandler<List<BaasDocument>> handler) {
+            super(box, flags, handler);
             this.collection = collection;
             this.filter = filter == null ? null : filter.toParams();
         }
@@ -1252,8 +1252,8 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         private final String collection;
         private final RequestFactory.Param[] params;
 
-        protected Count(BaasBox box, String collection, Filter filter, Priority priority, BaasHandler<Long> handler) {
-            super(box, priority, handler);
+        protected Count(BaasBox box, String collection, Filter filter, int flags, BaasHandler<Long> handler) {
+            super(box, flags, handler);
             this.collection = collection;
             this.params = filter == null ? null : filter.toParams();
         }

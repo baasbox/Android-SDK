@@ -233,8 +233,8 @@ public abstract class BaasObject {
         private final String collection;
         private final String to;
 
-        protected Access(BaasBox box, boolean add, boolean isRole, String collection, String id, String to, Grant grant, Priority priority, BaasHandler<Void> handler) {
-            super(box, priority, handler);
+        protected Access(BaasBox box, boolean add, boolean isRole, String collection, String id, String to, Grant grant, int  flags, BaasHandler<Void> handler) {
+            super(box, flags, handler);
             this.isRole = isRole;
             this.add = add;
             this.grant = grant;

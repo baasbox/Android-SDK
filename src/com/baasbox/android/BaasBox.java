@@ -197,7 +197,7 @@ public class BaasBox {
     @Deprecated
     public RequestToken enablePush(String registrationId,Priority priority,BaasHandler<Void> handler){
         if(registrationId==null) throw new IllegalArgumentException("registrationId cannot be null");
-        RegisterPush rp = new RegisterPush(this,registrationId,true,priority,handler);
+        RegisterPush rp = new RegisterPush(this,registrationId,true,Priority.toFlag(priority),handler);
         return submitAsync(rp);
     }
 
@@ -214,21 +214,21 @@ public class BaasBox {
     @Deprecated
     public RequestToken disablePush(String registrationId,Priority priority,BaasHandler<Void> handler){
         if (registrationId==null) throw new IllegalArgumentException("registrationId cannot be null");
-        RegisterPush rp = new RegisterPush(this,registrationId,false,priority,handler);
+        RegisterPush rp = new RegisterPush(this,registrationId,false,Priority.toFlag(priority),handler);
         return submitAsync(rp);
     }
 
     @Deprecated
     public BaasResult<Void> disablePushSync(String registrationId) {
         if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
-        RegisterPush req = new RegisterPush(this,registrationId,false,null,null);
+        RegisterPush req = new RegisterPush(this,registrationId,false,Flags.DEFAULT,null);
         return submitSync(req);
     }
 
     @Deprecated
     public BaasResult<Void> enablePushSync(String registrationId) {
         if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
-        RegisterPush req = new RegisterPush(this,registrationId,true,null,null);
+        RegisterPush req = new RegisterPush(this,registrationId,true,Flags.DEFAULT,null);
         return submitSync(req);
     }
 
@@ -350,7 +350,7 @@ public class BaasBox {
         if (endpoint == null) throw new IllegalArgumentException("endpoint cannot be null");
         endpoint = requestFactory.getEndpointRaw(endpoint);
         HttpRequest any = requestFactory.any(method, endpoint, body);
-        RawRequest request = new RawRequest(this, any, priority, jsonHandler);
+        RawRequest request = new RawRequest(this, any, Priority.toFlag(priority), jsonHandler);
         return submitAsync(request);
     }
 
@@ -384,7 +384,7 @@ public class BaasBox {
         RequestFactory factory = requestFactory;
         endpoint = factory.getEndpointRaw(endpoint);
         HttpRequest any = factory.any(method, endpoint, body);
-        return submitSync(new RawRequest(this, any, null, null));
+        return submitSync(new RawRequest(this, any, Flags.DEFAULT, null));
     }
 
     boolean resume(RequestToken token, BaasHandler<?> handler) {
@@ -702,8 +702,8 @@ public class BaasBox {
     private static class RawRequest extends NetworkTask<JsonObject> {
         HttpRequest request;
 
-        protected RawRequest(BaasBox box, HttpRequest request, Priority priority, BaasHandler<JsonObject> handler) {
-            super(box, priority, handler);
+        protected RawRequest(BaasBox box, HttpRequest request, int flags, BaasHandler<JsonObject> handler) {
+            super(box, flags, handler);
             this.request = request;
         }
 
@@ -723,8 +723,8 @@ public class BaasBox {
         private final boolean enable;
 
         protected RegisterPush(BaasBox box, String registrationId,boolean enable,
-                               Priority priority, BaasHandler<Void> handler) {
-            super(box, priority, handler);
+                               int flags, BaasHandler<Void> handler) {
+            super(box, flags, handler);
             this.registrationId = registrationId;
             this.enable = enable;
         }

@@ -32,13 +32,13 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
     private final DataStreamHandler<R> dataStream;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    protected AsyncStream(BaasBox box, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
-        super(box, priority, handler);
+    protected AsyncStream(BaasBox box, int flags, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
+        super(box, flags, handler);
         this.dataStream = dataStream;
     }
 
-    protected AsyncStream(BaasBox box, Priority priority, DataStreamHandler<R> dataStream, BaasHandler<R> handler, boolean login) {
-        super(box, priority, handler, login);
+    protected AsyncStream(BaasBox box, int flags, DataStreamHandler<R> dataStream, BaasHandler<R> handler, boolean login) {
+        super(box, flags, handler, login);
         this.dataStream = dataStream;
     }
 

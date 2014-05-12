@@ -80,7 +80,7 @@ public class BaasQuery {
     public RequestToken query(String what,Priority priority,BaasHandler<List<JsonObject>> handler){
         if (mode == COLLECTIONS && what==null) throw new IllegalArgumentException("collection cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        QueryRequest request = new QueryRequest(box,mode,collOrUsr,params,priority,handler);
+        QueryRequest request = new QueryRequest(box,mode,collOrUsr,params,Priority.toFlag(priority),handler);
         return box.submitAsync(request);
     }
 
@@ -91,7 +91,7 @@ public class BaasQuery {
     public BaasResult<List<JsonObject>> querySync(String what){
         if (mode == COLLECTIONS && what==null)throw new IllegalArgumentException("collection cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        QueryRequest req = new QueryRequest(box,mode,what,params,null,null);
+        QueryRequest req = new QueryRequest(box,mode,what,params,Flags.DEFAULT,null);
         return box.submitSync(req);
     }
 
@@ -99,8 +99,8 @@ public class BaasQuery {
     private static class QueryRequest extends NetworkTask<List<JsonObject>>{
         private RequestFactory.Param[] params;
         private String endpoint;
-        protected QueryRequest(BaasBox box,int mode,String what,RequestFactory.Param[] params, Priority priority, BaasHandler<List<JsonObject>> handler) {
-            super(box, priority, handler);
+        protected QueryRequest(BaasBox box,int mode,String what,RequestFactory.Param[] params, int flags, BaasHandler<List<JsonObject>> handler) {
+            super(box, flags, handler);
             this.params=params;
             String endpoint;
             switch (mode){
