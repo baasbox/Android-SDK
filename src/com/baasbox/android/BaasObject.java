@@ -18,8 +18,6 @@ package com.baasbox.android;
 import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpResponse;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 
 /**
  * Base class for remote resources that can be saved and retrieved from
@@ -70,7 +68,7 @@ public abstract class BaasObject {
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
     public final RequestToken grant(Grant grant, String username, BaasHandler<Void> handler) {
-        return grant(grant, username, Flags.DEFAULT, handler);
+        return grant(grant, username, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -83,7 +81,7 @@ public abstract class BaasObject {
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
     public final RequestToken grantAll(Grant grant, String role, BaasHandler<Void> handler) {
-        return grantAll(grant, role, Flags.DEFAULT, handler);
+        return grantAll(grant, role, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -132,7 +130,7 @@ public abstract class BaasObject {
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
     public final RequestToken revoke(Grant grant, String username, BaasHandler<Void> handler) {
-        return grant(grant, username, Flags.DEFAULT, handler);
+        return grant(grant, username, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -141,7 +139,7 @@ public abstract class BaasObject {
      *
      * @param grant    a non null {@link com.baasbox.android.Grant}
      * @param username a non null username
-     * @param flags    {@link com.baasbox.android.Flags}
+     * @param flags    {@link RequestOptions}
      * @param handler  an handler that will receive the outcome of the request.
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
@@ -153,7 +151,7 @@ public abstract class BaasObject {
      *
      * @param grant    a non null {@link com.baasbox.android.Grant}
      * @param username a non null username
-     * @param flags    {@link com.baasbox.android.Flags}
+     * @param flags    {@link RequestOptions}
      * @param handler  an handler that will receive the outcome of the request.
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
@@ -170,7 +168,7 @@ public abstract class BaasObject {
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
     public final RequestToken revokeAll(Grant grant, String role, BaasHandler<Void> handler) {
-        return grantAll(grant, role, Flags.DEFAULT, handler);
+        return grantAll(grant, role, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -179,7 +177,7 @@ public abstract class BaasObject {
      *
      * @param grant    a non null {@link com.baasbox.android.Grant}
      * @param role     a non null username
-     * @param flags    {@link com.baasbox.android.Flags}
+     * @param flags    {@link RequestOptions}
      * @param handler  an handler that will receive the outcome of the request.
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
@@ -191,7 +189,7 @@ public abstract class BaasObject {
      *
      * @param grant    a non null {@link com.baasbox.android.Grant}
      * @param role     a non null username
-     * @param flags    {@link com.baasbox.android.Flags}
+     * @param flags    {@link RequestOptions}
      * @param handler  an handler that will receive the outcome of the request.
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */

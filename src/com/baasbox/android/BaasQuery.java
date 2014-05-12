@@ -22,11 +22,8 @@ import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.util.EntityUtils;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -66,11 +63,11 @@ public class BaasQuery {
     }
 
     public RequestToken query(BaasHandler<List<JsonObject>> handler){
-        return query(collOrUsr,Flags.DEFAULT,handler);
+        return query(collOrUsr, RequestOptions.DEFAULT,handler);
     }
 
     public RequestToken query(String what,BaasHandler<List<JsonObject>> handler){
-        return query(what,Flags.DEFAULT, handler);
+        return query(what, RequestOptions.DEFAULT, handler);
     }
 
     public RequestToken query(int flags,BaasHandler<List<JsonObject>> handler){
@@ -80,7 +77,7 @@ public class BaasQuery {
     public RequestToken query(String what,int flags,BaasHandler<List<JsonObject>> handler){
         if (mode == COLLECTIONS && what==null) throw new IllegalArgumentException("collection cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        QueryRequest request = new QueryRequest(box,mode,collOrUsr,params,Flags.DEFAULT,handler);
+        QueryRequest request = new QueryRequest(box,mode,collOrUsr,params, RequestOptions.DEFAULT,handler);
         return box.submitAsync(request);
     }
 
@@ -91,7 +88,7 @@ public class BaasQuery {
     public BaasResult<List<JsonObject>> querySync(String what){
         if (mode == COLLECTIONS && what==null)throw new IllegalArgumentException("collection cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        QueryRequest req = new QueryRequest(box,mode,what,params,Flags.DEFAULT,null);
+        QueryRequest req = new QueryRequest(box,mode,what,params, RequestOptions.DEFAULT,null);
         return box.submitSync(req);
     }
 

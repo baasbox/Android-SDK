@@ -20,11 +20,11 @@ package com.baasbox.android;
 import com.baasbox.android.impl.Constants;
 
 /**
- * Flags that can be used to modify how a request will be executed.
+ * Options that can be used to modify how a request will be executed.
  *
  * Created by Andrea Tortorella on 14/04/14.
  */
-public final class Flags {
+public final class RequestOptions {
     /**
      * Marks an asyncrhonous request as normal priority
      */

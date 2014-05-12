@@ -16,19 +16,14 @@
 package com.baasbox.android;
 
 import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.util.Patterns;
 import com.baasbox.android.impl.Dispatcher;
-import com.baasbox.android.impl.GCMWrapper;
 import com.baasbox.android.impl.ImmediateDispatcher;
 import com.baasbox.android.impl.Task;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
 import org.apache.http.HttpResponse;
-
-import java.io.IOException;
 
 /**
  * This class represents the main context of BaasBox SDK.
@@ -380,7 +375,7 @@ public class BaasBox {
         RequestFactory factory = requestFactory;
         endpoint = factory.getEndpointRaw(endpoint);
         HttpRequest any = factory.any(method, endpoint, body);
-        return submitSync(new RawRequest(this, any, Flags.DEFAULT, null));
+        return submitSync(new RawRequest(this, any, RequestOptions.DEFAULT, null));
     }
 
     boolean resume(RequestToken token, BaasHandler<?> handler) {

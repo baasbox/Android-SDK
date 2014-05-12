@@ -32,7 +32,7 @@ class StreamRequest extends NetworkTask<BaasStream> {
 
 // --------------------------- CONSTRUCTORS ---------------------------
     protected StreamRequest(BaasBox box, String resource, String id, String sizeSpec, int sizeId) {
-        super(box, Flags.DEFAULT, null);
+        super(box, RequestOptions.DEFAULT, null);
         this.id = id;
         String endpoint = box.requestFactory.getEndpoint("{}/{}", resource, id);
         RequestFactory.Param param = null;

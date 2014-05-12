@@ -207,7 +207,7 @@ public class BaasUser implements Parcelable {
     }
 
     public static RequestToken signupWithProvider(String provider, String token, String secret, BaasHandler<BaasUser> handler) {
-        return signupWithProvider(provider, token, secret, Flags.DEFAULT, handler);
+        return signupWithProvider(provider, token, secret, RequestOptions.DEFAULT, handler);
     }
 
     public static RequestToken signupWithProvider(String provider, String token, String secret, int flags, BaasHandler<BaasUser> handler) {
@@ -223,7 +223,7 @@ public class BaasUser implements Parcelable {
     }
 
     public static RequestToken requestPaswordReset(String username, BaasHandler<Void> handler) {
-        return requestPasswordReset(username, Flags.DEFAULT, handler);
+        return requestPasswordReset(username, RequestOptions.DEFAULT, handler);
     }
 
     public static RequestToken requestPasswordReset(String username, int flags, BaasHandler<Void> handler) {
@@ -262,7 +262,7 @@ public class BaasUser implements Parcelable {
     }
 
     public RequestToken refresh(BaasHandler<BaasUser> handler) {
-        return refresh(Flags.DEFAULT, handler);
+        return refresh(RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -270,7 +270,7 @@ public class BaasUser implements Parcelable {
      * given it's username
      *
      * @param username a non empty username
-     * @param flags {@link com.baasbox.android.Flags}
+     * @param flags {@link RequestOptions}
      * @param handler  an handler to be invoked when the request completes
      * @return a {@link com.baasbox.android.RequestToken} to manage the request
      */
@@ -281,7 +281,7 @@ public class BaasUser implements Parcelable {
 
     public RequestToken refresh(int flags, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        FetchUser fetch = new FetchUser(box, this, Flags.DEFAULT, handler);
+        FetchUser fetch = new FetchUser(box, this, RequestOptions.DEFAULT, handler);
         return box.submitAsync(fetch);
     }
 
@@ -315,7 +315,7 @@ public class BaasUser implements Parcelable {
      * @return a {@link com.baasbox.android.RequestToken} to manage the request
      */
     public static RequestToken fetchAll(BaasHandler<List<BaasUser>> handler) {
-        return fetchAll(null, Flags.DEFAULT, handler);
+        return fetchAll(null, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -326,13 +326,13 @@ public class BaasUser implements Parcelable {
      * @return a {@link com.baasbox.android.RequestToken} to manage the request
      */
     public static RequestToken fetchAll(Filter filter, BaasHandler<List<BaasUser>> handler) {
-        return fetchAll(filter, Flags.DEFAULT, handler);
+        return fetchAll(filter, RequestOptions.DEFAULT, handler);
     }
 
     /**
      * Asynchronously fetches the list of users from the server.
      *
-     * @param flags {@link com.baasbox.android.Flags}
+     * @param flags {@link RequestOptions}
      * @param handler  an handler to be invoked upon completion of the request
      * @return a {@link com.baasbox.android.RequestToken} to manage the request
      */
@@ -428,7 +428,7 @@ public class BaasUser implements Parcelable {
 // -------------------------- OTHER METHODS --------------------------
 
     public RequestToken changePassword(String password, BaasHandler<Void> handler) {
-        return changePassword(password, Flags.DEFAULT, handler);
+        return changePassword(password, RequestOptions.DEFAULT, handler);
     }
 
     public RequestToken changePassword(String password, int flags, BaasHandler<Void> handler) {
@@ -454,34 +454,34 @@ public class BaasUser implements Parcelable {
      * @return a {@link com.baasbox.android.RequestToken} to manage the request
      */
     public RequestToken follow(BaasHandler<BaasUser> handler) {
-        return follow(Flags.DEFAULT, handler);
+        return follow(RequestOptions.DEFAULT, handler);
     }
 
     /**
      * Asynchronously requests to follow the user.
      *
-     * @param flags {@link com.baasbox.android.Flags}
+     * @param flags {@link RequestOptions}
      * @param handler  an handler to be invoked when the request completes
      * @return a {@link com.baasbox.android.RequestToken} to manage the request
      */
     public RequestToken follow(int flags, BaasHandler<BaasUser> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Follow follow = new Follow(box, true, this, Flags.DEFAULT, handler);
+        Follow follow = new Follow(box, true, this, RequestOptions.DEFAULT, handler);
         return box.submitAsync(follow);
     }
 
     public BaasResult<BaasUser> followSync() {
         BaasBox box = BaasBox.getDefaultChecked();
-        Follow follow = new Follow(box, true, this, Flags.DEFAULT, null);
+        Follow follow = new Follow(box, true, this, RequestOptions.DEFAULT, null);
         return box.submitSync(follow);
     }
 
     public RequestToken followers(BaasHandler<List<BaasUser>> handler) {
-        return followers(null, Flags.DEFAULT, handler);
+        return followers(null, RequestOptions.DEFAULT, handler);
     }
 
     public RequestToken followers(Filter filter, BaasHandler<List<BaasUser>> handler) {
-        return followers(filter, Flags.DEFAULT, handler);
+        return followers(filter, RequestOptions.DEFAULT, handler);
     }
 
     public RequestToken followers(Filter filter, int flags, BaasHandler<List<BaasUser>> handler) {
@@ -524,19 +524,19 @@ public class BaasUser implements Parcelable {
         BaasBox box = BaasBox.getDefaultChecked();
         FetchUsers users;
         if (isCurrent()) {
-            users = new FetchUsers(box, "followers", null, filter, Flags.DEFAULT, null);
+            users = new FetchUsers(box, "followers", null, filter, RequestOptions.DEFAULT, null);
         } else {
-            users = new FetchUsers(box, "followers/{}", username, filter, Flags.DEFAULT, null);
+            users = new FetchUsers(box, "followers/{}", username, filter, RequestOptions.DEFAULT, null);
         }
         return box.submitSync(users);
     }
 
     public RequestToken following(BaasHandler<List<BaasUser>> handler) {
-        return following(null, Flags.DEFAULT, handler);
+        return following(null, RequestOptions.DEFAULT, handler);
     }
 
     public RequestToken following(Filter filter, BaasHandler<List<BaasUser>> handler) {
-        return following(filter, Flags.DEFAULT, handler);
+        return following(filter, RequestOptions.DEFAULT, handler);
     }
 
     public RequestToken following(Filter filter, int flags, BaasHandler<List<BaasUser>> handler) {
@@ -558,9 +558,9 @@ public class BaasUser implements Parcelable {
         BaasBox box = BaasBox.getDefaultChecked();
         FetchUsers users;
         if (isCurrent()) {
-            users = new FetchUsers(box, "following", null, filter, Flags.DEFAULT, null);
+            users = new FetchUsers(box, "following", null, filter, RequestOptions.DEFAULT, null);
         } else {
-            users = new FetchUsers(box, "following/{}", username, filter, Flags.DEFAULT, null);
+            users = new FetchUsers(box, "following/{}", username, filter, RequestOptions.DEFAULT, null);
         }
         return box.submitSync(users);
     }
@@ -633,7 +633,7 @@ public class BaasUser implements Parcelable {
      * @return a {@link com.baasbox.android.RequestToken} to handle the async request
      */
     public RequestToken login(BaasHandler<BaasUser> handler) {
-        return login(null, Flags.DEFAULT, handler);
+        return login(null, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -645,7 +645,7 @@ public class BaasUser implements Parcelable {
      * @return a {@link com.baasbox.android.RequestToken} to handle the async request
      */
     public RequestToken login(String registrationId, BaasHandler<BaasUser> handler) {
-        return login(registrationId, Flags.DEFAULT, handler);
+        return login(registrationId, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -654,7 +654,7 @@ public class BaasUser implements Parcelable {
      * The request is executed at the gien priority.
      *
      * @param regitrationId the registrationId
-     * @param flags {@link com.baasbox.android.Flags}
+     * @param flags {@link RequestOptions}
      * @param handler       an handler to be invoked when the request completes
      * @return a {@link com.baasbox.android.RequestToken} to handle the async request
      */
@@ -683,7 +683,7 @@ public class BaasUser implements Parcelable {
     public BaasResult<BaasUser> loginSync(String registrationId) {
         BaasBox box = BaasBox.getDefault();
         if (password == null) throw new IllegalStateException("password cannot be null");
-        NetworkTask<BaasUser> task = new LoginRequest(box, this, registrationId, Flags.DEFAULT, null);
+        NetworkTask<BaasUser> task = new LoginRequest(box, this, registrationId, RequestOptions.DEFAULT, null);
         return box.submitSync(task);
     }
 
@@ -695,7 +695,7 @@ public class BaasUser implements Parcelable {
      * @return a {@link com.baasbox.android.RequestToken} to handle the async request
      */
     public RequestToken logout(BaasHandler<Void> handler) {
-        return logout(null, Flags.DEFAULT, handler);
+        return logout(null, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -708,7 +708,7 @@ public class BaasUser implements Parcelable {
      * @return a {@link com.baasbox.android.RequestToken} to handle the async request
      */
     public RequestToken logout(String registration, BaasHandler<Void> handler) {
-        return logout(registration, Flags.DEFAULT, handler);
+        return logout(registration, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -717,7 +717,7 @@ public class BaasUser implements Parcelable {
      * And on this device the user will not receive any new message from google cloud messaging.
      *
      * @param registration a registration id to remove
-     * @param flags {@link com.baasbox.android.Flags}
+     * @param flags {@link RequestOptions}
      * @param handler      an handler to be invoked upon completion of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the async request
      */
@@ -744,7 +744,7 @@ public class BaasUser implements Parcelable {
      */
     public BaasResult<Void> logoutSync(String registration) {
         BaasBox box = BaasBox.getDefaultChecked();
-        LogoutRequest request = new LogoutRequest(box, this, registration, Flags.DEFAULT, null);
+        LogoutRequest request = new LogoutRequest(box, this, registration, RequestOptions.DEFAULT, null);
         return box.submitSync(request);
     }
 
@@ -755,13 +755,13 @@ public class BaasUser implements Parcelable {
      * @return a {@link android.app.DownloadManager.Request} to handle the request
      */
     public RequestToken save(BaasHandler<BaasUser> handler) {
-        return save(Flags.DEFAULT, handler);
+        return save(RequestOptions.DEFAULT, handler);
     }
 
     /**
      * Asynchronously saves the updates made to the current user.
      *
-     * @param flags {@link com.baasbox.android.Flags}
+     * @param flags {@link RequestOptions}
      * @param handler  an handler to be invoked when the request completes
      * @return a {@link com.baasbox.android.RequestToken} to handle the async request
      */
@@ -778,12 +778,12 @@ public class BaasUser implements Parcelable {
      */
     public BaasResult<BaasUser> saveSync() {
         BaasBox box = BaasBox.getDefaultChecked();
-        SaveUser task = new SaveUser(box, this, Flags.DEFAULT, null);
+        SaveUser task = new SaveUser(box, this, RequestOptions.DEFAULT, null);
         return box.submitSync(task);
     }
 
     public RequestToken send(JsonObject message, BaasHandler<Void> handler) {
-        return send(message, Flags.DEFAULT, handler);
+        return send(message, RequestOptions.DEFAULT, handler);
     }
 
     public RequestToken send(JsonObject message, int flags, BaasHandler<Void> handler) {
@@ -794,7 +794,7 @@ public class BaasUser implements Parcelable {
 
     public BaasResult<Void> sendSync(JsonObject message) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Push push = new Push(box, username, message, Flags.DEFAULT, null);
+        Push push = new Push(box, username, message, RequestOptions.DEFAULT, null);
         return box.submitSync(push);
     }
 
@@ -818,20 +818,20 @@ public class BaasUser implements Parcelable {
 
     /**
      * Asynchronously signups this user to baasbox
-     * using provided password and default {@link com.baasbox.android.Flags}
+     * using provided password and default {@link RequestOptions}
      *
      * @param handler an handler to be invoked when the request completes
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
     public RequestToken signup(BaasHandler<BaasUser> handler) {
-        return signup(Flags.DEFAULT, handler);
+        return signup(RequestOptions.DEFAULT, handler);
     }
 
     /**
      * Asynchronously signups this user to baasbox
      * using provided password and priority
      *
-     * @param flags {@link com.baasbox.android.Flags}
+     * @param flags {@link RequestOptions}
      * @param handler  an handler to be invoked when the request completes
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
@@ -851,7 +851,7 @@ public class BaasUser implements Parcelable {
     public BaasResult<BaasUser> signupSync() {
         BaasBox box = BaasBox.getDefaultChecked();
         if (password == null) throw new IllegalStateException("password cannot be null");
-        SignupRequest signup = new SignupRequest(box, this, Flags.DEFAULT, null);
+        SignupRequest signup = new SignupRequest(box, this, RequestOptions.DEFAULT, null);
         return box.submitSync(signup);
     }
 
@@ -869,13 +869,13 @@ public class BaasUser implements Parcelable {
     }
 
     public RequestToken unfollow(BaasHandler<BaasUser> user) {
-        return unfollow(Flags.DEFAULT, user);
+        return unfollow(RequestOptions.DEFAULT, user);
     }
 
     /**
      * Asynchronously requests to unfollow the user
      *
-     * @param flags {@link com.baasbox.android.Flags}
+     * @param flags {@link RequestOptions}
      * @param handler  an handler to be invoked when the request completes
      * @return a {@link com.baasbox.android.RequestToken} to manage the request
      */
@@ -887,7 +887,7 @@ public class BaasUser implements Parcelable {
 
     public BaasResult<BaasUser> unfollowSync() {
         BaasBox box = BaasBox.getDefaultChecked();
-        Follow follow = new Follow(box, false, this, Flags.DEFAULT, null);
+        Follow follow = new Follow(box, false, this, RequestOptions.DEFAULT, null);
         return box.submitSync(follow);
     }
 

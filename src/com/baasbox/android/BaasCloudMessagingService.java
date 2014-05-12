@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import com.baasbox.android.impl.GCMWrapper;
 import com.baasbox.android.net.HttpRequest;
-import com.google.android.gms.gcm.GoogleCloudMessaging;
 import org.apache.http.HttpResponse;
 
 import java.io.IOException;
@@ -42,19 +41,19 @@ public final class BaasCloudMessagingService {
 
     public RequestToken enable(BaasHandler<Void> handler){
         BaasBox box=BaasBox.getDefaultChecked();
-        RegisterMessaging req= new RegisterMessaging(true,this,box,Flags.DEFAULT,handler);
+        RegisterMessaging req= new RegisterMessaging(true,this,box, RequestOptions.DEFAULT,handler);
         return box.submitAsync(req);
     }
 
     public RequestToken disable(BaasHandler<Void> handler){
         BaasBox box = BaasBox.getDefaultChecked();
-        RegisterMessaging req=new RegisterMessaging(false,this,box,Flags.DEFAULT,handler);
+        RegisterMessaging req=new RegisterMessaging(false,this,box, RequestOptions.DEFAULT,handler);
         return box.submitAsync(req);
     }
 
     public BaasResult<Void> enableSync(){
         BaasBox box = BaasBox.getDefaultChecked();
-        RegisterMessaging req=new RegisterMessaging(true,this,box,Flags.DEFAULT,null);
+        RegisterMessaging req=new RegisterMessaging(true,this,box, RequestOptions.DEFAULT,null);
         return box.submitSync(req);
     }
 
@@ -64,7 +63,7 @@ public final class BaasCloudMessagingService {
 
     public BaasResult<Void> disableSync(){
         BaasBox box = BaasBox.getDefaultChecked();
-        RegisterMessaging req=new RegisterMessaging(false,this,box,Flags.DEFAULT,null);
+        RegisterMessaging req=new RegisterMessaging(false,this,box, RequestOptions.DEFAULT,null);
         return box.submitSync(req);
     }
 

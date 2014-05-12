@@ -39,7 +39,7 @@ public final class BaasAsset {
      * @return a request token
      */
     public static RequestToken fetchData(String id, BaasHandler<JsonObject> handler){
-        return fetchData(id, Flags.DEFAULT, handler);
+        return fetchData(id, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -48,7 +48,7 @@ public final class BaasAsset {
      * otherwise attached data to the file are returned.
      *
      * @param id the name of the asset
-     * @param flags used for the request a bit or of {@link com.baasbox.android.Flags} constants
+     * @param flags used for the request a bit or of {@link RequestOptions} constants
      * @param handler an handler that will be handed the response
      * @return a request token
      */
@@ -71,7 +71,7 @@ public final class BaasAsset {
     public static BaasResult<JsonObject> fetchDataSync(String id){
         if (id == null) throw new IllegalArgumentException("asset id cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        AssetDataRequest req = new AssetDataRequest(box,id,Flags.DEFAULT,null);
+        AssetDataRequest req = new AssetDataRequest(box,id, RequestOptions.DEFAULT,null);
         return box.submitSync(req);
     }
 
@@ -97,7 +97,7 @@ public final class BaasAsset {
      * @return a request token to handle the request
      */
     public static <R> RequestToken streamAsset(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, -1, Flags.DEFAULT, data, handler);
+        return BaasAsset.streamAsset(id, null, -1, RequestOptions.DEFAULT, data, handler);
     }
 
     /**
@@ -111,7 +111,7 @@ public final class BaasAsset {
      * @return a request token to handle the request
      */
     public static <R> RequestToken streamImageAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, size, Flags.DEFAULT, data, handler);
+        return BaasAsset.streamAsset(id, null, size, RequestOptions.DEFAULT, data, handler);
     }
 
     /**
@@ -132,7 +132,7 @@ public final class BaasAsset {
      *
      * @param id       the name of the asset to download
      * @param size     a size spec to specify the resize of an image asset
-     * @param flags    {@link com.baasbox.android.Flags}
+     * @param flags    {@link RequestOptions}
      * @param data     the data stream handler {@link com.baasbox.android.DataStreamHandler}
      * @param handler  the completion handler
      * @param <R>      the type to transform the bytes to.

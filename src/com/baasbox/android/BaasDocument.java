@@ -199,7 +199,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
     public static RequestToken fetchAll(String collection, BaasHandler<List<BaasDocument>> handler) {
-        return fetchAll(collection, null, Flags.DEFAULT, handler);
+        return fetchAll(collection, null, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -212,7 +212,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
     public static RequestToken fetchAll(String collection, Filter filter, BaasHandler<List<BaasDocument>> handler) {
-        return fetchAll(collection, filter, Flags.DEFAULT, handler);
+        return fetchAll(collection, filter, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -220,7 +220,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * in <code>collection</code>
      *
      * @param collection the collection to retrieve not <code>null</code>
-     * @param flags {@link com.baasbox.android.Flags}
+     * @param flags {@link RequestOptions}
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
@@ -245,7 +245,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     public static BaasResult<List<BaasDocument>> fetchAllSync(String collection, Filter filter) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
-        Fetch f = new Fetch(box, collection, filter, Flags.DEFAULT, null);
+        Fetch f = new Fetch(box, collection, filter, RequestOptions.DEFAULT, null);
         return box.submitSync(f);
     }
 
@@ -257,7 +257,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
     public static RequestToken count(String collection, BaasHandler<Long> handler) {
-        return count(collection, null, Flags.DEFAULT, handler);
+        return count(collection, null, RequestOptions.DEFAULT, handler);
     }
 
     /**
@@ -270,14 +270,14 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
     public static RequestToken count(String collection, Filter filter, BaasHandler<Long> handler) {
-        return count(collection, filter, Flags.DEFAULT, handler);
+        return count(collection, filter, RequestOptions.DEFAULT, handler);
     }
 
     /**
      * Asynchronously retrieves the number of documents readable to the user in <code>collection</code>
      *
      * @param collection the collection to count not <code>null</code>
-     * @param flags {@link com.baasbox.android.Flags}
+     * @param flags {@link RequestOptions}
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
@@ -322,7 +322,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     public static BaasResult<Long> countSync(String collection, Filter filter) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
-        Count request = new Count(box, collection, filter, Flags.DEFAULT, null);
+        Count request = new Count(box, collection, filter, RequestOptions.DEFAULT, null);
         return box.submitSync(request);
     }
 
@@ -335,7 +335,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
     public static RequestToken fetch(String collection, String id, BaasHandler<BaasDocument> handler) {
-        return fetch(collection, id, Flags.DEFAULT, handler);
+        return fetch(collection, id, RequestOptions.DEFAULT, handler);
     }
 
     private static RequestToken fetch(String collection, String id, int flags, BaasHandler<BaasDocument> handler) {
@@ -388,12 +388,12 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
-        Refresh refresh = new Refresh(box, this, Flags.DEFAULT, null);
+        Refresh refresh = new Refresh(box, this, RequestOptions.DEFAULT, null);
         return box.submitSync(refresh);
     }
 
     public static RequestToken delete(String collection, String id, BaasHandler<Void> handler) {
-        return delete(collection, id, Flags.DEFAULT, handler);
+        return delete(collection, id, RequestOptions.DEFAULT, handler);
     }
 
     public static RequestToken delete(String collection, String id, int flags, BaasHandler<Void> handler) {
@@ -408,14 +408,14 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         if (id == null) throw new IllegalArgumentException("id cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        Delete delete = new Delete(box, collection, id, Flags.DEFAULT, null);
+        Delete delete = new Delete(box, collection, id, RequestOptions.DEFAULT, null);
         return box.submitSync(delete);
     }
 
     public static RequestToken create(String collection, BaasHandler<BaasDocument> handler) {
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         BaasDocument doc = new BaasDocument(collection);
-        return doc.save(SaveMode.IGNORE_VERSION, Flags.DEFAULT, handler);
+        return doc.save(SaveMode.IGNORE_VERSION, RequestOptions.DEFAULT, handler);
     }
 
     public RequestToken save(SaveMode mode, int flags, BaasHandler<BaasDocument> handler) {
@@ -439,7 +439,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     public BaasResult<BaasDocument> saveSync(SaveMode mode) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (mode == null) throw new IllegalArgumentException("mode cannot be null");
-        Save save = new Save(box, mode, this, Flags.DEFAULT, null);
+        Save save = new Save(box, mode, this, RequestOptions.DEFAULT, null);
         return box.submitSync(save);
     }
 
@@ -534,7 +534,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     }
 
     public RequestToken delete(BaasHandler<Void> handler) {
-        return delete(Flags.DEFAULT, handler);
+        return delete(RequestOptions.DEFAULT, handler);
     }
 
     public RequestToken delete(int flags, BaasHandler<Void> handler) {
@@ -549,7 +549,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
         BaasBox box = BaasBox.getDefaultChecked();
-        Delete delete = new Delete(box, this, Flags.DEFAULT, null);
+        Delete delete = new Delete(box, this, RequestOptions.DEFAULT, null);
         return box.submitSync(delete);
     }
 
@@ -814,14 +814,14 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     @Override
     public BaasResult<Void> grantAllSync(Grant grant, String role) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Access access = new Access(box, true, true, collection, id, role, grant, Flags.DEFAULT, null);
+        Access access = new Access(box, true, true, collection, id, role, grant, RequestOptions.DEFAULT, null);
         return box.submitSync(access);
     }
 
     @Override
     public BaasResult<Void> grantSync(Grant grant, String username) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Access access = new Access(box, true, false, collection, id, username, grant, Flags.DEFAULT, null);
+        Access access = new Access(box, true, false, collection, id, username, grant, RequestOptions.DEFAULT, null);
         return box.submitSync(access);
     }
 
@@ -991,7 +991,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * @throws java.lang.IllegalStateException if this document has no id
      */
     public RequestToken refresh(BaasHandler<BaasDocument> handler) {
-        return refresh(Flags.DEFAULT, handler);
+        return refresh(RequestOptions.DEFAULT, handler);
     }
 
 
@@ -1022,23 +1022,23 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     @Override
     public BaasResult<Void> revokeAllSync(Grant grant, String role) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Access access = new Access(box, false, true, collection, id, role, grant, Flags.DEFAULT, null);
+        Access access = new Access(box, false, true, collection, id, role, grant, RequestOptions.DEFAULT, null);
         return box.submitSync(access);
     }
 
     @Override
     public BaasResult<Void> revokeSync(Grant grant, String username) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Access access = new Access(box, false, false, collection, id, username, grant, Flags.DEFAULT, null);
+        Access access = new Access(box, false, false, collection, id, username, grant, RequestOptions.DEFAULT, null);
         return box.submitSync(access);
     }
 
     public RequestToken save(BaasHandler<BaasDocument> handler) {
-        return save(SaveMode.IGNORE_VERSION, Flags.DEFAULT, handler);
+        return save(SaveMode.IGNORE_VERSION, RequestOptions.DEFAULT, handler);
     }
 
     public RequestToken save(SaveMode mode, BaasHandler<BaasDocument> handler) {
-        return save(mode, Flags.DEFAULT, handler);
+        return save(mode, RequestOptions.DEFAULT, handler);
     }
 
     public BaasResult<BaasDocument> saveSync() {
