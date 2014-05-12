@@ -289,7 +289,7 @@ public class BaasQuery {
         }
 
         public Builder whereParams(String... params){
-            if (params!=null&&params.length>0){
+             if (params!=null&&params.length>0){
                 this.params =new ArrayList<CharSequence>();
                 Collections.addAll(this.params,params);
             }
