@@ -232,9 +232,6 @@ public class BaasBox {
         return submitSync(req);
     }
 
-
-
-
     /*
      * Streams the file using the provided data stream handler.
      *
@@ -346,14 +343,29 @@ public class BaasBox {
      * @param body     an optional jsono bject
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
+    @Deprecated
     public RequestToken rest(int method, String endpoint, JsonObject body, Priority priority, BaasHandler<JsonObject> jsonHandler) {
+       return rest(method,endpoint,body,Priority.toFlag(priority),jsonHandler);
+    }
+
+
+    /**
+     * Asynchronously sends a raw rest request to the server that is specified by
+     * the parameters passed in
+     *
+     * @param flags    bitmask of flags for the request {@see Flags}
+     * @param method   the method to use
+     * @param endpoint the resource
+     * @param body     an optional jsono bject
+     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
+     */
+    public RequestToken rest(int method, String endpoint, JsonObject body, int flags, BaasHandler<JsonObject> jsonHandler) {
         if (endpoint == null) throw new IllegalArgumentException("endpoint cannot be null");
         endpoint = requestFactory.getEndpointRaw(endpoint);
         HttpRequest any = requestFactory.any(method, endpoint, body);
-        RawRequest request = new RawRequest(this, any, Priority.toFlag(priority), jsonHandler);
+        RawRequest request = new RawRequest(this, any, flags, jsonHandler);
         return submitAsync(request);
     }
-
     /**
      * Asynchronously sends a raw rest request to the server that is specified by
      * the parameters passed in, using default {@link com.baasbox.android.Priority#NORMAL}

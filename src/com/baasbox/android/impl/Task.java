@@ -30,8 +30,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * Created by Andrea Tortorella on 20/01/14.
  */
 public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
     volatile BaasResult<R> result;
     int seqNumber;
     volatile CountDownLatch latch;
@@ -79,8 +79,8 @@ public abstract class Task<R> implements Runnable, Comparable<Task<R>> {
 
     @Override
     public int compareTo(Task<R> another) {
-        int me = priority;
-        int you = another.priority;
+        int me = Constants.PRIORITY_MAP[priority&Constants.PRIORITY_MASK];
+        int you = Constants.PRIORITY_MAP[another.priority&Constants.PRIORITY_MASK];
         return me == you ?
                 seqNumber - another.seqNumber :
                 you - me;

@@ -54,7 +54,6 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
                 return null;
             } else {
                 Logger.info("GOT FROM CACHE HIT");
-                //todo fix caching
                 handle = true;
                 dataStream.startData(streamId(), bytes.length, null);
                 dataStream.onData(bytes,bytes.length);

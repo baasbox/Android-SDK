@@ -15,6 +15,8 @@
 
 package com.baasbox.android;
 
+import com.baasbox.android.impl.Constants;
+
 /**
  * Priority values for asynchronous requests.
  * Requests will be executed from higher to lower
@@ -22,15 +24,16 @@ package com.baasbox.android;
  * <p/>
  * Created by Andrea Tortorella on 13/01/14.
  */
+@Deprecated
 public enum Priority {
     LOW, NORMAL, HIGH;
 
     static int toFlag(Priority p){
         switch (p){
-            case LOW: return 0;
-            case NORMAL: return 1;
-            case HIGH: return 2;
-            default:return 0;
+            case LOW: return Constants.PRIORITY_LOW;
+            case NORMAL: return Constants.PRIORITY_NORMAL;
+            case HIGH: return Constants.PRIORITY_HIGH;
+            default:return Constants.PRIORITY_NORMAL;
         }
     }
 }
