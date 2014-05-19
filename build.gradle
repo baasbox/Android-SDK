@@ -21,8 +21,8 @@ repositories {
 
 // versioning
 def majorVersion = 0
-def minorVersion = 7
-def patchVersion = 5
+def minorVersion = 8
+def patchVersion = 0
 def sdkRevision  = 0 // sdk revision of a release
 
 
