@@ -17,11 +17,14 @@ package com.baasbox.android.test;
 
 import android.annotation.TargetApi;
 import android.os.Build;
+import android.util.Log;
 import com.baasbox.android.*;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.test.common.BaasTestBase;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -43,6 +46,7 @@ public class FilesTest extends BaasTestBase {
                     "Integer euismod consectetur lacus sed fermentum. Maecenas magna neque, venenatis quis est sit amet, molestie vehicula tortor. Nulla ut fermentum tortor, et feugiat mauris. Aenean faucibus elit lorem. Integer ultrices lacus quis rutrum placerat. Cras hendrerit neque sit amet lobortis accumsan. Donec non tincidunt lorem.";
 
     private String fileId;
+
     @Override
     protected void beforeClass() throws Exception {
         super.beforeClass();
@@ -79,6 +83,91 @@ public class FilesTest extends BaasTestBase {
             assertEquals(file.getAuthor(),BaasUser.current().getName());
         } catch (BaasException e) {
             fail("upload failed");
+        }
+    }
+
+//    private static class ByteArrayOut extends ByteArrayOutputStream {
+//        ByteArrayOut(int minSize) {
+//        }
+//
+//        public byte[] arr() {
+//            return buf;
+//        }
+//    }
+//
+//    public void testStreamManualFile(){
+//        byte[] theFile = TEXT_FILE.getBytes();
+//        BaasFile f = new BaasFile();
+//        BaasResult<BaasFile> await = f.upload(theFile,BaasHandler.NOOP).await();
+//        try {
+//            BaasFile file = await.get();
+//            assertNotNull(file.getId());
+//            String id = file.getId();
+//
+//            BaasResult<byte[]> data = BaasFile.stream(id, new DataStreamHandler<byte[]>() {
+//                ByteArrayOut out;
+//
+//                @Override
+//                public void startData(String id, long contentLength, String contentType) throws Exception {
+//                    out = new ByteArrayOut((int) contentLength);
+//                }
+//
+//                @Override
+//                public void onData(byte[] data, int read) throws Exception {
+//                    out.write(data, 0, read);
+//                }
+//
+//                @Override
+//                public byte[] endData(String id, long contentLength, String contentType) throws Exception {
+//                    byte[] arr = out.arr();
+//                    Log.d("TEST", "LENGTH" + arr.length);
+//                    Log.d("TEST", "Content length " + contentLength);
+//                    return arr;
+//                }
+//
+//                @Override
+//                public void finishStream(String id) {
+//                    if (out != null) {
+//                        try {
+//                            out.close();
+//                        } catch (IOException e) {
+//                        }
+//                    }
+//                }
+//            }, BaasHandler.NOOP).await();
+//            byte[] res = data.get();
+//            assertEquals(theFile.length,res.length);
+//            for (int i =0;i<theFile.length;i++){
+//                assertEquals(theFile[i],res[i]);
+//            }
+//        }catch (BaasException e){
+//            fail("Something went wrong in upload/download");
+//        }
+//    }
+
+
+    public void testStreamFile(){
+        byte[] theFile = TEXT_FILE.getBytes();
+        BaasFile f = new BaasFile();
+        BaasResult<BaasFile> await = f.upload(theFile,BaasHandler.NOOP).await();
+        try {
+            BaasFile file = await.get();
+            assertNotNull(file.getId());
+            String id = file.getId();
+
+            BaasResult<BaasFile> dlds =BaasFile.fetchStream(id,BaasHandler.NOOP).await();
+            BaasFile download = dlds.get();
+            assertEquals(id,download.getId());
+            assertNotNull(download.getData());
+            byte[] data = download.getData();
+            String s  = new String(data);
+            Log.d("TEST",s);
+            assertEquals(theFile.length, data.length);
+            for (int i=0;i<theFile.length;i++){
+                assertEquals(theFile[i],data[i]);
+            }
+        }catch (BaasException e){
+            fail("Something went wrong in upload/download");
         }
     }
 

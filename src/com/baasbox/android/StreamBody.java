@@ -9,7 +9,7 @@ import java.io.IOException;
 abstract class StreamBody<R> implements DataStreamHandler<R> {
 // ------------------------------ FIELDS ------------------------------
 
-    private ByteArrayOut bos;
+    private FixedByteArrayOutputStream bos;
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -18,12 +18,15 @@ abstract class StreamBody<R> implements DataStreamHandler<R> {
 
     @Override
     public final void startData(String id, long contentLength, String contentType) throws Exception {
-        bos = new ByteArrayOut((int)contentLength);
+        bos = new FixedByteArrayOutputStream(contentLength);
     }
 
     @Override
     public final R endData(String id, long contentLength, String contentType) throws Exception {
-        return convert(bos.arr(),id,contentType,contentLength);
+//        byte[] bArr = bos.arr();
+//        bArr = bArr.length==contentLength?bArr:bos.toByteArray();
+        byte[] content = bos.data();
+        return convert(content,id,contentType,contentLength);
     }
 
     @Override
@@ -46,12 +49,12 @@ abstract class StreamBody<R> implements DataStreamHandler<R> {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private static class ByteArrayOut extends ByteArrayOutputStream {
-        ByteArrayOut(int minSize) {
-        }
-
-        public byte[] arr() {
-            return buf;
-        }
-    }
+//    private static class ByteArrayOut extends ByteArrayOutputStream {
+//        ByteArrayOut(int minSize) {
+//        }
+//
+//        public byte[] arr() {
+//            return buf;
+//        }
+//    }
 }
