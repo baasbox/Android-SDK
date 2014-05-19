@@ -92,7 +92,7 @@ public class BaasFile extends BaasObject {
     void update(JsonObject fromServer) {
         isBound.set(true);
         this.attachedData.merge(fromServer.getObject("attachedData"));
-        if(this.metaData==null)this.metaData=new JsonObject();
+        if (this.metaData == null) this.metaData = new JsonObject();
         this.metaData.merge(fromServer.getObject("metadata"));
         this.id = fromServer.getString("id");
         this.creationDate = fromServer.getString("_creation_date");
@@ -192,15 +192,15 @@ public class BaasFile extends BaasObject {
         return box.submitAsync(stream);
     }
 
-    public static BaasResult<BaasStream> streamSync(String id, int sizeId) {
-        return streamSync(id, null, sizeId);
+    public static BaasResult<BaasStream> streamImageSync(String id, int sizeId) {
+        return doStreamSync(id, null, sizeId);
     }
 
-    public static BaasResult<BaasStream> streamSync(String id, String spec) {
-        return streamSync(id, spec, -1);
+    public static BaasResult<BaasStream> streamImageSync(String id, String spec) {
+        return doStreamSync(id, spec, -1);
     }
 
-    private static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
+    private static BaasResult<BaasStream> doStreamSync(String id, String spec, int sizeId) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null) throw new IllegalArgumentException("id cannot be null");
         StreamRequest synReq = new StreamRequest(box, "file", id, spec, sizeId);
@@ -219,7 +219,7 @@ public class BaasFile extends BaasObject {
         return doStream(id, null, -1, flags, contentHandler, handler);
     }
 
-    public static <R> RequestToken stream(String id, int size, int flags, DataStreamHandler<R> data, BaasHandler<R> handler) {
+    public static <R> RequestToken streamImage(String id, int size, int flags, DataStreamHandler<R> data, BaasHandler<R> handler) {
         return doStream(id, null, size, flags, data, handler);
     }
 
@@ -281,7 +281,7 @@ public class BaasFile extends BaasObject {
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
             throw new IllegalStateException("this file is not bound to an entity on the server");
-        Delete delete = new Delete(box, this,flags, handler);
+        Delete delete = new Delete(box, this, flags, handler);
         return box.submitAsync(delete);
     }
 
@@ -368,19 +368,19 @@ public class BaasFile extends BaasObject {
         return box.submitSync(access);
     }
 
-    public RequestToken extractedContent(int flags,BaasHandler<String> handler){
+    public RequestToken extractedContent(int flags, BaasHandler<String> handler) {
         BaasBox box = BaasBox.getDefault();
         if (id == null) throw new IllegalArgumentException("id cannot be null");
-        ContentRequest req = new ContentRequest(box,id,flags,handler);
+        ContentRequest req = new ContentRequest(box, id, flags, handler);
         return box.submitAsync(req);
     }
 
     private static class ContentRequest extends NetworkTask<String> {
         private final String file;
 
-        protected ContentRequest(BaasBox box,String file, int flags, BaasHandler<String> handler) {
+        protected ContentRequest(BaasBox box, String file, int flags, BaasHandler<String> handler) {
             super(box, flags, handler);
-            this.file =file;
+            this.file = file;
         }
 
         @Override
@@ -394,19 +394,19 @@ public class BaasFile extends BaasObject {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String ep= box.requestFactory.getEndpoint("file/content/{}", file);
+            String ep = box.requestFactory.getEndpoint("file/content/{}", file);
             return box.requestFactory.get(ep);
         }
     }
 
-    public RequestToken extractedContent(BaasHandler<String> handler){
-        return extractedContent(RequestOptions.DEFAULT,handler);
+    public RequestToken extractedContent(BaasHandler<String> handler) {
+        return extractedContent(RequestOptions.DEFAULT, handler);
     }
 
-    public BaasResult<String> extractedContentSync(){
+    public BaasResult<String> extractedContentSync() {
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null) throw new IllegalArgumentException("id cannot be null");
-        ContentRequest req  = new ContentRequest(box,id, RequestOptions.DEFAULT,null);
+        ContentRequest req = new ContentRequest(box, id, RequestOptions.DEFAULT, null);
         return box.submitSync(req);
     }
 
@@ -414,17 +414,18 @@ public class BaasFile extends BaasObject {
         return doStream(-1, null, RequestOptions.DEFAULT, handler);
     }
 
-    public RequestToken download(String path,BaasHandler<Pair<BaasFile,String>> handler){
-       return doStream(id,null,-1, RequestOptions.DEFAULT,new SaveToDisk(this,path),handler);
+    public RequestToken download(String path, BaasHandler<Pair<BaasFile, String>> handler) {
+        return doStream(id, null, -1, RequestOptions.DEFAULT, new SaveToDisk(this, path), handler);
     }
 
 
-    private static class SaveToDisk implements DataStreamHandler<Pair<BaasFile,String>>{
+    private static class SaveToDisk implements DataStreamHandler<Pair<BaasFile, String>> {
         final String fileName;
         final BaasFile file;
         FileOutputStream out;
-        private SaveToDisk(BaasFile file,String fileName){
-            this.fileName=fileName;
+
+        private SaveToDisk(BaasFile file, String fileName) {
+            this.fileName = fileName;
             this.file = file;
         }
 
@@ -435,17 +436,17 @@ public class BaasFile extends BaasObject {
 
         @Override
         public void onData(byte[] data, int read) throws Exception {
-            out.write(data,0,read);
+            out.write(data, 0, read);
         }
 
         @Override
-        public Pair<BaasFile,String> endData(String id, long contentLength, String contentType) throws Exception {
-            return new Pair<BaasFile, String>(file,fileName);
+        public Pair<BaasFile, String> endData(String id, long contentLength, String contentType) throws Exception {
+            return new Pair<BaasFile, String>(file, fileName);
         }
 
         @Override
         public void finishStream(String id) {
-            if(out!=null){
+            if (out != null) {
                 try {
                     out.close();
                 } catch (IOException e) {
@@ -454,11 +455,12 @@ public class BaasFile extends BaasObject {
             }
         }
     }
-    public RequestToken stream(int sizeIdx, BaasHandler<BaasFile> handler) {
+
+    public RequestToken streamImage(int sizeIdx, BaasHandler<BaasFile> handler) {
         return doStream(sizeIdx, null, RequestOptions.DEFAULT, handler);
     }
 
-    public RequestToken stream(String sizeSpec, BaasHandler<BaasFile> handler) {
+    public RequestToken streamImage(String sizeSpec, BaasHandler<BaasFile> handler) {
         return doStream(-1, sizeSpec, RequestOptions.DEFAULT, handler);
     }
 
@@ -480,17 +482,17 @@ public class BaasFile extends BaasObject {
 
     public BaasResult<BaasStream> streamSync() {
         if (id == null) throw new IllegalStateException("this is not bound to a remote entity");
-        return streamSync(id, null, -1);
+        return doStreamSync(id, null, -1);
     }
 
-    public BaasResult<BaasStream> streamSync(String spec) {
+    public BaasResult<BaasStream> streamImageSync(String spec) {
         if (id == null) throw new IllegalStateException("this is not bound to a remote entity");
-        return streamSync(id, spec, -1);
+        return doStreamSync(id, spec, -1);
     }
 
-    public BaasResult<BaasStream> streamSync(int sizeId) {
+    public BaasResult<BaasStream> streamImaeSync(int sizeId) {
         if (id == null) throw new IllegalStateException("this is not bound to a remote entity");
-        return streamSync(id, null, sizeId);
+        return doStreamSync(id, null, sizeId);
     }
 
     public RequestToken upload(InputStream stream, BaasHandler<BaasFile> handler) {
@@ -526,7 +528,7 @@ public class BaasFile extends BaasObject {
         }
         String endpoint = factory.getEndpoint("file");
         HttpRequest req = factory.uploadFile(endpoint, true, stream, name, mimeType, acl, attachedData);
-        return new Upload(box, this, req,flags, handler);
+        return new Upload(box, this, req, flags, handler);
     }
 
     public RequestToken upload(File file, BaasHandler<BaasFile> handler) {
@@ -645,15 +647,16 @@ public class BaasFile extends BaasObject {
 
     private static class FileStreamer extends StreamBody<BaasFile> {
         BaasFile file;
+
         FileStreamer(BaasFile file) {
             this.file = file;
         }
 
         @Override
-        protected BaasFile convert(byte[] body, String id, String contentType,long contentLength) {
+        protected BaasFile convert(byte[] body, String id, String contentType, long contentLength) {
             file.data.set(body);
             file.mimeType = contentType;
-            file.contentLength=contentLength;
+            file.contentLength = contentLength;
             return file;
         }
     }

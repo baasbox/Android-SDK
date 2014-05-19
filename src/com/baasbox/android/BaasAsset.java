@@ -97,7 +97,7 @@ public final class BaasAsset {
      * @return a request token to handle the request
      */
     public static <R> RequestToken streamAsset(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, -1, RequestOptions.DEFAULT, data, handler);
+        return BaasAsset.doStreamAsset(id, null, -1, RequestOptions.DEFAULT, data, handler);
     }
 
     /**
@@ -111,7 +111,7 @@ public final class BaasAsset {
      * @return a request token to handle the request
      */
     public static <R> RequestToken streamImageAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, size, RequestOptions.DEFAULT, data, handler);
+        return BaasAsset.doStreamAsset(id, null, size, RequestOptions.DEFAULT, data, handler);
     }
 
     /**
@@ -124,7 +124,7 @@ public final class BaasAsset {
      * @return a request token to handle the request
      */
     public static <R> RequestToken streamAsset(String id, int flags, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, -1, flags, contentHandler, handler);
+        return BaasAsset.doStreamAsset(id, null, -1, flags, contentHandler, handler);
     }
 
     /**
@@ -139,7 +139,7 @@ public final class BaasAsset {
      * @return a request token to handle the request
      */
     public static <R> RequestToken streamImageAsset(String id, int size, int flags, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, size, flags, data, handler);
+        return BaasAsset.doStreamAsset(id, null, size, flags, data, handler);
     }
 
     /**
@@ -149,8 +149,8 @@ public final class BaasAsset {
      * @param spec a size spec to specify the resize of an image asset
      * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
      */
-    public static BaasResult<BaasStream> streamAssetSync(String id, String spec) {
-        return BaasAsset.streamSync(id, spec, -1);
+    public static BaasResult<BaasStream> streamImageAssetSync(String id, String spec) {
+        return BaasAsset.doStreamSync(id, spec, -1);
     }
 
     /**
@@ -160,12 +160,12 @@ public final class BaasAsset {
      * @param sizeId the size index if the asset is an image
      * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
      */
-    public static BaasResult<BaasStream> streamAssetSync(String id, int sizeId) {
-        return BaasAsset.streamSync(id, null, sizeId);
+    public static BaasResult<BaasStream> streamImageAssetSync(String id, int sizeId) {
+        return BaasAsset.doStreamSync(id, null, sizeId);
     }
 
 
-    static BaasResult<BaasStream> streamSync(String id, String spec, int sizeId) {
+    static BaasResult<BaasStream> doStreamSync(String id, String spec, int sizeId) {
         BaasBox box = BaasBox.getDefaultChecked();
 
         if (id == null) throw new IllegalArgumentException("id cannot be null");
@@ -173,7 +173,7 @@ public final class BaasAsset {
         return box.submitSync(synReq);
     }
 
-    static <R> RequestToken streamAsset(String name, String sizeSpec, int sizeIdx, int priority, DataStreamHandler<R> dataStreamHandler, BaasHandler<R> handler) {
+    static <R> RequestToken doStreamAsset(String name, String sizeSpec, int sizeIdx, int priority, DataStreamHandler<R> dataStreamHandler, BaasHandler<R> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (dataStreamHandler == null) throw new IllegalArgumentException("data handler cannot be null");
         if (name == null) throw new IllegalArgumentException("id cannot be null");

@@ -237,8 +237,8 @@ public class BaasBox {
      * @return a request token to handle the request
 
     @Deprecated
-    public static <R> RequestToken streamAsset(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, -1, null, data, handler);
+    public static <R> RequestToken doStreamAsset(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return BaasAsset.doStreamAsset(id, null, -1, null, data, handler);
     }
     */
 
@@ -253,8 +253,8 @@ public class BaasBox {
      * @return a request token to handle the request
 
     @Deprecated
-    public static <R> RequestToken streamAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, size, null, data, handler);
+    public static <R> RequestToken doStreamAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return BaasAsset.doStreamAsset(id, null, size, null, data, handler);
     }
     */
     /*
@@ -267,8 +267,8 @@ public class BaasBox {
      * @return a request token to handle the request
 
     @Deprecated
-    public static <R> RequestToken streamAsset(String id, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, -1, priority, contentHandler, handler);
+    public static <R> RequestToken doStreamAsset(String id, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
+        return BaasAsset.doStreamAsset(id, null, -1, priority, contentHandler, handler);
     }
     */
     /*
@@ -283,8 +283,8 @@ public class BaasBox {
      * @return a request token to handle the request
 
     @Deprecated
-    public static <R> RequestToken streamAsset(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.streamAsset(id, null, size, priority, data, handler);
+    public static <R> RequestToken doStreamAsset(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
+        return BaasAsset.doStreamAsset(id, null, size, priority, data, handler);
     }
     */
     /*
@@ -295,7 +295,7 @@ public class BaasBox {
      * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
     @Deprecated
     public static BaasResult<BaasStream> streamAssetSync(String id, int sizeId) {
-        return BaasAsset.streamSync(id, null, sizeId);
+        return BaasAsset.doStreamSync(id, null, sizeId);
     }
      */
 
@@ -308,7 +308,7 @@ public class BaasBox {
 
     @Deprecated
     public static BaasResult<BaasStream> streamAssetSync(String id, String spec) {
-        return BaasAsset.streamSync(id, spec, -1);
+        return BaasAsset.doStreamSync(id, spec, -1);
     }
     */
     /*
