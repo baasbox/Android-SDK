@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.9.+'
+        classpath 'com.android.tools.build:gradle:0.12.+'
     }
 }
 
@@ -11,7 +11,7 @@ task wrapper(type: Wrapper) {
     gradleVersion = '1.11'
 }
 
-apply plugin: 'android-library'
+apply plugin: 'com.android.library'
 apply plugin: 'maven'
 apply plugin: 'signing'
 
@@ -45,7 +45,7 @@ def buildTime ={
 // android configuration
 android {
     compileSdkVersion 19
-    buildToolsVersion "19.0.3"
+    buildToolsVersion "19.1.0"
 
     defaultConfig {
         versionCode = majorVersion*10000+minorVersion*1000+patchVersion*100+sdkRevision
@@ -87,7 +87,7 @@ android {
         task("generate${variant.name}Javadoc", type: Javadoc) {
             description "Generates Javadoc for $variant.name."
             source = variant.javaCompile.source
-            ext.androidJar = "${android.plugin.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+            ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
             destinationDir = file('docs');
             exclude "**/impl/**"
             exclude "**/BuildConfig**"
@@ -99,11 +99,15 @@ android {
         }
     }
 
-    dependencies {
-        provided 'com.android.support:support-v4:19.+'
-        provided 'com.google.android.gms:play-services:4.3.+'
-    }
 }
+
+dependencies {
+    provided 'com.android.support:support-v4:19.+'
+    provided 'com.google.android.gms:play-services:4.3.+'
+}
+
+
+
 
 task coreLibJar(type: Jar) {
     from fileTree(dir: 'build/classes/release').matching { 'com/baasbox/android/**' }
