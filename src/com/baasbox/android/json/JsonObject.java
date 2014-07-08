@@ -60,7 +60,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         map = new LinkedHashMap<String, Object>();
     }
 
-    JsonObject(Parcel source) {
+    protected JsonObject(Parcel source) {
         this();
         source.readMap(map, null);
     }

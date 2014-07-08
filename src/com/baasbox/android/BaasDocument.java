@@ -106,7 +106,8 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         this.version = source.readLong();
         this.author = readOptString(source);
         this.creation_date = readOptString(source);
-        this.data = source.readParcelable(JsonObject.class.getClassLoader());
+
+        this.data = source.readParcelable(JsonWrapper.class.getClassLoader());
     }
 
     private static final String readOptString(Parcel p) {
@@ -169,7 +170,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         if (collection == null || collection.length() == 0)
             throw new IllegalArgumentException("collection name cannot be null");
         this.collection = collection;
-        this.data = values == null ? new JsonWrapper(null) : checkObject(JsonObject.from(values));
+        this.data = values == null ? new JsonWrapper() : checkObject(JsonObject.from(values));
     }
 
 // -------------------------- STATIC METHODS --------------------------
