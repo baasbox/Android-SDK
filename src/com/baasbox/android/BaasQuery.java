@@ -168,6 +168,7 @@ public class BaasQuery {
         private String groupBy = null;
         private Paging paging = null;
         private String target = null;
+        private int skip = -1;
 
         Builder(Builder builder){
             mMode =builder.mMode;
@@ -178,11 +179,13 @@ public class BaasQuery {
             groupBy=builder.groupBy;
             paging=builder.paging==null?null:new Paging(builder.paging.page,builder.paging.records);
             target=builder.target;
+            skip = builder.skip;
         }
 
         Builder(){
 
         }
+
         public Filter filter(){
             String where = whereBuilder==null?null:whereBuilder.toString();
             return new Filter(where,params,sortOrder,paging);
@@ -215,6 +218,9 @@ public class BaasQuery {
             if (paging!=null){
                 reqParams.add(new RequestFactory.Param("page",Integer.toString(paging.page)));
                 reqParams.add(new RequestFactory.Param("recordsPerPage",Integer.toString(paging.records)));
+            }
+            if (skip>=0){
+                reqParams.add(new RequestFactory.Param("skip",Integer.toString(skip)));
             }
             if (groupBy!=null){
                 reqParams.add(new RequestFactory.Param("groupBy",groupBy));
@@ -295,6 +301,13 @@ public class BaasQuery {
 
         public Builder clearPagination(){
             this.paging=null;
+            return this;
+        }
+
+        public static final int NO_SKIP = -1;
+
+        public Builder skip(int skip){
+            this.skip=skip;
             return this;
         }
 
