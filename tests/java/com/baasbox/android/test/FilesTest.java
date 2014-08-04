@@ -86,6 +86,12 @@ public class FilesTest extends BaasTestBase {
         }
     }
 
+    public void testCanFetchFile(){
+        BaasFile f = new BaasFile(new JsonObject().putString("k","v"));
+        BaasUser u = BaasUser.withUserName("ciao");
+        BaasACL acl =BaasACL.grantUser(u,Grant.ALL);
+
+    }
 //    private static class ByteArrayOut extends ByteArrayOutputStream {
 //        ByteArrayOut(int minSize) {
 //        }

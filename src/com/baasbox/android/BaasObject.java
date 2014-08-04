@@ -15,6 +15,7 @@
 
 package com.baasbox.android;
 
+import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpResponse;
 
@@ -57,6 +58,12 @@ public abstract class BaasObject {
      */
     public abstract long getVersion();
 
+
+    /**
+     * Converts this object to a {@link com.baasbox.android.json.JsonObject}
+     * @return a raw Json tree representation of the object
+     */
+    public abstract JsonObject toJson();
 
     /**
      * Asynchronously grants the access <code>grant</code> to this object to <code>username</code>.

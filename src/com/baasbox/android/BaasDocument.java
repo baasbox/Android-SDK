@@ -70,6 +70,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     private String id;
     private String author;
     private String creation_date;
+    private String rid;
     private long version;
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -86,8 +87,21 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         data.remove("_creation_date");
         this.version = data.getLong("@version");
         data.remove("@version");
+        this.rid=data.getString("@rid");
         data.remove("@rid");
         this.data = data;
+    }
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject json = data.copy();
+        json.putString("@class",collection);
+        json.putString("id",id);
+        json.putString("_author",author);
+        json.putString("_creation_date",creation_date);
+        json.putLong("@version",version);
+        json.putString("@rid",rid);
+        return json;
     }
 
     /**
@@ -106,7 +120,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         this.version = source.readLong();
         this.author = readOptString(source);
         this.creation_date = readOptString(source);
-
+        this.rid=readOptString(source);
         this.data = source.readParcelable(JsonWrapper.class.getClassLoader());
     }
 
@@ -508,6 +522,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         dest.writeLong(version);
         writeOptString(dest, author);
         writeOptString(dest, creation_date);
+        writeOptString(dest,rid);
         dest.writeParcelable(data, 0);
 
     }
@@ -1069,6 +1084,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         data.remove("_creation_date");
         this.version = data.getLong("@version");
         data.remove("@version");
+        this.rid=data.getString("@rid");
         data.remove("@rid");
         this.data.merge(data);
         this.data.setDirty(false);

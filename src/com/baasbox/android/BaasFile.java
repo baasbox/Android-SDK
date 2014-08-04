@@ -89,6 +89,11 @@ public class BaasFile extends BaasObject {
         }
     }
 
+    @Override
+    public JsonObject toJson() {
+        return null;
+    }
+
     void update(JsonObject fromServer) {
         isBound.set(true);
         this.attachedData.merge(fromServer.getObject("attachedData"));

@@ -232,6 +232,9 @@ class RequestFactory {
     }
 
     public String getEndpointRaw(String endpoint){
+        if (endpoint.startsWith("/")){
+            endpoint=endpoint.substring(1);
+        }
         return this.apiRoot+endpoint;
     }
 

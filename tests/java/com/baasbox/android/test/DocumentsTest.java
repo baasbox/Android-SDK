@@ -132,6 +132,32 @@ public class DocumentsTest extends BaasTestBase{
 
     }
 
+    public void testCanFetchDocument(){
+        JsonObject data = new JsonObject();
+        data.putString("key","value");
+        BaasResult<JsonObject> res = box.restSync(HttpRequest.POST, "/document/" + testColl, data, true);
+        if (!res.isSuccess()){
+            try {
+                throw res.error();
+            } catch (BaasException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        assertTrue(res.isSuccess());
+
+        String id = res.value().getObject("data").getString("id");
+        BaasResult<BaasDocument> doc = BaasDocument.fetchSync(testColl, id);
+        assertTrue(doc.isSuccess());
+        BaasResult<JsonObject> res2 = box.restSync(HttpRequest.GET,"/document/"+testColl+"/"+id,null,true);
+        assertTrue(res2.isSuccess());
+        JsonObject rawData = res2.value().getObject("data");
+        assertEquals(rawData,doc.value().toJson());
+        /*
+        expected:<{"@rid":"#23:0","@version":2,"@class":"test0","key":"value","id":"e1c40795-7529-4981-a25b-c9836ed188ee","_creation_date":"2014-08-04T12:01:05.005+0200","_author":"user2"}>
+        but was:<{"key":"value","@class":"test0","id":"e1c40795-7529-4981-a25b-c9836ed188ee","_author":"user2","_creation_date":"2014-08-04T12:01:05.005+0200","@version":2}>
+         */
+    }
+
     public void testCanDeleteDocument(){
         BaasDocument doc = new BaasDocument(testColl);
         RequestToken tok = doc.save(BaasHandler.NOOP);
