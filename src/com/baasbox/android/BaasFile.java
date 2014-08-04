@@ -606,18 +606,31 @@ public class BaasFile extends BaasObject {
         return upload(acl, in, flags, handler);
     }
 
-    public BaasResult<BaasFile> uploadSync(InputStream stream) {
+    public BaasResult<BaasFile> uploadSync(InputStream stream){
+        return uploadSync(null,stream);
+    }
+
+    public BaasResult<BaasFile> uploadSync(BaasACL acl,InputStream stream) {
         BaasBox box = BaasBox.getDefaultChecked();
-        Upload req = uploadRequest(box, stream, RequestOptions.DEFAULT, null, new JsonObject());
+        if (stream == null) throw new IllegalArgumentException("stream cannot be null");
+        Upload req = uploadRequest(box, stream, RequestOptions.DEFAULT, null, acl==null?new JsonObject():acl.toJson());
         return box.submitSync(req);
     }
 
-    public BaasResult<BaasFile> uploadSync(byte[] bytes) {
+    public BaasResult<BaasFile> uploadSync(byte[] bytes){
+        return uploadSync(null,bytes);
+    }
+
+    public BaasResult<BaasFile> uploadSync(BaasACL acl,byte[] bytes) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (bytes == null) throw new IllegalArgumentException("bytes cannot be null");
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
-        Upload req = uploadRequest(box, in, RequestOptions.DEFAULT, null, new JsonObject());
+        Upload req = uploadRequest(box, in, RequestOptions.DEFAULT,null,acl == null?new JsonObject():acl.toJson());
         return box.submitSync(req);
+    }
+
+    public BaasResult<BaasFile> uploadSync(File file){
+        return uploadSync(null,file);
     }
 
     public BaasResult<BaasFile> uploadSync(BaasACL acl, File file) {
@@ -625,7 +638,7 @@ public class BaasFile extends BaasObject {
         if (file == null) throw new IllegalArgumentException("file cannot be null");
         try {
             FileInputStream in = new FileInputStream(file);
-            Upload req = uploadRequest(box, in, RequestOptions.DEFAULT, null, acl == null ? null : acl.toJson());
+            Upload req = uploadRequest(box, in, RequestOptions.DEFAULT, null, acl == null ? new JsonObject() : acl.toJson());
             return box.submitSync(req);
         } catch (FileNotFoundException e) {
             throw new IllegalArgumentException("file does not exists", e);
