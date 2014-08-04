@@ -213,6 +213,7 @@ public abstract class BaasObject {
      */
     public abstract BaasResult<Void> revokeSync(Grant grant, String username);
 
+
 // -------------------------- INNER CLASSES --------------------------
 
     abstract static class Access extends NetworkTask<Void> {

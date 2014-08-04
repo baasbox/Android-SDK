@@ -58,6 +58,7 @@ public class DocumentsTest extends BaasTestBase{
 
     }
 
+
     public void testCanCreateDocument(){
         BaasDocument doc = new BaasDocument(testColl);
         doc.putString("key1","value1")
