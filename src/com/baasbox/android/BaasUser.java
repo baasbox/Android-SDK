@@ -990,8 +990,10 @@ public class BaasUser implements Parcelable {
         @Override
         protected HttpRequest request(BaasBox box) {
             String endpoint = box.requestFactory.getEndpoint("social/{}", provider);
-            return box.requestFactory.post(endpoint, new RequestFactory.Param("oauth_token", token),
-                    new RequestFactory.Param("oauth_secret", secret));
+            JsonObject body = new JsonObject();
+            body.putString("oauth_token", token);
+            body.putString("oauth_secret", secret);
+            return box.requestFactory.post(endpoint, body);
         }
     }
 
