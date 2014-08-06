@@ -89,10 +89,6 @@ public class BaasFile extends BaasObject {
         }
     }
 
-    @Override
-    public JsonObject toJson() {
-        return null;
-    }
 
     void update(JsonObject fromServer) {
         isBound.set(true);
@@ -119,11 +115,11 @@ public class BaasFile extends BaasObject {
         return fetchAll(null, RequestOptions.DEFAULT, handler);
     }
 
-    public static RequestToken fetchAll(Filter filter, BaasHandler<List<BaasFile>> handler) {
+    public static RequestToken fetchAll(BaasQuery.Criteria filter, BaasHandler<List<BaasFile>> handler) {
         return fetchAll(filter, RequestOptions.DEFAULT, handler);
     }
 
-    public static RequestToken fetchAll(Filter filter, int flags, BaasHandler<List<BaasFile>> handler) {
+    public static RequestToken fetchAll(BaasQuery.Criteria filter, int flags, BaasHandler<List<BaasFile>> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         Files files = new Files(box, filter, flags, handler);
         return box.submitAsync(files);
@@ -133,7 +129,7 @@ public class BaasFile extends BaasObject {
         return fetchAllSync(null);
     }
 
-    public static BaasResult<List<BaasFile>> fetchAllSync(Filter filter) {
+    public static BaasResult<List<BaasFile>> fetchAllSync(BaasQuery.Criteria filter) {
         BaasBox box = BaasBox.getDefaultChecked();
         Files files = new Files(box, filter, RequestOptions.DEFAULT, null);
         return box.submitSync(files);
@@ -773,7 +769,7 @@ public class BaasFile extends BaasObject {
     private static final class Files extends NetworkTask<List<BaasFile>> {
         private RequestFactory.Param[] params;
 
-        protected Files(BaasBox box, Filter filter, int flags, BaasHandler<List<BaasFile>> handler) {
+        protected Files(BaasBox box, BaasQuery.Criteria filter, int flags, BaasHandler<List<BaasFile>> handler) {
             super(box, flags, handler);
             if (filter == null) {
                 params = null;

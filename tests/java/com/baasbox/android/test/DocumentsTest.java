@@ -85,9 +85,10 @@ public class DocumentsTest extends BaasTestBase{
         int n = new Random().nextInt(10)+5;
         for (int i=0;i<n;i++)createDoc(1);
         for (int i=0;i<n;i++)createDoc(2);
-        Filter f  = Filter.where("n = ?",2);
+//        Filter f  = Filter.where("n = ?",2);
+        BaasQuery.Criteria criteria = BaasQuery.builder().where("n = ?").whereParams(2).criteria();
         BaasResult<List<BaasDocument>> res =
-                BaasDocument.fetchAll(testColl,f,BaasHandler.NOOP)
+                BaasDocument.fetchAll(testColl,criteria,BaasHandler.NOOP)
                             .await();
         try {
             List<BaasDocument> docs = res.get();
@@ -101,9 +102,10 @@ public class DocumentsTest extends BaasTestBase{
     public void testCanPageDocuments(){
         int n = new Random().nextInt(10)+5;
         for(int i=0;i<n;i++) createDoc(i);
-        Filter f = Filter.paging("n",true,0,5);
+//        Filter f = Filter.paging("n",true,0,5);
+        BaasQuery.Criteria c = BaasQuery.builder().pagination(0,5).orderBy("n ASC").criteria();
         BaasResult<List<BaasDocument>> res =
-                BaasDocument.fetchAll(testColl,f,BaasHandler.NOOP)
+                BaasDocument.fetchAll(testColl,c,BaasHandler.NOOP)
                             .await();
         try {
             List<BaasDocument> docs = res.get();
@@ -185,8 +187,9 @@ public class DocumentsTest extends BaasTestBase{
         BaasDocument d = new BaasDocument(testColl).putString("value","simpletext");
         assertTrue(d.saveSync().isSuccess());
         try {
-            Filter f = Filter.where("value like '%text%'");
-            BaasResult<List<BaasDocument>> await = BaasDocument.fetchAll(testColl, f, BaasHandler.NOOP).await();
+//            Filter f = Filter.where("value like '%text%'");
+            BaasQuery.Criteria c = BaasQuery.builder().where("value like '%text%'").criteria();
+            BaasResult<List<BaasDocument>> await = BaasDocument.fetchAll(testColl, c, BaasHandler.NOOP).await();
             List<BaasDocument> res =await.get();
             assertTrue(!res.isEmpty());
             assertEquals("simpletext",res.get(0).getString("value"));

@@ -24,6 +24,8 @@ import com.baasbox.android.test.common.BaasTestBase;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -86,12 +88,6 @@ public class FilesTest extends BaasTestBase {
         }
     }
 
-    public void testCanFetchFile(){
-        BaasFile f = new BaasFile(new JsonObject().putString("k","v"));
-        BaasUser u = BaasUser.withUserName("ciao");
-        BaasACL acl =BaasACL.grantUser(u,Grant.ALL);
-
-    }
 //    private static class ByteArrayOut extends ByteArrayOutputStream {
 //        ByteArrayOut(int minSize) {
 //        }

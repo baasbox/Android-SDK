@@ -302,7 +302,7 @@ public class BaasUser implements Parcelable {
         return box.submitSync(users);
     }
 
-    public static BaasResult<List<BaasUser>> fetchAllSync(Filter filter) {
+    public static BaasResult<List<BaasUser>> fetchAllSync(BaasQuery.Criteria filter) {
         BaasBox box = BaasBox.getDefaultChecked();
         FetchUsers users = new FetchUsers(box, "users", null, filter, 0, null);
         return box.submitSync(users);
@@ -325,7 +325,7 @@ public class BaasUser implements Parcelable {
      * @param handler an handler to be invoked upon completion of the request
      * @return a {@link com.baasbox.android.RequestToken} to manage the request
      */
-    public static RequestToken fetchAll(Filter filter, BaasHandler<List<BaasUser>> handler) {
+    public static RequestToken fetchAll(BaasQuery.Criteria filter, BaasHandler<List<BaasUser>> handler) {
         return fetchAll(filter, RequestOptions.DEFAULT, handler);
     }
 
@@ -336,7 +336,7 @@ public class BaasUser implements Parcelable {
      * @param handler  an handler to be invoked upon completion of the request
      * @return a {@link com.baasbox.android.RequestToken} to manage the request
      */
-    public static RequestToken fetchAll(Filter filter, int flags, BaasHandler<List<BaasUser>> handler) {
+    public static RequestToken fetchAll(BaasQuery.Criteria filter, int flags, BaasHandler<List<BaasUser>> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         FetchUsers users = new FetchUsers(box, "users", null, filter, flags, handler);
         return box.submitAsync(users);
@@ -480,11 +480,11 @@ public class BaasUser implements Parcelable {
         return followers(null, RequestOptions.DEFAULT, handler);
     }
 
-    public RequestToken followers(Filter filter, BaasHandler<List<BaasUser>> handler) {
+    public RequestToken followers(BaasQuery.Criteria filter, BaasHandler<List<BaasUser>> handler) {
         return followers(filter, RequestOptions.DEFAULT, handler);
     }
 
-    public RequestToken followers(Filter filter, int flags, BaasHandler<List<BaasUser>> handler) {
+    public RequestToken followers(BaasQuery.Criteria filter, int flags, BaasHandler<List<BaasUser>> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         FetchUsers users;
         if (isCurrent()) {
@@ -520,7 +520,7 @@ public class BaasUser implements Parcelable {
         return followersSync(null);
     }
 
-    public BaasResult<List<BaasUser>> followersSync(Filter filter) {
+    public BaasResult<List<BaasUser>> followersSync(BaasQuery.Criteria filter) {
         BaasBox box = BaasBox.getDefaultChecked();
         FetchUsers users;
         if (isCurrent()) {
@@ -535,11 +535,11 @@ public class BaasUser implements Parcelable {
         return following(null, RequestOptions.DEFAULT, handler);
     }
 
-    public RequestToken following(Filter filter, BaasHandler<List<BaasUser>> handler) {
+    public RequestToken following(BaasQuery.Criteria filter, BaasHandler<List<BaasUser>> handler) {
         return following(filter, RequestOptions.DEFAULT, handler);
     }
 
-    public RequestToken following(Filter filter, int flags, BaasHandler<List<BaasUser>> handler) {
+    public RequestToken following(BaasQuery.Criteria filter, int flags, BaasHandler<List<BaasUser>> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         FetchUsers users;
         if (isCurrent()) {
@@ -554,7 +554,7 @@ public class BaasUser implements Parcelable {
         return followingSync(null);
     }
 
-    public BaasResult<List<BaasUser>> followingSync(Filter filter) {
+    public BaasResult<List<BaasUser>> followingSync(BaasQuery.Criteria filter) {
         BaasBox box = BaasBox.getDefaultChecked();
         FetchUsers users;
         if (isCurrent()) {
@@ -1228,7 +1228,7 @@ public class BaasUser implements Parcelable {
         protected final RequestFactory.Param[] params;
         protected final String endpoint;
 
-        protected FetchUsers(BaasBox box, String endpoint, String user, Filter filter,int flags, BaasHandler<List<BaasUser>> handler) {
+        protected FetchUsers(BaasBox box, String endpoint, String user, BaasQuery.Criteria filter,int flags, BaasHandler<List<BaasUser>> handler) {
             super(box, flags, handler);
             if (filter == null) {
                 params = null;

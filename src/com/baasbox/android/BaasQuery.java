@@ -33,6 +33,27 @@ import java.util.List;
  */
 public class BaasQuery {
 
+    public static class Criteria{
+
+        public static final Criteria ANY = new Criteria(new Builder());
+
+        private RequestFactory.Param[] params;
+        private Builder originalBuilder;
+
+        private Criteria(Builder builder){
+            this.originalBuilder=builder;
+            this.params = builder.toFilterParams();
+        }
+
+        public final Builder buildUpon(){
+            return new Builder(originalBuilder);
+        }
+
+        final RequestFactory.Param[] toParams(){
+            return this.params;
+        }
+    }
+
     static class Paging{
         Paging(int page,int records){
             this.page=page;
@@ -77,7 +98,7 @@ public class BaasQuery {
     public RequestToken query(String what,int flags,BaasHandler<List<JsonObject>> handler){
         if (mode == COLLECTIONS && what==null) throw new IllegalArgumentException("collection cannot be null");
         BaasBox box = BaasBox.getDefaultChecked();
-        QueryRequest request = new QueryRequest(box,mode,collOrUsr,params, RequestOptions.DEFAULT,handler);
+        QueryRequest request = new QueryRequest(box,mode,collOrUsr,params, flags,handler);
         return box.submitAsync(request);
     }
 
@@ -153,6 +174,7 @@ public class BaasQuery {
         }
     }
 
+    private static final int FILTER = 0;
     private static final int COLLECTIONS = 1;
     public static final int USERS = 3;
     public static final int FILES = 2;
@@ -183,16 +205,21 @@ public class BaasQuery {
         }
 
         Builder(){
-
+            mMode = FILTER;
         }
 
-        public Filter filter(){
-            String where = whereBuilder==null?null:whereBuilder.toString();
-            return new Filter(where,params,sortOrder,paging);
-        }
+//        public Filterz filter(){
+//            String where = whereBuilder==null?null:whereBuilder.toString();
+//            return new Filterz(where,params,sortOrder,paging,skip);
+//        }
+
 
         public BaasQuery build(){
             return new BaasQuery(mMode,target,this);
+        }
+
+        public Criteria criteria(){
+            return new Criteria(this);
         }
 
         private void validate(){
@@ -201,9 +228,30 @@ public class BaasQuery {
             }
         }
 
+        private RequestFactory.Param[] toFilterParams(){
+            validate();
+            List<RequestFactory.Param> reqParams = new ArrayList<RequestFactory.Param>();
+            filterParams(reqParams);
+            if (reqParams.size()==0) return null;
+            return reqParams.toArray(new RequestFactory.Param[reqParams.size()]);
+        }
+
         private RequestFactory.Param[] toParams(){
             validate();
             List<RequestFactory.Param> reqParams = new ArrayList<RequestFactory.Param>();
+            filterParams(reqParams);
+            if (groupBy!=null){
+                reqParams.add(new RequestFactory.Param("groupBy",groupBy));
+            }
+            if (fields!=null){
+                Logger.error("REQ: %s",fields);
+                reqParams.add(new RequestFactory.Param("fields",fields));
+            }
+            if (reqParams.size()==0) return null;
+            return reqParams.toArray(new RequestFactory.Param[reqParams.size()]);
+        }
+
+        private void filterParams(List<RequestFactory.Param> reqParams) {
             if (whereBuilder!=null){
                 reqParams.add(new RequestFactory.Param("where",whereBuilder.toString()));
                 if (params!=null){
@@ -222,15 +270,6 @@ public class BaasQuery {
             if (skip>=0){
                 reqParams.add(new RequestFactory.Param("skip",Integer.toString(skip)));
             }
-            if (groupBy!=null){
-                reqParams.add(new RequestFactory.Param("groupBy",groupBy));
-            }
-            if (fields!=null){
-                Logger.error("REQ: %s",fields);
-                reqParams.add(new RequestFactory.Param("fields",fields));
-            }
-            if (reqParams.size()==0) return null;
-            return reqParams.toArray(new RequestFactory.Param[reqParams.size()]);
         }
 
         public Builder users(){
@@ -291,11 +330,14 @@ public class BaasQuery {
             return this;
         }
 
-        public Builder whereParams(String... params){
+
+        public Builder whereParams(Object... params){
              if (params!=null&&params.length>0){
                 this.params =new ArrayList<CharSequence>();
-                Collections.addAll(this.params,params);
-            }
+                for (Object p:params){
+                    this.params.add(p==null?"":p.toString());
+                }
+             }
             return this;
         }
 

@@ -74,6 +74,16 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
     private long version;
 
 // --------------------------- CONSTRUCTORS ---------------------------
+
+    /**
+     * Returns a new BaasDocument from it's raw json representation
+     * @param data
+     * @return a new BaasDocument
+     */
+    public static BaasDocument from(JsonObject data){
+        return new BaasDocument(data);
+    }
+
     BaasDocument(JsonObject o) {
         super();
         JsonWrapper data = new JsonWrapper(o);
@@ -92,7 +102,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         this.data = data;
     }
 
-    @Override
+
     public JsonObject toJson() {
         JsonObject json = data.copy();
         json.putString("@class",collection);
@@ -226,7 +236,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    public static RequestToken fetchAll(String collection, Filter filter, BaasHandler<List<BaasDocument>> handler) {
+    public static RequestToken fetchAll(String collection, BaasQuery.Criteria filter, BaasHandler<List<BaasDocument>> handler) {
         return fetchAll(collection, filter, RequestOptions.DEFAULT, handler);
     }
 
@@ -239,7 +249,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    public static RequestToken fetchAll(String collection, Filter filter, int flags, BaasHandler<List<BaasDocument>> handler) {
+    public static RequestToken fetchAll(String collection, BaasQuery.Criteria filter, int flags, BaasHandler<List<BaasDocument>> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         Fetch f = new Fetch(box, collection, filter, flags, handler);
@@ -257,7 +267,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * @param collection the collection to retrieve not <code>null</code>
      * @return the result of the request
      */
-    public static BaasResult<List<BaasDocument>> fetchAllSync(String collection, Filter filter) {
+    public static BaasResult<List<BaasDocument>> fetchAllSync(String collection, BaasQuery.Criteria filter) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         Fetch f = new Fetch(box, collection, filter, RequestOptions.DEFAULT, null);
@@ -280,11 +290,11 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * in <code>collection</code>.
      *
      * @param collection the collection to count not <code>null</code>
-     * @param filter     a {@link com.baasbox.android.Filter} to apply to the request. May be <code>null</code>
+     * @param filter     a {@link BaasQuery.Criteria} to apply to the request. May be <code>null</code>
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    public static RequestToken count(String collection, Filter filter, BaasHandler<Long> handler) {
+    public static RequestToken count(String collection, BaasQuery.Criteria filter, BaasHandler<Long> handler) {
         return count(collection, filter, RequestOptions.DEFAULT, handler);
     }
 
@@ -305,11 +315,11 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * in <code>collection</code>
      *
      * @param collection the collection to count not <code>null</code>
-     * @param filter     a {@link com.baasbox.android.Filter} to apply to the request. May be <code>null</code>
+     * @param filter     a {@link BaasQuery.Criteria} to apply to the request. May be <code>null</code>
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    private static RequestToken count(String collection, Filter filter, int flags, BaasHandler<Long> handler) {
+    private static RequestToken count(String collection, BaasQuery.Criteria filter, int flags, BaasHandler<Long> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         Count count = new Count(box, collection, filter, flags, handler);
@@ -334,7 +344,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
      * @param filter     a filter to apply to the request
      * @return the result of the request
      */
-    public static BaasResult<Long> countSync(String collection, Filter filter) {
+    public static BaasResult<Long> countSync(String collection, BaasQuery.Criteria filter) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         Count request = new Count(box, collection, filter, RequestOptions.DEFAULT, null);
@@ -1227,7 +1237,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         private final String collection;
         private final RequestFactory.Param[] filter;
 
-        protected Fetch(BaasBox box, String collection, Filter filter, int flags, BaasHandler<List<BaasDocument>> handler) {
+        protected Fetch(BaasBox box, String collection, BaasQuery.Criteria filter, int flags, BaasHandler<List<BaasDocument>> handler) {
             super(box, flags, handler);
             this.collection = collection;
             this.filter = filter == null ? null : filter.toParams();
@@ -1263,7 +1273,7 @@ public class BaasDocument extends BaasObject implements Iterable<Map.Entry<Strin
         private final String collection;
         private final RequestFactory.Param[] params;
 
-        protected Count(BaasBox box, String collection, Filter filter, int flags, BaasHandler<Long> handler) {
+        protected Count(BaasBox box, String collection, BaasQuery.Criteria filter, int flags, BaasHandler<Long> handler) {
             super(box, flags, handler);
             this.collection = collection;
             this.params = filter == null ? null : filter.toParams();
