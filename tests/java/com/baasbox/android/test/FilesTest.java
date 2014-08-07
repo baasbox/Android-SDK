@@ -88,66 +88,6 @@ public class FilesTest extends BaasTestBase {
         }
     }
 
-//    private static class ByteArrayOut extends ByteArrayOutputStream {
-//        ByteArrayOut(int minSize) {
-//        }
-//
-//        public byte[] arr() {
-//            return buf;
-//        }
-//    }
-//
-//    public void testStreamManualFile(){
-//        byte[] theFile = TEXT_FILE.getBytes();
-//        BaasFile f = new BaasFile();
-//        BaasResult<BaasFile> await = f.upload(theFile,BaasHandler.NOOP).await();
-//        try {
-//            BaasFile file = await.get();
-//            assertNotNull(file.getId());
-//            String id = file.getId();
-//
-//            BaasResult<byte[]> data = BaasFile.stream(id, new DataStreamHandler<byte[]>() {
-//                ByteArrayOut out;
-//
-//                @Override
-//                public void startData(String id, long contentLength, String contentType) throws Exception {
-//                    out = new ByteArrayOut((int) contentLength);
-//                }
-//
-//                @Override
-//                public void onData(byte[] data, int read) throws Exception {
-//                    out.write(data, 0, read);
-//                }
-//
-//                @Override
-//                public byte[] endData(String id, long contentLength, String contentType) throws Exception {
-//                    byte[] arr = out.arr();
-//                    Log.d("TEST", "LENGTH" + arr.length);
-//                    Log.d("TEST", "Content length " + contentLength);
-//                    return arr;
-//                }
-//
-//                @Override
-//                public void finishStream(String id) {
-//                    if (out != null) {
-//                        try {
-//                            out.close();
-//                        } catch (IOException e) {
-//                        }
-//                    }
-//                }
-//            }, BaasHandler.NOOP).await();
-//            byte[] res = data.get();
-//            assertEquals(theFile.length,res.length);
-//            for (int i =0;i<theFile.length;i++){
-//                assertEquals(theFile[i],res[i]);
-//            }
-//        }catch (BaasException e){
-//            fail("Something went wrong in upload/download");
-//        }
-//    }
-
-
     public void testStreamFile(){
         byte[] theFile = TEXT_FILE.getBytes();
         BaasFile f = new BaasFile();
