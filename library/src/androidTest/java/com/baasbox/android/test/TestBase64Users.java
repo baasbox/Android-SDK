@@ -20,7 +20,6 @@ import com.baasbox.android.BaasBox;
 import com.baasbox.android.BaasException;
 import com.baasbox.android.BaasResult;
 import com.baasbox.android.BaasUser;
-import com.baasbox.android.impl.Logger;
 import com.baasbox.android.test.common.BaasTestBase;
 
 import java.util.List;

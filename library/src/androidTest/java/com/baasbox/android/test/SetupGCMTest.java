@@ -1,8 +1,5 @@
 package com.baasbox.android.test;
 
-import com.baasbox.android.BaasBox;
-import com.baasbox.android.BaasHandler;
-import com.baasbox.android.BaasResult;
 import com.baasbox.android.test.common.BaasTestBase;
 
 /**

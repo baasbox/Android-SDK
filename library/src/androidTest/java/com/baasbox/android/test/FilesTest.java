@@ -19,17 +19,11 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.Log;
 import com.baasbox.android.*;
-import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.test.common.BaasTestBase;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.List;
 
 /**
  * Created by Andrea Tortorella on 05/02/14.
