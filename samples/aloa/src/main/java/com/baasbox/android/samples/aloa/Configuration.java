@@ -15,16 +15,21 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.baasbox.android.samples.Aloa;
-
-import android.app.Application;
-import android.test.ApplicationTestCase;
+package com.baasbox.android.samples.aloa;
 
 /**
- * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
+ * Created by Andrea Tortorella on 11/08/14.
  */
-public class ApplicationTest extends ApplicationTestCase<Application> {
-    public ApplicationTest() {
-        super(Application.class);
-    }
+public final class Configuration {
+
+    private Configuration(){}
+
+    public static final String GCM_SENDER_ID = "";
+
+    public static final String APPCODE = "1234567890";
+
+    public static final String API_DOMAIN = "127.0.0.1";
+
+    public static final int PORT = 9000;
+
 }

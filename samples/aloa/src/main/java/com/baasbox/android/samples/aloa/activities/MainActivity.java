@@ -15,12 +15,14 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.baasbox.android.samples.Aloa;
+package com.baasbox.android.samples.aloa.activities;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.baasbox.android.samples.aloa.R;
 
 
 public class MainActivity extends ActionBarActivity {

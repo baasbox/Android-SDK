@@ -188,147 +188,6 @@ public class BaasBox {
         return asyncDispatcher.cancel(token.requestId, false);
     }
 
-
-//    @Deprecated
-//    public RequestToken enablePush(String registrationId,Priority priority,BaasHandler<Void> handler){
-//        if(registrationId==null) throw new IllegalArgumentException("registrationId cannot be null");
-//        RegisterPush rp = new RegisterPush(this,registrationId,true,Priority.toFlag(priority),handler);
-//        return submitAsync(rp);
-//    }
-//
-//    @Deprecated
-//    public RequestToken enablePush(String registrationId,BaasHandler<Void> handler) {
-//        return enablePush(registrationId,null,handler);
-//    }
-//
-//    @Deprecated
-//    public RequestToken disablePush(String registrationId,BaasHandler<Void> handler){
-//        return disablePush(registrationId,Priority.NORMAL,handler);
-//    }
-//
-//    @Deprecated
-//    public RequestToken disablePush(String registrationId,Priority priority,BaasHandler<Void> handler){
-//        if (registrationId==null) throw new IllegalArgumentException("registrationId cannot be null");
-//        RegisterPush rp = new RegisterPush(this,registrationId,false,Priority.toFlag(priority),handler);
-//        return submitAsync(rp);
-//    }
-//
-//    @Deprecated
-//    public BaasResult<Void> disablePushSync(String registrationId) {
-//        if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
-//        RegisterPush req = new RegisterPush(this,registrationId,false,Flags.DEFAULT,null);
-//        return submitSync(req);
-//    }
-//
-//    @Deprecated
-//    public BaasResult<Void> enablePushSync(String registrationId) {
-//        if(registrationId == null) throw new IllegalArgumentException("registrationId cannot be null");
-//        RegisterPush req = new RegisterPush(this,registrationId,true,Flags.DEFAULT,null);
-//        return submitSync(req);
-//    }
-
-    /*
-     * Streams the file using the provided data stream handler.
-     *
-     * @param id      the name of the asset to download
-     * @param data    the data stream handler {@link com.baasbox.android.DataStreamHandler}
-     * @param handler the completion handler
-     * @param <R>     the type to transform the bytes to.
-     * @return a request token to handle the request
-
-    @Deprecated
-    public static <R> RequestToken doStreamAsset(String id, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.doStreamAsset(id, null, -1, null, data, handler);
-    }
-    */
-
-    /*
-     * Streams the file using the provided data stream handler.
-     *
-     * @param id      the name of the asset to download
-     * @param size    a size spec to specify the resize of an image asset
-     * @param data    the data stream handler {@link com.baasbox.android.DataStreamHandler}
-     * @param handler the completion handler
-     * @param <R>     the type to transform the bytes to.
-     * @return a request token to handle the request
-
-    @Deprecated
-    public static <R> RequestToken doStreamAsset(String id, int size, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.doStreamAsset(id, null, size, null, data, handler);
-    }
-    */
-    /*
-     * Streams the file using the provided data stream handler.
-     *
-     * @param id       the name of the asset to download
-     * @param priority a priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
-     * @param handler  the completion handler
-     * @param <R>      the type to transform the bytes to.
-     * @return a request token to handle the request
-
-    @Deprecated
-    public static <R> RequestToken doStreamAsset(String id, Priority priority, DataStreamHandler<R> contentHandler, BaasHandler<R> handler) {
-        return BaasAsset.doStreamAsset(id, null, -1, priority, contentHandler, handler);
-    }
-    */
-    /*
-     * Streams the file using the provided data stream handler.
-     *
-     * @param id       the name of the asset to download
-     * @param size     a size spec to specify the resize of an image asset
-     * @param priority a priority at which the request should be executed defaults to {@link com.baasbox.android.Priority#NORMAL}
-     * @param data     the data stream handler {@link com.baasbox.android.DataStreamHandler}
-     * @param handler  the completion handler
-     * @param <R>      the type to transform the bytes to.
-     * @return a request token to handle the request
-
-    @Deprecated
-    public static <R> RequestToken doStreamAsset(String id, int size, Priority priority, DataStreamHandler<R> data, BaasHandler<R> handler) {
-        return BaasAsset.doStreamAsset(id, null, size, priority, data, handler);
-    }
-    */
-    /*
-     * Synchronously streams the asset.
-     *
-     * @param id     the name of the asset to download
-     * @param sizeId the size index if the asset is an image
-     * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
-    @Deprecated
-    public static BaasResult<BaasStream> streamAssetSync(String id, int sizeId) {
-        return BaasAsset.doStreamSync(id, null, sizeId);
-    }
-     */
-
-    /*
-     * Synchronously streams the asset.
-     *
-     * @param id   the name of the asset to download
-     * @param spec a size spec to specify the resize of an image asset
-     * @return a {@link com.baasbox.android.BaasStream} wrapped in a result
-
-    @Deprecated
-    public static BaasResult<BaasStream> streamAssetSync(String id, String spec) {
-        return BaasAsset.doStreamSync(id, spec, -1);
-    }
-    */
-    /*
-    @Deprecated
-    public RequestToken registerPush(String registrationId, BaasHandler<Void> handler) {
-        return enablePush(registrationId, null, handler);
-    }
-
-    @Deprecated
-    public RequestToken registerPush(String registrationId, Priority priority, BaasHandler<Void> handler) {
-        return enablePush(registrationId,priority,handler);
-    }
-
-    @Deprecated
-    public BaasResult<Void> registerPushSync(String registrationId) {
-        return enablePushSync(registrationId);
-    }
-    */
-
-
     /**
      * Asynchronously sends a raw rest request to the server that is specified by
      * the parameters passed in
@@ -386,6 +245,16 @@ public class BaasBox {
         return asyncDispatcher.suspend(token.requestId);
     }
 
+    /**
+     * Returns a new BaasBox Builder
+     *
+     * @param context
+     * @return
+     */
+    public static Builder builder(Context context){
+        return new Builder(context);
+    }
+
     // -------------------------- INNER CLASSES --------------------------
 
     /**
@@ -414,7 +283,7 @@ public class BaasBox {
         /**
          * Creates a new builder
          * @param context
-         */
+    s     */
         public Builder(Context context){
             mContext=context.getApplicationContext();
         }
