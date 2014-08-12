@@ -24,7 +24,7 @@ public final class Configuration {
 
     private Configuration(){}
 
-    public static final String GCM_SENDER_ID = "";
+    public static final String GCM_SENDER_ID = BuildConfig.SENDERID; // replace with your own sender id
 
     public static final String APPCODE = "1234567890";
 

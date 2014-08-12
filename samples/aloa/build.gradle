@@ -34,16 +34,23 @@ android {
     buildToolsVersion "20.0.0"
 
     defaultConfig {
+
         applicationId "com.baasbox.android.samples.aloa"
         minSdkVersion 14
         targetSdkVersion 19
         versionCode 1
         versionName "1.0"
+
     }
     buildTypes {
         release {
+            buildConfigField "String", "SENDERID", "\"${project.hasProperty("aloa.projectid")?project.property("aloa.projectid"):""}\""
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug{
+            buildConfigField "String", "SENDERID", "\"\""
+
         }
     }
 }
