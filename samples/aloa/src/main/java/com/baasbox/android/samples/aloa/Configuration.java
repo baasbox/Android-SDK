@@ -28,7 +28,7 @@ public final class Configuration {
 
     public static final String APPCODE = "1234567890";
 
-    public static final String API_DOMAIN = "127.0.0.1";
+    public static final String API_DOMAIN = "192.168.56.1";
 
     public static final int PORT = 9000;
 
