@@ -51,13 +51,15 @@ import com.baasbox.android.BaasHandler;
 import com.baasbox.android.BaasResult;
 import com.baasbox.android.BaasUser;
 import com.baasbox.android.RequestToken;
+import com.baasbox.android.samples.aloa.Data;
 import com.baasbox.android.samples.aloa.R;
+import com.baasbox.android.samples.aloa.utils.BaseActivity;
 
 /**
  * A login screen that offers login via email/password.
 
  */
-public class LoginActivity extends ActionBarActivity{
+public class LoginActivity extends BaseActivity{
 
     private static final String CURRENT_AUTH_REQUEST = "current_auth_request";
     /**
@@ -106,6 +108,7 @@ public class LoginActivity extends ActionBarActivity{
             }
         });
 
+        mFlowerView=(EditText)findViewById(R.id.in_register_extra_info);
         mFlowerView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -196,7 +199,7 @@ public class LoginActivity extends ActionBarActivity{
             showProgress(true);
             BaasUser user = BaasUser.withUserName(email)
                                     .setPassword(password);
-            user.getScope(BaasUser.Scope.PUBLIC).putString("flower",flower);
+            user.getScope(BaasUser.Scope.PUBLIC).putString(Data.FLOWERS,flower);
             mAuth =user.signup(loginHandler);
         }
     }

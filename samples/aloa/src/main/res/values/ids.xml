@@ -17,14 +17,6 @@
   -->
 
 <resources>
-
-    <string name="app_name">Aloa</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
-    <string name="status">Status</string>
-
-    <string name="users">Users</string>
-    <string name="channels">Channels</string>
-    <string name="create_channel">Create Channel</string>
-    <string name="create_channel_message">Create a new channel</string>
+    <item name="LOAD_USERS" type="id"/>
+    <item name="LOAD_CHANNELS" type="id"/>
 </resources>
