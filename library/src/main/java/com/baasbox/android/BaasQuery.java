@@ -311,6 +311,26 @@ public class BaasQuery {
             return this;
         }
 
+        public Builder and(String where){
+            if (where != null){
+                if (whereBuilder ==null){
+                    whereBuilder = new StringBuilder(where.length()+16);
+                }
+                whereBuilder.insert(0,"(").append(") AND ").append(where);
+            }
+            return this;
+        }
+
+        public Builder or(String where){
+            if (where != null){
+                if (whereBuilder ==null){
+                    whereBuilder = new StringBuilder(where.length()+16);
+                }
+                whereBuilder.insert(0,"(").append(") OR ").append(where);
+            }
+            return this;
+        }
+
         public Builder projection(String ...fields){
             if(fields==null){
                 this.fields=null;
