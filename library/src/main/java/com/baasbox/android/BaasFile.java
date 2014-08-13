@@ -15,6 +15,7 @@
 
 package com.baasbox.android;
 
+import android.net.Uri;
 import android.util.Pair;
 import android.webkit.MimeTypeMap;
 import com.baasbox.android.json.JsonArray;
@@ -195,6 +196,13 @@ public class BaasFile extends BaasObject {
 
     public static BaasResult<BaasStream> streamImageSync(String id, int sizeId) {
         return doStreamSync(id, null, sizeId);
+    }
+
+    public Uri getStreamUri(){
+        if (this.id==null) throw new IllegalArgumentException("file is not bound");
+        BaasBox cli = BaasBox.getDefaultChecked();
+        String endpoint = cli.requestFactory.getEndpoint("file/{}", id);
+        return cli.requestFactory.getAuthenticatedUri(endpoint);
     }
 
     public static BaasResult<BaasStream> streamImageSync(String id, String spec) {

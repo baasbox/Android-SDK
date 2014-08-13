@@ -15,6 +15,8 @@
 
 package com.baasbox.android;
 
+import android.net.Uri;
+
 import com.baasbox.android.impl.Base64;
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.json.JsonObject;
@@ -357,6 +359,16 @@ class RequestFactory {
         Map<String, String> map = new HashMap<String, String>();
         map.put("Content-Type", "multipart/form-data; boundary=" + boundary);
         return map;
+    }
+
+    public Uri getAuthenticatedUri(String endpoint) {
+        BaasUser user = credentials.currentUser();
+        Uri.Builder builder = Uri.parse(endpoint).buildUpon();
+        builder.appendQueryParameter(APPCODE_HEADER_NAME,config.appCode);
+        if (user!=null){
+            builder.appendQueryParameter(BB_SESSION_HEADER_NAME,user.getToken());
+        }
+        return builder.build();
     }
 
 // -------------------------- INNER CLASSES --------------------------
