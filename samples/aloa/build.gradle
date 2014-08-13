@@ -49,7 +49,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         debug{
-            buildConfigField "String", "SENDERID", "\"\""
+            buildConfigField "String", "SENDERID", "\"${project.hasProperty("aloa.projectid")?project.property("aloa.projectid"):""}\""
 
         }
     }

@@ -23,6 +23,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.baasbox.android.BaasBox;
 import com.baasbox.android.BaasCloudMessagingService;
@@ -51,7 +52,9 @@ public class UserStatusFragment extends BaseFragment implements View.OnClickList
         public void handle(BaasResult<Void> result) {
             mRequest = null;
             if (result.isFailed()) {
+                Toast.makeText(getActivity(),result.error().getMessage(),Toast.LENGTH_LONG).show();
                 mStatusView.setProgress(-1);
+                throw new RuntimeException(result.error().getCause());
             } else {
                 boolean enabled = BaasBox.messagingService().isEnabled();
                 mStatusView.setProgress(enabled?100:0);
@@ -74,8 +77,9 @@ public class UserStatusFragment extends BaseFragment implements View.OnClickList
             mUserEmailView.setText(null);
             mStatusView.setProgress(-1);
         }
-
-        mRequest = RequestToken.loadAndResume(savedInstanceState,GCM_REQUEST,registerHandler);
+        if (savedInstanceState!=null) {
+            mRequest = RequestToken.loadAndResume(savedInstanceState, GCM_REQUEST, registerHandler);
+        }
         if (mRequest!=null){
             mStatusView.setProgress(50);
         }

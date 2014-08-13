@@ -138,8 +138,9 @@ public class LoginActivity extends BaseActivity{
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
-
-        mAuth = RequestToken.loadAndResume(savedInstanceState,CURRENT_AUTH_REQUEST,loginHandler);
+        if (savedInstanceState!=null) {
+            mAuth = RequestToken.loadAndResume(savedInstanceState, CURRENT_AUTH_REQUEST, loginHandler);
+        }
         if (mAuth!=null){
             showProgress(true);
         }

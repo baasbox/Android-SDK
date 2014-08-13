@@ -66,6 +66,12 @@ public class SendMessageActivity extends BaseActivity{
             }
         }
     };
+    private BaasHandler<JsonObject> subscribeHandler = new BaasHandler<JsonObject>() {
+        @Override
+        public void handle(BaasResult<JsonObject> result) {
+
+        }
+    };
 
     private void handleFailure(BaasException e){
         Toast.makeText(this,e.getMessage(),Toast.LENGTH_LONG).show();
@@ -152,6 +158,7 @@ public class SendMessageActivity extends BaseActivity{
 
     private void subscribeToChannel() {
         //todo implement subscription
+        Aloa.box().rest(HttpRequest.PUT,"scripts/channels/"+mTarget,null,true,subscribeHandler);
     }
 
     private void sendMessage(){
