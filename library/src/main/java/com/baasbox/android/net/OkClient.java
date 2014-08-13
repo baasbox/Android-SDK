@@ -17,6 +17,8 @@
 
 package com.baasbox.android.net;
 
+import android.content.Context;
+
 import com.baasbox.android.BaasBox;
 import com.baasbox.android.BaasException;
 import com.baasbox.android.BaasIOException;
@@ -51,16 +53,19 @@ public class OkClient implements RestClient{
     private OkHttpClient mOkHttp;
 
     public OkClient(BaasBox.Config config){
-        this(new OkHttpClient(),config);
+        this(new OkHttpClient());
     }
 
-    public OkClient(OkHttpClient client,BaasBox.Config config){
+    public OkClient(OkHttpClient client){
         mOkHttp = client;
+    }
+
+    @Override
+    public void init(Context context, BaasBox.Config config) {
         mOkHttp.setConnectTimeout(config.httpConnectionTimeout, TimeUnit.MILLISECONDS);
         mOkHttp.setReadTimeout(config.httpSocketTimeout,TimeUnit.MILLISECONDS);
         mOkHttp.setFollowSslRedirects(true);
     }
-
 
     private static class InputRequestBody extends RequestBody{
         MediaType media;

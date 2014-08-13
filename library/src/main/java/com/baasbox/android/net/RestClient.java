@@ -15,6 +15,9 @@
 
 package com.baasbox.android.net;
 
+import android.content.Context;
+
+import com.baasbox.android.BaasBox;
 import com.baasbox.android.BaasException;
 import org.apache.http.HttpResponse;
 
@@ -35,4 +38,11 @@ public interface RestClient {
      * @throws com.baasbox.android.BaasException
      */
     HttpResponse execute(HttpRequest request) throws BaasException;
+
+    /**
+     * Initializes the client given a configuration and a context
+     * @param context
+     * @param config
+     */
+    void init(Context context, BaasBox.Config config);
 }

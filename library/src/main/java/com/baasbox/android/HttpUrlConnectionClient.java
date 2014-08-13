@@ -74,24 +74,34 @@ class HttpUrlConnectionClient implements RestClient {
             }
     };
 
-    private final BaasBox.Config config;
+    private BaasBox.Config config;
     private SSLSocketFactory mSSLSocketFactory;
     private HostnameVerifier mHostVerifier;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    HttpUrlConnectionClient(Context context, BaasBox.Config config) {
-        this.config = config;
-
-        if (config.useHttps) {
+    HttpUrlConnectionClient() {
+//        this.config = config;
+//
+//        if (config.useHttps) {
 //            if (config.keystoreRes!=0){
 //               this.mSSLSocketFactory = createSocketFactory(context,config.keystoreRes,config.password);
 //               this.mHostVerifier = ACCEPT_ALL;
 //                HttpsURLConnection.setDefaultSSLSocketFactory(mSSLSocketFactory);
 //                HttpsURLConnection.setDefaultHostnameVerifier(mHostVerifier);
 //            }
+//        }
+//        disableReuseConnectionIfNecessary(config.useHttps);
+//        enableHttpCacheIfAvailable(context, HTTP_CACHE_SIZE);
+    }
+
+    @Override
+    public void init(Context context,BaasBox.Config config){
+        this.config = config;
+        if (config.useHttps){
+
         }
         disableReuseConnectionIfNecessary(config.useHttps);
-        enableHttpCacheIfAvailable(context, HTTP_CACHE_SIZE);
+        enableHttpCacheIfAvailable(context,HTTP_CACHE_SIZE);
     }
 
     private static SSLSocketFactory createSocketFactory(Context context,int certStoreId,String certPassword){

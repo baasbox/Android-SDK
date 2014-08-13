@@ -50,7 +50,7 @@ import java.util.*;
  * @author Andrea Tortorella
  * @since 0.7.3
  */
-public class BaasDocument extends BaasObject implements Iterable<Map.Entry<String, Object>>, Parcelable {
+public final class BaasDocument extends BaasObject implements Iterable<Map.Entry<String, Object>>, Parcelable {
 // ------------------------------ FIELDS ------------------------------
 
     public static Creator<BaasDocument> CREATOR = new Creator<BaasDocument>() {

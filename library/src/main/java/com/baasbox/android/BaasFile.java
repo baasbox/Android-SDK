@@ -198,8 +198,9 @@ public class BaasFile extends BaasObject {
         return doStreamSync(id, null, sizeId);
     }
 
+
     public Uri getStreamUri(){
-        if (this.id==null) throw new IllegalArgumentException("file is not bound");
+        if (id==null) throw new IllegalArgumentException("file is not bound");
         BaasBox cli = BaasBox.getDefaultChecked();
         String endpoint = cli.requestFactory.getEndpoint("file/{}", id);
         return cli.requestFactory.getAuthenticatedUri(endpoint);

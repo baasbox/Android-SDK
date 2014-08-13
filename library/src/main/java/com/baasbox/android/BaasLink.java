@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Represents a BaasBox link between objects
+ *
  * Created by Andrea Tortorella on 13/08/14.
  */
 public class BaasLink {
@@ -38,6 +40,7 @@ public class BaasLink {
     private BaasObject destination;
     private String id;
     private String author;
+
     private String creationDate;
     private long version;
 

@@ -103,7 +103,8 @@ public class BaasBox {
         this.context = context.getApplicationContext();
         this.config = config;
         this.store = new BaasCredentialManager(this, context);
-        this.restClient = client==null?new HttpUrlConnectionClient(context, this.config):client;
+        this.restClient = client==null?new HttpUrlConnectionClient():client;
+        this.restClient.init(context,config);
         this.requestFactory = new RequestFactory(this.config, store);
         this.mCache = new Cache(context);
         this.syncDispatcher = new ImmediateDispatcher();

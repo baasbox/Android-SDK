@@ -48,6 +48,10 @@ public class BaasACL {
 
 // -------------------------- OTHER METHODS --------------------------
 
+    /**
+     * Returns a new acl builder
+     * @return
+     */
     public static Builder builder(){
         return new Builder();
     }
@@ -66,6 +70,12 @@ public class BaasACL {
             rolesGrants=roles.clone();
         }
 
+        /**
+         * Gives the specified {@link com.baasbox.android.Grant} to the provided users
+         * @param grant a grant
+         * @param users a list of users
+         * @return this builder
+         */
         public Builder users(Grant grant,String ... users){
             if (users.length==0) return this;
             if (Grant.ALL.equals(grant)){
@@ -83,6 +93,12 @@ public class BaasACL {
             return this;
         }
 
+        /**
+         * Gives the specified {@link com.baasbox.android.Grant} to the provided users
+         * @param grant a grant
+         * @param users a list of users
+         * @return this builder
+         */
         public Builder users(Grant grant,BaasUser ... users){
             if (users.length==0) return this;
             if (Grant.ALL.equals(grant)){
@@ -103,6 +119,12 @@ public class BaasACL {
             return this;
         }
 
+        /**
+         * Gives the specified {@link com.baasbox.android.Grant} to to the provided roles
+         * @param grant a grant
+         * @param roles a list of roles
+         * @return this builder
+         */
         public Builder roles(Grant grant,String ... roles){
             if (roles.length==0) return this;
             if (Grant.ALL.equals(grant)){
@@ -120,6 +142,10 @@ public class BaasACL {
             return this;
         }
 
+        /**
+         * Builds a {@link com.baasbox.android.BaasACL}
+         * @return a new BaasAcl
+         */
         public BaasACL build(){
             BaasACL acl = new BaasACL(usersGrants,rolesGrants);
             return acl;
@@ -148,6 +174,10 @@ public class BaasACL {
         return b.build();
     }
 
+    /**
+     * Returns a new {@link com.baasbox.android.BaasACL.Builder} based on current grants
+     * @return a new Builder
+     */
     public Builder buildUpon(){
         return new Builder(this.usersGrants,this.rolesGrants);
     }
