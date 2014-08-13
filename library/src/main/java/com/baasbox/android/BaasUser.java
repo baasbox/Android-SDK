@@ -79,7 +79,7 @@ public class BaasUser implements Parcelable {
     private String status;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    BaasUser(String username) {
+    private BaasUser(String username) {
         super();
         if (TextUtils.isEmpty(username)) throw new IllegalArgumentException("username cannot be empty");
         this.username = username;
@@ -275,7 +275,7 @@ public class BaasUser implements Parcelable {
      * @return a {@link com.baasbox.android.RequestToken} to manage the request
      */
     public static RequestToken fetch(String username, int flags, BaasHandler<BaasUser> handler) {
-        BaasUser user = new BaasUser(username);
+        BaasUser user = BaasUser.withUserName(username);
         return user.refresh(flags, handler);
     }
 
@@ -286,7 +286,7 @@ public class BaasUser implements Parcelable {
     }
 
     public static BaasResult<BaasUser> fetchSync(String username) {
-        BaasUser user = new BaasUser(username);
+        BaasUser user = BaasUser.withUserName(username);
         return user.refreshSync();
     }
 

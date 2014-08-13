@@ -191,5 +191,4 @@ class BaasCredentialManager {
         while (!edit.commit()) ;
     }
 
-
 }
