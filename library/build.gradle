@@ -22,13 +22,13 @@ repositories {
 // versioning
 def majorVersion = 0
 def minorVersion = 8
-def patchVersion = 1
+def patchVersion = 3
 def sdkRevision  = 0 // sdk revision of a release
 
 
 def minMajorVersion = majorVersion
 def minMinorVersion = minorVersion
-def minPatchVersion = 3
+def minPatchVersion = patchVersion
 
 def releaseType = "SNAPSHOT";
 
