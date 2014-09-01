@@ -14,3 +14,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and limitations under the License.
  */
+
+package com.baasbox.android.samples.aloa.utils;
+
+import android.content.Context;
+
+import com.baasbox.android.BaasHandler;
+import com.baasbox.android.BaasResult;
+import com.baasbox.android.RequestToken;
+
+/**
+ * Created by Andrea Tortorella on 11/08/14.
+ */
+public abstract class BaseBaasLoader<T> extends BaasLoader<T,T>{
+
+    public BaseBaasLoader(Context context) {
+        super(context);
+    }
+
+    @Override
+    protected final BaasResult<T> remapResult(BaasResult<T> result) {
+        return result;
+    }
+
+}

@@ -1,0 +1,14 @@
+package com.baasbox.android.test;
+
+import com.baasbox.android.test.common.BaasTestBase;
+
+/**
+ * Created by eto on 14/04/14.
+ */
+public class SetupGCMTest extends BaasTestBase {
+
+    public void testEnable(){
+
+
+    }
+}

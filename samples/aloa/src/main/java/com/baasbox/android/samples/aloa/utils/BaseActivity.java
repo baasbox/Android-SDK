@@ -14,3 +14,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and limitations under the License.
  */
+
+package com.baasbox.android.samples.aloa.utils;
+
+import android.support.v7.app.ActionBarActivity;
+
+/**
+ * Created by Andrea Tortorella on 11/08/14.
+ */
+public class BaseActivity extends ActionBarActivity {
+}
