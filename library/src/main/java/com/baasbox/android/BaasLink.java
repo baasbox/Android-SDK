@@ -197,6 +197,11 @@ public final class BaasLink {
         return cli.submitSync(all);
     }
 
+    public static BaasLink withId(String id) {
+        return new BaasLink("id",null);
+    }
+
+
     private static class FetchAll extends NetworkTask<List<BaasLink>>{
         BaasQuery.Criteria criteria;
         protected FetchAll(BaasBox box,BaasQuery.Criteria criteria, int flags, BaasHandler<List<BaasLink>> handler) {
