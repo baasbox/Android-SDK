@@ -862,9 +862,9 @@ public class BaasUser implements Parcelable {
                     .putString("password", password);
         }
         object.putObject(Scope.PRIVATE.visibility, privateData)
-                .putObject(Scope.FRIEND.visibility, friendVisibleData)
-                .putObject(Scope.REGISTERED.visibility, registeredVisibleData)
-                .putObject(Scope.PUBLIC.visibility, publicVisibleData);
+              .putObject(Scope.FRIEND.visibility, friendVisibleData)
+              .putObject(Scope.REGISTERED.visibility, registeredVisibleData)
+              .putObject(Scope.PUBLIC.visibility, publicVisibleData);
         return object;
     }
 

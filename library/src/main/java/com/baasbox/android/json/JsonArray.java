@@ -687,4 +687,13 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     public JsonArray values() {
         return this;
     }
+
+    /**
+     * Removes all the elements
+     * @return this array without elements.
+     */
+    public JsonArray clear(){
+        list.clear();
+        return this;
+    }
 }
