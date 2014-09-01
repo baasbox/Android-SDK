@@ -27,11 +27,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a BaasBox link between objects
+ * Represents a BaasBox makeLink between objects
  *
  * Created by Andrea Tortorella on 13/08/14.
  */
-public class BaasLink {
+public final class BaasLink {
 
     private String label;
     private BaasObject source;
@@ -69,7 +69,7 @@ public class BaasLink {
 
     public long getVersion(){return version;}
 
-    protected static RequestToken link(String label,String sourceId,String destinationId,int flags,BaasHandler<BaasLink> handler){
+    static RequestToken makeLink(String label, String sourceId, String destinationId, int flags, BaasHandler<BaasLink> handler){
         if (sourceId==null||sourceId.length()==0) throw new IllegalArgumentException("invalid source");
         if (destinationId==null||destinationId.length()==0) throw new IllegalArgumentException("invalid destination");
         if (label==null||label.length()==0) throw new IllegalArgumentException("invalid label");
@@ -78,6 +78,34 @@ public class BaasLink {
         return cli.submitAsync(create);
     }
 
+    static BaasResult<BaasLink> makeLinkSync(String label, String sourceId, String destinationId){
+        if (sourceId==null||sourceId.length()==0) throw new IllegalArgumentException("invalid source");
+        if (destinationId==null||destinationId.length()==0) throw new IllegalArgumentException("invalid destination");
+        if (label==null||label.length()==0) throw new IllegalArgumentException("invalid label");
+        BaasBox cli = BaasBox.getDefaultChecked();
+        Create create = new Create(cli,sourceId,destinationId,label,RequestOptions.DEFAULT,null);
+        return cli.submitSync(create);
+    }
+
+
+    public static BaasResult<BaasLink> createSync(String label,String source,String destination){
+        return makeLinkSync(label,source,destination);
+    }
+
+
+    public static BaasResult<BaasLink> createSync(String label,BaasObject source,BaasObject destination){
+        return makeLinkSync(label,source.getId(),destination.getId());
+    }
+
+    public static RequestToken create(String label,String source,String destination,int flags,BaasHandler<BaasLink> handler){
+        return makeLink(label, source, destination, flags, handler);
+    }
+
+    public static RequestToken create(String label,BaasObject source,BaasObject destination,int flags,BaasHandler<BaasLink> handler){
+        return  makeLink(label,source.getId(),destination.getId(),flags,handler);
+    }
+
+
     public RequestToken refresh(int flags,BaasHandler<BaasLink> handler){
         if (id==null) throw new IllegalStateException("this link is not stored on the server");
         BaasBox cli = BaasBox.getDefaultChecked();
@@ -85,10 +113,23 @@ public class BaasLink {
         return cli.submitAsync(refresh);
     }
 
+    public BaasResult<BaasLink> refreshSync(){
+        if (id==null) throw new IllegalStateException("this link is not stored on the server");
+        BaasBox cli = BaasBox.getDefaultChecked();
+        Refresh refresh = new Refresh(cli,this,RequestOptions.DEFAULT,null);
+        return cli.submitSync(refresh);
+    }
+
     public static RequestToken fetch(String id,int flags,BaasHandler<BaasLink> handler){
         if (id == null) throw new IllegalArgumentException("id cannot be null");
         BaasLink link = new BaasLink(id,null);
         return link.refresh(flags,handler);
+    }
+
+    public static BaasResult<BaasLink> fetchSync(String id){
+        if (id == null) throw new IllegalArgumentException("id cannot be null");
+        BaasLink link = new BaasLink(id,null);
+        return link.refreshSync();
     }
 
 
@@ -99,11 +140,20 @@ public class BaasLink {
         return cli.submitAsync(delete);
     }
 
-    public static RequestToken fetchAllLabeled(String label,int flags,BaasHandler<List<BaasLink>> handler){
-        if (label == null||label.length()==0) throw new IllegalArgumentException("invalid label");
-        BaasQuery.Criteria criteria = BaasQuery.builder().where("label = ?").whereParams(label).criteria();
-        return fetchAll(criteria,flags,handler);
+    public BaasResult<Void> deleteSync(){
+        if (id==null) throw new IllegalArgumentException("this link is not bound on the server");
+        BaasBox cli = BaasBox.getDefaultChecked();
+        Delete delete = new Delete(cli,this,RequestOptions.DEFAULT,null);
+        return cli.submitSync(delete);
     }
+
+
+
+//    public static RequestToken fetchAllLabeled(String label,int flags,BaasHandler<List<BaasLink>> handler){
+//        if (label == null||label.length()==0) throw new IllegalArgumentException("invalid label");
+//        BaasQuery.Criteria criteria = BaasQuery.builder().where("label = ?").whereParams(label).criteria();
+//        return fetchAll(criteria,flags,handler);
+//    }
 
 
     public static RequestToken fetchAll(String label,BaasQuery.Criteria criteria,int flags,BaasHandler<List<BaasLink>> handler){
@@ -117,6 +167,18 @@ public class BaasLink {
         return fetchAll(criteria,flags,handler);
     }
 
+    public static BaasResult<List<BaasLink>> fetchAllSync(String label,BaasQuery.Criteria criteria){
+        if (label!=null){
+            if (criteria == null){
+                criteria = BaasQuery.builder().where("label = ?").whereParams(label).criteria();
+            } else {
+                criteria = criteria.buildUpon().and("label = ?").whereParams(label).criteria();
+            }
+        }
+        return fetchAllSync(criteria);
+    }
+
+
     public static RequestToken fetchAll(BaasQuery.Criteria criteria,int flags,BaasHandler<List<BaasLink>> handler){
         if (criteria == null){
             criteria = BaasQuery.Criteria.ANY;
@@ -126,6 +188,14 @@ public class BaasLink {
         return cli.submitAsync(all);
     }
 
+    public static BaasResult<List<BaasLink>> fetchAllSync(BaasQuery.Criteria criteria){
+        if (criteria == null) {
+            criteria = BaasQuery.Criteria.ANY;
+        }
+        BaasBox cli = BaasBox.getDefaultChecked();
+        FetchAll all = new FetchAll(cli,criteria,RequestOptions.DEFAULT,null);
+        return cli.submitSync(all);
+    }
 
     private static class FetchAll extends NetworkTask<List<BaasLink>>{
         BaasQuery.Criteria criteria;
@@ -149,7 +219,7 @@ public class BaasLink {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("link");
+            String endpoint = box.requestFactory.getEndpoint("makeLink");
             return box.requestFactory.get(endpoint,criteria.toParams());
         }
     }
@@ -175,7 +245,7 @@ public class BaasLink {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("link/{}",link.id);
+            String endpoint = box.requestFactory.getEndpoint("makeLink/{}",link.id);
             return box.requestFactory.delete(endpoint);
         }
     }
@@ -202,7 +272,7 @@ public class BaasLink {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("link/{}/{}/{}",source,label,destination);
+            String endpoint = box.requestFactory.getEndpoint("makeLink/{}/{}/{}",source,label,destination);
             return box.requestFactory.post(endpoint);
         }
     }
@@ -224,7 +294,7 @@ public class BaasLink {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("link/{}", link.id);
+            String endpoint = box.requestFactory.getEndpoint("makeLink/{}", link.id);
             return box.requestFactory.get(endpoint);
         }
     }
