@@ -29,6 +29,7 @@
     * Simplified google cloud messaging integration
     * Ability to concatenate query builders
     * Renamed BaasFile image streaming methods to the more explicit streamImage*
+    * Replaced Priority paramter with a more generic flags bitmask See RequestOptions constants.
     
 ### Fixes
     * Fixed silently ignoring wrong syntax in hostname
