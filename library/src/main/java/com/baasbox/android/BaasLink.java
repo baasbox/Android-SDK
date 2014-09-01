@@ -17,8 +17,6 @@
 
 package com.baasbox.android;
 
-import android.os.Parcelable;
-
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
@@ -65,6 +63,11 @@ public class BaasLink {
         return id;
     }
 
+    public String getAuthor(){ return author;}
+
+    public String getCreationDate(){return creationDate;}
+
+    public long getVersion(){return version;}
 
     protected static RequestToken link(String label,String sourceId,String destinationId,int flags,BaasHandler<BaasLink> handler){
         if (sourceId==null||sourceId.length()==0) throw new IllegalArgumentException("invalid source");
@@ -231,6 +234,7 @@ public class BaasLink {
         this.id=data.getString("id");
         this.author=data.getString("_author");
         this.creationDate=data.getString("_creation_date");
+        this.version = data.getLong("@version");
         JsonObject in = data.getObject("in");
         JsonObject out = data.getObject("out");
         this.source = parseObject(in);
