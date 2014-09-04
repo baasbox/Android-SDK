@@ -782,6 +782,7 @@ public class BaasUser implements Parcelable {
         return box.submitSync(task);
     }
 
+    @Deprecated
     public RequestToken send(JsonObject message, BaasHandler<Void> handler) {
         return send(message, RequestOptions.DEFAULT, handler);
     }
