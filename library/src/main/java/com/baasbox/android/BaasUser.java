@@ -786,12 +786,14 @@ public class BaasUser implements Parcelable {
         return send(message, RequestOptions.DEFAULT, handler);
     }
 
+    @Deprecated
     public RequestToken send(JsonObject message, int flags, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         Push push = new Push(box, username, message, flags, handler);
         return box.submitAsync(push);
     }
 
+    @Deprecated
     public BaasResult<Void> sendSync(JsonObject message) {
         BaasBox box = BaasBox.getDefaultChecked();
         Push push = new Push(box, username, message, RequestOptions.DEFAULT, null);
