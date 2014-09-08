@@ -23,6 +23,8 @@ import com.baasbox.android.impl.Task;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
+import com.bumptech.glide.Glide;
+
 import org.apache.http.HttpResponse;
 
 /**
@@ -111,7 +113,6 @@ public class BaasBox {
         this.asyncDispatcher = new Dispatcher(this);
         this.messagingService=new BaasCloudMessagingService(this);
     }
-
 
 
 // -------------------------- STATIC METHODS --------------------------
