@@ -19,7 +19,6 @@ package com.baasbox.android.utils.image.glide;
 
 import android.content.Context;
 
-import com.baasbox.android.BaasBox;
 import com.baasbox.android.BaasFile;
 import com.bumptech.glide.load.data.DataFetcher;
 import com.bumptech.glide.load.model.GenericLoaderFactory;
@@ -31,7 +30,7 @@ import java.io.InputStream;
 /**
  * Created by Andrea Tortorella on 08/09/14.
  */
-public class BaasModelLoader implements ModelLoader<BaasFile,InputStream>{
+class BaasFileModelLoader implements ModelLoader<BaasFile,InputStream>{
 
 
 
@@ -44,7 +43,7 @@ public class BaasModelLoader implements ModelLoader<BaasFile,InputStream>{
 
         @Override
         public ModelLoader<BaasFile, InputStream> build(Context context, GenericLoaderFactory genericLoaderFactory) {
-            return new BaasModelLoader();
+            return new BaasFileModelLoader();
         }
 
         @Override

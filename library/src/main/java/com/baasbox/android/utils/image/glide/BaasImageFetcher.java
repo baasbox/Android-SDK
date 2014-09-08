@@ -17,6 +17,8 @@
 
 package com.baasbox.android.utils.image.glide;
 
+import com.baasbox.android.BaasAsset;
+import com.baasbox.android.BaasAssetId;
 import com.baasbox.android.BaasFile;
 import com.baasbox.android.BaasHandler;
 import com.baasbox.android.BaasResult;
@@ -35,8 +37,15 @@ import java.io.InputStream;
 class BaasImageFetcher implements DataFetcher<InputStream>{
 
     private BaasFile file;
+    private BaasAssetId assetId;
     private int width;
     private int height;
+
+    public BaasImageFetcher(BaasAssetId assetId,int width,int height){
+        this.assetId =assetId;
+        this.width=width;
+        this.height=height;
+    }
 
     public BaasImageFetcher(BaasFile baasFile, int width, int height) {
         this.file=baasFile;
@@ -47,9 +56,15 @@ class BaasImageFetcher implements DataFetcher<InputStream>{
     private String parseSpecFrom(int width,int height){
         return null;
     }
+
     @Override
     public InputStream loadData(Priority priority) throws Exception {
-        return file.streamImageSync(null).get();
+        if (file!=null){
+            return file.streamImageSync(null).get();
+        } else if (assetId!=null){
+            return BaasAsset.streamImageAssetSync(assetId.id,parseSpecFrom(width,height)).get();
+        }
+        return null;
     }
 
     @Override
@@ -59,7 +74,13 @@ class BaasImageFetcher implements DataFetcher<InputStream>{
 
     @Override
     public String getId() {
-        return file.getId()+"::"+parseSpecFrom(width,height);
+        if (file != null) {
+            return "bb::file::"+ file.getId() + "::" + parseSpecFrom(width, height);
+        } else if (assetId!=null){
+            return "bb::asset::"+assetId.id+"::"+parseSpecFrom(width,height);
+        } else {
+            return null;
+        }
     }
 
     @Override

@@ -15,20 +15,34 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.baasbox.android.utils.image.glide;
-import com.baasbox.android.BaasAssetId;
-import com.baasbox.android.BaasFile;
-import com.bumptech.glide.Glide;
+package com.baasbox.android.utils.image.picasso;
 
-import java.io.InputStream;
+import com.baasbox.android.BaasAssetId;
+import com.baasbox.android.BaasBox;
+import com.baasbox.android.BaasFile;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
 
 /**
+ *
  * Created by Andrea Tortorella on 08/09/14.
  */
-public class BaasBoxGlideSetup {
+public class BaasPicassoWrapper {
+    private final Picasso picasso;
+    public BaasPicassoWrapper(Picasso picasso) {
+        this.picasso =picasso;
+    }
 
-    public static void registerBaasboxHandlers(Glide glide){
-        glide.register(BaasFile.class,    InputStream.class,   new BaasFileModelLoader.Factory());
-        glide.register(BaasAssetId.class, InputStream.class,   new BaasAssetModelLoader.Factory());
+    public static BaasPicassoWrapper wrap(Picasso picasso){
+        return new BaasPicassoWrapper(picasso);
+    }
+
+
+    public RequestCreator load(BaasFile file){
+        return picasso.load(file.getStreamUri());
+    }
+
+    public RequestCreator load(BaasAssetId assetId){
+        return picasso.load(assetId.getUri());
     }
 }
