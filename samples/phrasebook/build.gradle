@@ -18,7 +18,6 @@ buildscript {
     repositories {
         jcenter()
     }
-
     dependencies {
         classpath 'com.android.tools.build:gradle:0.12.2'
     }
@@ -35,7 +34,7 @@ android {
 
     defaultConfig {
 
-        applicationId "com.baasbox.android.samples.aloa"
+        applicationId "com.baasbox.android.samples.phrasebook"
         minSdkVersion 14
         targetSdkVersion 19
         versionCode 1
@@ -44,12 +43,12 @@ android {
     }
     buildTypes {
         release {
-            buildConfigField "String", "SENDERID", "\"${project.hasProperty("aloa.projectid")?project.property("aloa.projectid"):""}\""
+//            buildConfigField "String", "SENDERID", "\"${project.hasProperty("aloa.projectid")?project.property("aloa.projectid"):""}\""
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         debug{
-            buildConfigField "String", "SENDERID", "\"${project.hasProperty("aloa.projectid")?project.property("aloa.projectid"):""}\""
+//            buildConfigField "String", "SENDERID", "\"${project.hasProperty("aloa.projectid")?project.property("aloa.projectid"):""}\""
 
         }
     }
