@@ -200,6 +200,7 @@ public class BaasUser implements Parcelable {
         return BaasBox.getDefaultChecked().store.currentUser();
     }
 
+
     public static BaasResult<BaasUser> signupWithProviderSync(String provider, String token, String secret) {
         BaasBox box = BaasBox.getDefaultChecked();
         SocialSignup socialSignup = new SocialSignup(box, provider, token, secret, 0, null);
@@ -214,6 +215,138 @@ public class BaasUser implements Parcelable {
         BaasBox box = BaasBox.getDefaultChecked();
         SocialSignup socialSignup = new SocialSignup(box, provider, token, secret, flags, handler);
         return box.submitAsync(socialSignup);
+    }
+
+    public RequestToken linkToProvider(String provider,String token,String secret, int flags,BaasHandler<JsonObject> handler){
+        if (!isCurrent()) throw new IllegalStateException("User must be logged in");
+        BaasBox box = BaasBox.getDefaultChecked();
+        LinkToNetwork linkToNetwork = new LinkToNetwork(box,this,provider,token,secret,flags,handler);
+        return box.submitAsync(linkToNetwork);
+    }
+
+    public RequestToken linkToProvider(String provider,String token,String secret,BaasHandler<JsonObject> handler){
+        return linkToProvider(provider,token,secret,RequestOptions.DEFAULT,handler);
+    }
+
+    public BaasResult<JsonObject> linkToProviderSync(String provider,String token,String secret){
+        if (!isCurrent()) throw new IllegalStateException("User must be logged in");
+        BaasBox box = BaasBox.getDefaultChecked();
+        LinkToNetwork linkToNetwork = new LinkToNetwork(box,this,provider,token,secret,RequestOptions.DEFAULT,null);
+        return box.submitSync(linkToNetwork);
+    }
+
+    public RequestToken unlinkFromProvider(String provider,int flags,BaasHandler<Void> handler){
+        if (!isCurrent()) throw new IllegalStateException("User must be logged in");
+        BaasBox baasBox = BaasBox.getDefaultChecked();
+        UnlinkToProvider unlink = new UnlinkToProvider(baasBox,this,provider,flags,handler);
+        return baasBox.submitAsync(unlink);
+    }
+
+    public RequestToken unlinkFromProvider(String provider,BaasHandler<Void> handler){
+        return unlinkFromProvider(provider,RequestOptions.DEFAULT,handler);
+    }
+
+    public BaasResult<Void> unlinkFromProviderSync(String provider){
+        if (!isCurrent()) throw new IllegalStateException("User must be logged in");
+        BaasBox baasBox = BaasBox.getDefaultChecked();
+        UnlinkToProvider unlink = new UnlinkToProvider(baasBox,this,provider,RequestOptions.DEFAULT,null);
+        return baasBox.submitSync(unlink);
+    }
+
+
+    private static class  UnlinkToProvider extends NetworkTask<Void>{
+        private String provider;
+        private BaasUser user;
+
+        protected UnlinkToProvider(BaasBox box,BaasUser user,String provider, int flags, BaasHandler<Void> handler) {
+            super(box, flags, handler, true);
+            this.user=user;
+            this.provider=provider;
+        }
+
+        @Override
+        protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
+            return null;
+        }
+
+        @Override
+        protected HttpRequest request(BaasBox box) {
+            String endpoint = box.requestFactory.getEndpoint("social/{}", provider);
+            return box.requestFactory.delete(endpoint);
+        }
+    }
+
+    private static class LinkToNetwork extends NetworkTask<JsonObject>{
+        private final String provider;
+        private final String token;
+        private final String secret;
+        private BaasUser user;
+
+        protected LinkToNetwork(BaasBox box,BaasUser user,String provider,String token,String secret, int flags, BaasHandler<JsonObject> handler) {
+            super(box, flags, handler, true);
+            this.user=user;
+            this.provider=provider;
+            this.token=token;
+            this.secret = secret;
+        }
+
+        @Override
+        protected JsonObject onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
+            JsonObject resp = parseJson(response,box);
+
+            return resp;
+        }
+
+        @Override
+        protected HttpRequest request(BaasBox box) {
+            String endpoint = box.requestFactory.getEndpoint("social/{}",provider);
+            JsonObject body = new JsonObject();
+            body.putString("oauth_token",token);
+            body.putString("oauth_secret",secret);
+            return box.requestFactory.put(endpoint,body);
+        }
+    }
+
+    public RequestToken fetchLinkedSocialNetworks(int flags,BaasHandler<JsonArray> handler) {
+        if (!isCurrent()) throw new IllegalStateException("You cannot retrieve social login info of non authenticated user");
+        BaasBox baasBox = BaasBox.getDefaultChecked();
+        SocialNetworkFetch sfetch = new SocialNetworkFetch(baasBox,this,flags,handler);
+        return baasBox.submitAsync(sfetch);
+    }
+
+    public RequestToken fetchLinkedSocialNetworks(BaasHandler<JsonArray> handler){
+        return fetchLinkedSocialNetworks(RequestOptions.DEFAULT,handler);
+    }
+
+    public BaasResult<JsonArray> fetchLinkedSocialNetworksSync(){
+        if (!isCurrent()) throw new IllegalStateException("You cannot retrieve social login info of non authenticated user");
+        BaasBox baasBox = BaasBox.getDefaultChecked();
+        SocialNetworkFetch sfetch = new SocialNetworkFetch(baasBox,this,RequestOptions.DEFAULT,null);
+        return baasBox.submitSync(sfetch);
+    }
+
+
+
+    private static class SocialNetworkFetch extends NetworkTask<JsonArray> {
+
+        private BaasUser user;
+        protected SocialNetworkFetch(BaasBox box,BaasUser user, int flags, BaasHandler<JsonArray> handler) {
+            super(box, flags, handler, true);
+            this.user=user;
+        }
+
+        @Override
+        protected JsonArray onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
+            JsonObject resp = parseJson(response, box);
+            JsonArray data = resp.getArray("data");
+            return data;
+        }
+
+        @Override
+        protected HttpRequest request(BaasBox box) {
+            String endpoint = box.requestFactory.getEndpoint("/social");
+            return box.requestFactory.get(endpoint);
+        }
     }
 
     public static BaasResult<Void> requestPasswordResetSync(String username) {
@@ -1000,6 +1133,7 @@ public class BaasUser implements Parcelable {
         }
     }
 
+    @Deprecated
     private static class Push extends NetworkTask<Void> {
         private final String name;
         private final JsonObject message;
