@@ -24,6 +24,8 @@ import com.baasbox.android.impl.Base64;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.AbstractSet;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
