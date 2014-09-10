@@ -168,7 +168,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
     private static JsonWrapper checkObject(JsonObject data) {
         if (data == null) return null;
         if (data.contains("id")) throw new IllegalArgumentException("key 'id' is reserved");
-        for (String k : data.getFieldNames()) {
+        for (String k : data.fields()) {
             char f = k.charAt(0);
             switch (f) {
                 case '@':
@@ -202,7 +202,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
     private static JsonObject cleanObject(JsonObject data) {
         if (data == null) return new JsonObject();
         data.remove("id");
-        for (String k : data.getFieldNames()) {
+        for (String k : data.fields()) {
             char f = k.charAt(0);
             switch (f) {
                 case '@':
@@ -681,8 +681,8 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      *
      * @return a set of the keys contained in this document
      */
-    public Set<String> getFieldNames() {
-        return data.getFieldNames();
+    public Set<String> fields() {
+        return data.fields();
     }
 
     /**

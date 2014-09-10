@@ -830,7 +830,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      */
     public JsonObject mergeMissing(JsonObject other) {
         if (other == null) return this;
-        Set<String> fieldNames = other.getFieldNames();
+        Set<String> fieldNames = other.fields();
         for (String key : fieldNames) {
             if (!map.containsKey(key)) {
                 map.put(key, other.map.get(key));
@@ -845,7 +845,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      *
      * @return a set of the keys contained in this document
      */
-    public Set<String> getFieldNames() {
+    public Set<String> fields() {
         return map.keySet();
     }
 
