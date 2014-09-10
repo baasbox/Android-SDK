@@ -16,8 +16,12 @@
 package com.baasbox.android;
 
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Pair;
 import android.webkit.MimeTypeMap;
+
+import com.baasbox.android.impl.Util;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
@@ -53,7 +57,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Andrea Tortorella
  * @since 0.7.3
  */
-public class BaasFile extends BaasObject {
+public class BaasFile extends BaasObject implements Parcelable{
 // ------------------------------ FIELDS ------------------------------
 
     private JsonWrapper attachedData;
@@ -69,7 +73,8 @@ public class BaasFile extends BaasObject {
     private final AtomicBoolean isBound = new AtomicBoolean();
     private AtomicReference<byte[]> data = new AtomicReference<byte[]>();
 
-// --------------------------- CONSTRUCTORS ---------------------------
+
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     public BaasFile() {
         this(new JsonObject(), false);
@@ -105,6 +110,52 @@ public class BaasFile extends BaasObject {
         attachedData.setDirty(false);
     }
 
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        Util.writeOptString(dest,name);
+        Util.writeOptString(dest,id);
+        Util.writeOptString(dest,creationDate);
+        Util.writeOptString(dest,author);
+        Util.writeOptString(dest, mimeType);
+        dest.writeParcelable(attachedData,flags);
+        dest.writeParcelable(metaData, flags);
+        dest.writeLong(contentLength);
+        dest.writeLong(version);
+        Util.writeBoolean(dest, isBound.get());
+        Util.writeOptBytes(dest,data.get());
+    }
+
+    private BaasFile(Parcel source){
+        name = Util.readOptString(source);
+        id = Util.readOptString(source);
+        creationDate = Util.readOptString(source);
+        author = Util.readOptString(source);
+        mimeType = Util.readOptString(source);
+        attachedData =  source.readParcelable(BaasFile.class.getClassLoader());
+        metaData = source.readParcelable(BaasFile.class.getClassLoader());
+        contentLength = source.readLong();
+        version = source.readLong();
+        isBound.set(Util.readBoolean(source));
+        data.set(Util.readOptBytes(source));
+    }
+    
+    public static final Creator<BaasFile> CREATOR = new Creator<BaasFile>() {
+        @Override
+        public BaasFile createFromParcel(Parcel source) {
+            return new BaasFile(source);
+        }
+
+        @Override
+        public BaasFile[] newArray(int size) {
+            return new BaasFile[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
     @Override
     public boolean isDirty() {
         return attachedData.isDirty();

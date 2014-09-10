@@ -17,6 +17,10 @@
 
 package com.baasbox.android;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.baasbox.android.impl.Util;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
@@ -27,11 +31,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a BaasBox makeLink between objects
+ * Represents a BaasBox Link between objects
  *
  * Created by Andrea Tortorella on 13/08/14.
  */
-public final class BaasLink {
+public final class BaasLink implements Parcelable{
 
     private String label;
     private BaasObject source;
@@ -41,6 +45,70 @@ public final class BaasLink {
 
     private String creationDate;
     private long version;
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        Util.writeOptString(dest,id);
+        Util.writeOptString(dest,label);
+        Util.writeOptString(dest,author);
+        Util.writeOptString(dest,creationDate);
+        dest.writeLong(version);
+        writeObject(dest,source);
+        writeObject(dest,destination);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    private BaasLink(Parcel parcel){
+        id = Util.readOptString(parcel);
+        label = Util.readOptString(parcel);
+        author = Util.readOptString(parcel);
+        creationDate = Util.readOptString(parcel);
+        version = parcel.readLong();
+        source = readObject(parcel);
+        destination = readObject(parcel);
+    }
+
+    public static final Creator<BaasLink> CREATOR = new Creator<BaasLink>() {
+        @Override
+        public BaasLink createFromParcel(Parcel source) {
+            return new BaasLink(source);
+        }
+
+        @Override
+        public BaasLink[] newArray(int size) {
+
+            return new BaasLink[size];
+        }
+    };
+
+    private static BaasObject readObject(Parcel parcel){
+        byte b = parcel.readByte();
+        if (b == 0) return null;
+        if (b==1) {
+            BaasDocument d = parcel.readParcelable(BaasDocument.class.getClassLoader());
+            return d;
+        } else if (b == 2){
+            BaasFile f = parcel.readParcelable(BaasFile.class.getClassLoader());
+            return f;
+        }
+        return null;
+    }
+    private static void writeObject(Parcel p,BaasObject o){
+        if (o == null){
+            p.writeByte((byte)0);
+        } else {
+            if (o instanceof BaasDocument){
+                p.writeByte((byte)1);
+            } else if (o instanceof BaasFile){
+                p.writeByte((byte)2);
+            }
+            p.writeParcelable(o,0);
+        }
+    }
 
     private BaasLink(String id,String label){
         this.id = id;
@@ -148,14 +216,6 @@ public final class BaasLink {
     }
 
 
-
-//    public static RequestToken fetchAllLabeled(String label,int flags,BaasHandler<List<BaasLink>> handler){
-//        if (label == null||label.length()==0) throw new IllegalArgumentException("invalid label");
-//        BaasQuery.Criteria criteria = BaasQuery.builder().where("label = ?").whereParams(label).criteria();
-//        return fetchAll(criteria,flags,handler);
-//    }
-
-
     public static RequestToken fetchAll(String label,BaasQuery.Criteria criteria,int flags,BaasHandler<List<BaasLink>> handler){
         if (label!=null){
             if (criteria == null){
@@ -224,7 +284,7 @@ public final class BaasLink {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("makeLink");
+            String endpoint = box.requestFactory.getEndpoint("link");
             return box.requestFactory.get(endpoint,criteria.toParams());
         }
     }
@@ -250,7 +310,7 @@ public final class BaasLink {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("makeLink/{}",link.id);
+            String endpoint = box.requestFactory.getEndpoint("Link/{}",link.id);
             return box.requestFactory.delete(endpoint);
         }
     }
@@ -277,7 +337,7 @@ public final class BaasLink {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("makeLink/{}/{}/{}",source,label,destination);
+            String endpoint = box.requestFactory.getEndpoint("link/{}/{}/{}",source,label,destination);
             return box.requestFactory.post(endpoint);
         }
     }
@@ -299,7 +359,7 @@ public final class BaasLink {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("makeLink/{}", link.id);
+            String endpoint = box.requestFactory.getEndpoint("link/{}", link.id);
             return box.requestFactory.get(endpoint);
         }
     }

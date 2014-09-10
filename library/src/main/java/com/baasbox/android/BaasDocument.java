@@ -20,6 +20,7 @@ import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.baasbox.android.impl.Logger;
+import com.baasbox.android.impl.Util;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.json.JsonStructure;
@@ -126,20 +127,12 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
 
     BaasDocument(Parcel source) {
         this.collection = source.readString();
-        this.id = readOptString(source);
+        this.id = Util.readOptString(source);
         this.version = source.readLong();
-        this.author = readOptString(source);
-        this.creation_date = readOptString(source);
-        this.rid=readOptString(source);
+        this.author = Util.readOptString(source);
+        this.creation_date = Util.readOptString(source);
+        this.rid= Util.readOptString(source);
         this.data = source.readParcelable(JsonWrapper.class.getClassLoader());
-    }
-
-    private static final String readOptString(Parcel p) {
-        boolean read = p.readByte() == 1;
-        if (read) {
-            return p.readString();
-        }
-        return null;
     }
 
     /**
@@ -468,16 +461,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return box.submitSync(save);
     }
 
-    private static void writeOptString(Parcel p, String s) {
-        if (s == null) {
-            p.writeByte((byte) 0);
-        } else {
-            p.writeByte((byte) 1);
-            p.writeString(s);
-        }
-    }
-
-// --------------------- GETTER / SETTER METHODS ---------------------
+    // --------------------- GETTER / SETTER METHODS ---------------------
 
     @Override
     public final String getAuthor() {
@@ -528,11 +512,11 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(collection);
-        writeOptString(dest, id);
+        Util.writeOptString(dest, id);
         dest.writeLong(version);
-        writeOptString(dest, author);
-        writeOptString(dest, creation_date);
-        writeOptString(dest,rid);
+        Util.writeOptString(dest, author);
+        Util.writeOptString(dest, creation_date);
+        Util.writeOptString(dest, rid);
         dest.writeParcelable(data, 0);
 
     }

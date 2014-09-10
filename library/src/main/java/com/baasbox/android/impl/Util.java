@@ -16,13 +16,16 @@
 
 package com.baasbox.android.impl;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.io.*;
 import java.nio.charset.Charset;
 
 /**
  * Junk drawer of utility methods.
  */
-final class Util {
+public final class Util {
 // ------------------------------ FIELDS ------------------------------
 
     static final Charset US_ASCII = Charset.forName("US-ASCII");
@@ -77,5 +80,51 @@ final class Util {
                 // ignored
             }
         }
+    }
+
+
+    public static void writeOptString(Parcel p, String s) {
+        if (s == null) {
+            p.writeByte((byte) 0);
+        } else {
+            p.writeByte((byte) 1);
+            p.writeString(s);
+        }
+    }
+
+    public static void writeBoolean(Parcel p,boolean b) {
+        p.writeByte(b?(byte)1:(byte)0);
+    }
+
+    public static void writeOptBytes(Parcel dest, byte[] bytes) {
+        if (bytes==null){
+            dest.writeByte((byte)0);
+        } else {
+            dest.writeByte((byte)1);
+            dest.writeInt(bytes.length);
+            dest.writeByteArray(bytes);
+        }
+    }
+
+    public static final String readOptString(Parcel p) {
+        boolean read = p.readByte() == 1;
+        if (read) {
+            return p.readString();
+        }
+        return null;
+    }
+
+    public static byte[] readOptBytes(Parcel source){
+        if (source.readByte()==1){
+            int size = source.readInt();
+            byte[] ret = new byte[size];
+            source.readByteArray(ret);
+            return ret;
+        }
+        return null;
+    }
+
+    public static boolean readBoolean(Parcel source) {
+        return source.readByte()==1;
     }
 }

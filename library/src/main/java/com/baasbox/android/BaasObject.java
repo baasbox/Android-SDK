@@ -15,6 +15,8 @@
 
 package com.baasbox.android;
 
+import android.os.Parcelable;
+
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -27,7 +29,7 @@ import org.apache.http.HttpResponse;
  * @author Andrea Tortorella
  * @since 0.7.3
  */
-public abstract class BaasObject {
+public abstract class BaasObject implements Parcelable {
 
 // --------------------------- CONSTRUCTORS ---------------------------
     // todo this should provide common interface among remote objects
