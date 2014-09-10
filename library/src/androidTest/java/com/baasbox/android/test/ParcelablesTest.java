@@ -20,6 +20,8 @@ package com.baasbox.android.test;
 import android.os.Bundle;
 import android.os.Parcel;
 import com.baasbox.android.BaasDocument;
+import com.baasbox.android.json.JsonArray;
+import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.test.common.TestBase;
 
 /**
@@ -27,11 +29,27 @@ import com.baasbox.android.test.common.TestBase;
  */
 public class ParcelablesTest extends TestBase {
 
+    public void testCanParcelJson(){
+        JsonObject o = new JsonObject();
+        o.putString("Key1","val1");
+        o.putObject("Key2",new JsonObject().putString("a","a").putArray("b",new JsonArray().addObject(new JsonObject().putString("x","x"))));
+
+        Bundle b = new Bundle();
+        b.putParcelable("SAVE",o);
+        Parcel p = Parcel.obtain();
+        b.writeToParcel(p,0);
+        p.setDataPosition(0);
+        Bundle readBack = p.readBundle();
+        readBack.setClassLoader(BaasDocument.class.getClassLoader());
+        JsonObject backObj = readBack.getParcelable("SAVE");
+        assertEquals(o.toString(),backObj.toString());
+    }
 
     public void testCanParcelDocuments(){
         BaasDocument doc = new BaasDocument("fake");
         doc.putString("Key","Val1");
         doc.putString("Key2","Val2");
+        doc.putArray("Key3",new JsonArray().addString("ciao"));
 
         Bundle b = new Bundle();
         b.putParcelable("SAVE",doc);
@@ -45,5 +63,6 @@ public class ParcelablesTest extends TestBase {
 
         assertEquals(newDoc.getString("Key"),doc.getString("Key"));
         assertEquals(newDoc.getString("Key2"),doc.getString("Key2"));
+        assertEquals(newDoc.getArray("Key3").getString(0),doc.getArray("Key3").getString(0));
     }
 }

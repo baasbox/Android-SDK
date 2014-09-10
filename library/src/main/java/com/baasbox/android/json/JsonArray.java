@@ -106,7 +106,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
     JsonArray(Parcel source) {
         this();
-        source.readList(list, null);
+        source.readList(list, JsonArray.class.getClassLoader());
     }
 
 // -------------------------- STATIC METHODS --------------------------

@@ -62,7 +62,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
 
     protected JsonObject(Parcel source) {
         this();
-        source.readMap(map, null);
+        source.readMap(map, JsonObject.class.getClassLoader());
     }
 
     protected JsonObject(JsonObject object) {
