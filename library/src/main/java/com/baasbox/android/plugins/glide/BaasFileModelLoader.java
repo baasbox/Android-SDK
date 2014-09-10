@@ -15,11 +15,10 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.baasbox.android.utils.image.glide;
+package com.baasbox.android.plugins.glide;
 
 import android.content.Context;
 
-import com.baasbox.android.BaasAssetId;
 import com.baasbox.android.BaasFile;
 import com.bumptech.glide.load.data.DataFetcher;
 import com.bumptech.glide.load.model.GenericLoaderFactory;
@@ -31,22 +30,25 @@ import java.io.InputStream;
 /**
  * Created by Andrea Tortorella on 08/09/14.
  */
-class BaasAssetModelLoader implements ModelLoader<BaasAssetId,InputStream> {
+class BaasFileModelLoader implements ModelLoader<BaasFile,InputStream>{
+
+
+
     @Override
-    public DataFetcher<InputStream> getResourceFetcher(BaasAssetId baasAssetId, int i, int i2) {
-        return null;
+    public DataFetcher<InputStream> getResourceFetcher(BaasFile baasFile, int width, int height) {
+        return new BaasImageFetcher(baasFile,width,height);
     }
 
-    static class Factory implements ModelLoaderFactory<BaasAssetId,InputStream> {
+    static class Factory implements ModelLoaderFactory<BaasFile,InputStream>{
 
         @Override
-        public ModelLoader<BaasAssetId, InputStream> build(Context context, GenericLoaderFactory genericLoaderFactory) {
-            return new BaasAssetModelLoader();
+        public ModelLoader<BaasFile, InputStream> build(Context context, GenericLoaderFactory genericLoaderFactory) {
+            return new BaasFileModelLoader();
         }
 
         @Override
         public void teardown() {
-
+            //do nothing
         }
     }
 }

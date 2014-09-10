@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.baasbox.android.utils.image.glide;
+package com.baasbox.android.plugins.glide;
 
 import com.baasbox.android.BaasAsset;
 import com.baasbox.android.BaasAssetId;

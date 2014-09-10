@@ -15,20 +15,12 @@
  * See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.baasbox.android.utils.image.glide;
-import com.baasbox.android.BaasAssetId;
-import com.baasbox.android.BaasFile;
-import com.bumptech.glide.Glide;
+package com.baasbox.android.samples.phrasebook.common;
 
-import java.io.InputStream;
+import android.app.Activity;
 
 /**
  * Created by Andrea Tortorella on 08/09/14.
  */
-public class BaasBoxGlideSetup {
-
-    public static void registerBaasboxHandlers(Glide glide){
-        glide.register(BaasFile.class,    InputStream.class,   new BaasFileModelLoader.Factory());
-        glide.register(BaasAssetId.class, InputStream.class,   new BaasAssetModelLoader.Factory());
-    }
+public class BaseActivity extends Activity {
 }

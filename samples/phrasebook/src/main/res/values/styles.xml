@@ -20,4 +20,8 @@
     <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
 
     </style>
+    
+    <style name="AppTheme.RatingBar" parent="@android:style/Widget.RatingBar">
+        <item name="android:progressDrawable">@drawable/colorized_rating_bar</item>
+    </style>
 </resources>
