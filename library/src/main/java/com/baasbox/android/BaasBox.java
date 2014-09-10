@@ -15,7 +15,9 @@
 
 package com.baasbox.android;
 
+import android.app.Activity;
 import android.content.Context;
+import android.util.Pair;
 import android.util.Patterns;
 import com.baasbox.android.impl.Dispatcher;
 import com.baasbox.android.impl.ImmediateDispatcher;
@@ -23,9 +25,12 @@ import com.baasbox.android.impl.Task;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
-import com.bumptech.glide.Glide;
 
 import org.apache.http.HttpResponse;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class represents the main context of BaasBox SDK.
@@ -98,7 +103,7 @@ public class BaasBox {
     private final ImmediateDispatcher syncDispatcher;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    private BaasBox(Context context, Config config,RestClient client) {
+    private BaasBox(Context context, Config config,Set<Pair<Plugin<?>,Plugin.Options>> plugins,RestClient client) {
         if (context == null) {
             throw new IllegalArgumentException("context cannot be null");
         }
@@ -112,6 +117,11 @@ public class BaasBox {
         this.syncDispatcher = new ImmediateDispatcher();
         this.asyncDispatcher = new Dispatcher(this);
         this.messagingService=new BaasCloudMessagingService(this);
+        for (Pair<Plugin<?>,Plugin.Options> p: plugins){
+            Plugin<Plugin.Options> first = (Plugin<Plugin.Options>) p.first;
+            Plugin.Options opt = p.second;
+            first.setup(context,this,opt);
+        }
     }
 
 
@@ -257,6 +267,10 @@ public class BaasBox {
         return new Builder(context);
     }
 
+    public final Context getContext() {
+        return context;
+    }
+
     // -------------------------- INNER CLASSES --------------------------
 
     /**
@@ -281,6 +295,8 @@ public class BaasBox {
         private RestClient mRestClient = null;
         private boolean mTokenExpires = false;
         private String[] mSenderIds;
+
+        private Set<Pair<Plugin<?>,Plugin.Options>> plugins = new HashSet<Pair<Plugin<?>, Plugin.Options>>();
 
         /**
          * Creates a new builder
@@ -448,13 +464,23 @@ public class BaasBox {
             if (sDefaultClient==null){
                 synchronized (LOCK){
                     if (sDefaultClient==null){
-                        BaasBox box = new BaasBox(mContext, buildConfig(), mRestClient);
+                        BaasBox box = new BaasBox(mContext, buildConfig(),plugins, mRestClient);
                         box.asyncDispatcher.start();
                         sDefaultClient = box;
                     }
                 }
             }
             return sDefaultClient;
+        }
+
+        public<O extends Plugin.Options> Builder addPlugin(Plugin<O> plugin,O opt) {
+            plugins.add(new Pair<Plugin<?>, Plugin.Options>(plugin,opt));
+            return this;
+        }
+
+        public Builder addPlugin(Plugin<Plugin.Options.Empty> plugin){
+            plugins.add(new Pair<Plugin<?>, Plugin.Options>(plugin,Plugin.Options.NoOptions));
+            return this;
         }
     }
 

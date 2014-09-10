@@ -15,6 +15,8 @@
 
 package com.baasbox.android;
 
+import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
