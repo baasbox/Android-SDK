@@ -38,7 +38,7 @@ public class SessionTests extends BaasTestBase {
         if(user.isFailed()){
             fail("Unable to signup");
         }
-        BaasUser.current().getScope(BaasUser.Scope.PRIVATE).putBoolean("KEY",true);
+        BaasUser.current().getScope(BaasUser.Scope.PRIVATE).put("KEY", true);
         BaasResult<BaasUser> resup = BaasUser.current().saveSync();
         if(resup.isFailed()){
             fail("Unable to modify self");

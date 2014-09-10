@@ -82,10 +82,10 @@ public class UserTest extends BaasTestBase {
         BaasUser u =
                 BaasUser.withUserName(user)
                         .setPassword(pass);
-        u.getScope(BaasUser.Scope.FRIEND).putString(KEY,friendsData);
-        u.getScope(BaasUser.Scope.REGISTERED).putString(KEY,regData);
-        u.getScope(BaasUser.Scope.PRIVATE).putString(KEY,"invisible");
-        u.getScope(BaasUser.Scope.PUBLIC).putString(KEY,"public");
+        u.getScope(BaasUser.Scope.FRIEND).put(KEY, friendsData);
+        u.getScope(BaasUser.Scope.REGISTERED).put(KEY, regData);
+        u.getScope(BaasUser.Scope.PRIVATE).put(KEY, "invisible");
+        u.getScope(BaasUser.Scope.PUBLIC).put(KEY, "public");
         BaasResult<BaasUser> res =u.signup(null).await();
         assertTrue(res.isSuccess());
     }

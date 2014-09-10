@@ -114,12 +114,12 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     public static JsonArray of(Object... values) {
         JsonArray a = new JsonArray();
         for (Object v : values) {
-            a.add(v);
+            a.addInternal(v);
         }
         return a;
     }
 
-    public JsonArray add(Object o) {
+    private JsonArray addInternal(Object o) {
         if (o == null) {
             list.add(null);
         } else if ((o instanceof String) ||
@@ -180,32 +180,32 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
                     case NAME:
                         throw new JsonException("invalid json");
                     case BOOLEAN:
-                        arr.addBoolean(reader.nextBoolean());
+                        arr.add(reader.nextBoolean());
                         break;
                     case NULL:
                         reader.nextNull();
                         arr.addNull();
                         break;
                     case STRING:
-                        arr.addString(reader.nextString());
+                        arr.add(reader.nextString());
                         break;
                     case NUMBER:
                         String inNum = reader.nextString();
                         try {
-                            arr.addLong(Long.valueOf(inNum));
+                            arr.add(Long.valueOf(inNum));
                         } catch (NumberFormatException ne) {
                             try {
-                                arr.addDouble(Double.valueOf(inNum));
+                                arr.add(Double.valueOf(inNum));
                             } catch (NumberFormatException ne2) {
                                 arr.addNull();
                             }
                         }
                         break;
                     case BEGIN_OBJECT:
-                        arr.addObject(JsonObject.decode(reader));
+                        arr.add(JsonObject.decode(reader));
                         break;
                     case BEGIN_ARRAY:
-                        arr.addArray(JsonArray.decode(reader));
+                        arr.add(JsonArray.decode(reader));
                         break;
                     case END_DOCUMENT:
                     case END_OBJECT:
@@ -228,7 +228,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
      * @param value
      * @return this array with the new value appended
      */
-    public JsonArray addBoolean(boolean value) {
+    public JsonArray add(boolean value) {
         list.add(value);
         return this;
     }
@@ -239,7 +239,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
      * @param value
      * @return this array with the new value appended
      */
-    public JsonArray addString(String value) {
+    public JsonArray add(String value) {
         list.add(value);
         return this;
     }
@@ -250,12 +250,12 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
      * @param value
      * @return this array with the new value appended
      */
-    public JsonArray addLong(long value) {
+    public JsonArray add(long value) {
         list.add(value);
         return this;
     }
 
-    public JsonArray addDouble(double d) {
+    public JsonArray add(double d) {
         list.add(d);
         return this;
     }
@@ -265,12 +265,12 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return this;
     }
 
-    public JsonArray addObject(JsonObject o) {
+    public JsonArray add(JsonObject o) {
         list.add(o);
         return this;
     }
 
-    public JsonArray addArray(JsonArray a) {
+    public JsonArray add(JsonArray a) {
         list.add(a);
         return this;
     }
@@ -363,16 +363,16 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public JsonArray addBinary(byte[] v) {
+    public JsonArray add(byte[] v) {
         list.add(v == null ? null : Base64.encode(v, Base64.NO_WRAP));
         return this;
     }
 
-    public JsonArray addStructure(JsonStructure s) {
-        if (s instanceof JsonArray) addArray((JsonArray) s);
-        if (s instanceof JsonObject) addObject((JsonObject) s);
-        return this;
-    }
+//    public JsonArray add(JsonStructure s) {
+//        if (s instanceof JsonArray) add((JsonArray) s);
+//        if (s instanceof JsonObject) add((JsonObject) s);
+//        return this;
+//    }
 
     public JsonArray append(JsonArray arr) {
         list.addAll(arr.list);
@@ -584,7 +584,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         throw new JsonException("not a structure");
     }
 
-    public int getType(int index) {
+    public int typeAt(int index) {
         if (index < 0) throw new IndexOutOfBoundsException("inde x must be positive");
         if (index >= size()) return ABSENT;
         Object o = list.get(index);
@@ -617,12 +617,12 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return o;
     }
 
-    public JsonArray setArray(int index, JsonArray value) {
+    public JsonArray set(int index, JsonArray value) {
         list.set(index, value);
         return this;
     }
 
-    public JsonArray setBinary(int index, byte[] value) {
+    public JsonArray set(int index, byte[] value) {
         list.set(index, value == null ? null : Base64.encode(value, Base64.NO_WRAP));
         return this;
     }
@@ -634,12 +634,12 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
      * @param value
      * @return the array with the new mapping
      */
-    public JsonArray setBoolean(int index, boolean value) {
+    public JsonArray set(int index, boolean value) {
         list.set(index, value);
         return this;
     }
 
-    public JsonArray setDouble(int index, double value) {
+    public JsonArray set(int index, double value) {
         list.set(index, value);
         return this;
     }
@@ -651,7 +651,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
      * @param value
      * @return the array with the new mapping
      */
-    public JsonArray setLong(int index, long value) {
+    public JsonArray set(int index, long value) {
         list.set(index, value);
         return this;
     }
@@ -661,7 +661,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return this;
     }
 
-    public JsonArray setObject(int index, JsonObject value) {
+    public JsonArray set(int index, JsonObject value) {
         list.set(index, value);
         return this;
     }
@@ -673,12 +673,12 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
      * @param value
      * @return the array with the new mapping
      */
-    public JsonArray setString(int index, String value) {
+    public JsonArray set(int index, String value) {
         list.set(index, value);
         return this;
     }
 
-    public JsonArray setStructure(int index, JsonStructure value) {
+    public JsonArray set(int index, JsonStructure value) {
         list.set(index, value);
         return this;
     }
@@ -692,6 +692,7 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
      * Removes all the elements
      * @return this array without elements.
      */
+    @Override
     public JsonArray clear(){
         list.clear();
         return this;

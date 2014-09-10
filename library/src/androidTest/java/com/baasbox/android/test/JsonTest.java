@@ -16,8 +16,8 @@ public class JsonTest extends BaasTestBase{
 
     public void testParcelability(){
         JsonObject o =new JsonObject()
-                    .putArray("v",new JsonArray().addString("work").addLong(2))
-                    .putString("k","k");
+                    .put("v", new JsonArray().add("work").add(2))
+                    .put("k", "k");
 
         Bundle b = new Bundle();
         b.putParcelable("KEY",o);
@@ -26,7 +26,7 @@ public class JsonTest extends BaasTestBase{
     }
 
     public void testIntentParcelability(){
-        JsonObject o =new JsonObject().putArray("k",new JsonArray());
+        JsonObject o =new JsonObject().put("k", new JsonArray());
         Bundle b =new Bundle();
         Bundle hb = new Bundle();
         hb.putParcelable("H",o);

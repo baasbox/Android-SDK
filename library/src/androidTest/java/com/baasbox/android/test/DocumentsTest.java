@@ -16,6 +16,7 @@
 package com.baasbox.android.test;
 
 import com.baasbox.android.*;
+import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.test.common.BaasTestBase;
@@ -61,9 +62,12 @@ public class DocumentsTest extends BaasTestBase{
 
     public void testCanCreateDocument(){
         BaasDocument doc = new BaasDocument(testColl);
-        doc.putString("key1","value1")
-           .putLong("key2",0)
-           .putObject("key3",new JsonObject().putString("sub","sub"));
+        doc.put("key1", "value1")
+           .put("key2", 0)
+           .put("key3", new JsonObject().put("sub", "sub"));
+        JsonArray a = new JsonArray();
+        JsonObject o = new JsonObject();
+        a.typeAt(2);
         BaasResult<BaasDocument> await = doc.save(BaasHandler.NOOP).await();
         try {
             BaasDocument docFromServer = await.get();
@@ -136,7 +140,7 @@ public class DocumentsTest extends BaasTestBase{
 
     public void testCanFetchDocument(){
         JsonObject data = new JsonObject();
-        data.putString("key","value");
+        data.put("key", "value");
         BaasResult<JsonObject> res = box.restSync(HttpRequest.POST, "/document/" + testColl, data, true);
         if (!res.isSuccess()){
             try {
@@ -184,7 +188,7 @@ public class DocumentsTest extends BaasTestBase{
     }
 
     public void testCanUseLikeInWhere(){
-        BaasDocument d = new BaasDocument(testColl).putString("value","simpletext");
+        BaasDocument d = new BaasDocument(testColl).put("value", "simpletext");
         assertTrue(d.saveSync().isSuccess());
         try {
 //            Filter f = Filter.where("value like '%text%'");
@@ -205,11 +209,11 @@ public class DocumentsTest extends BaasTestBase{
         try {
             BaasDocument d = BaasDocument.fetch(testColl, doc.getId(), BaasHandler.NOOP).<BaasDocument>await().get();
             assertEquals(d.getId(),doc.getId());
-            d.putString("newval","newval");
+            d.put("newval", "newval");
             BaasDocument newVal = d.save(SaveMode.IGNORE_VERSION, BaasHandler.NOOP).<BaasDocument>await().get();
             assertEquals("newval",newVal.getString("newval"));
 
-            BaasResult<BaasDocument> failedDoc = doc.putString("failing", "failing").save(SaveMode.CHECK_VERSION, BaasHandler.NOOP).<BaasDocument>await();
+            BaasResult<BaasDocument> failedDoc = doc.put("failing", "failing").save(SaveMode.CHECK_VERSION, BaasHandler.NOOP).<BaasDocument>await();
             assertTrue(failedDoc.isFailed());
             assertEquals(BaasClientException.class,failedDoc.error().getClass());
         } catch (BaasException e) {
@@ -224,7 +228,7 @@ public class DocumentsTest extends BaasTestBase{
         try {
             BaasDocument d = BaasDocument.fetch(testColl, doc.getId(), BaasHandler.NOOP).<BaasDocument>await().get();
             assertEquals(d.getId(),doc.getId());
-            d.putString("newval","newval");
+            d.put("newval", "newval");
             BaasDocument newVal = d.save(SaveMode.IGNORE_VERSION, BaasHandler.NOOP).<BaasDocument>await().get();
             assertEquals("newval",newVal.getString("newval"));
         } catch (BaasException e) {
@@ -233,7 +237,7 @@ public class DocumentsTest extends BaasTestBase{
     }
 
     private void createDoc(int i){
-        BaasDocument d = new BaasDocument(testColl).putLong("n",i);
+        BaasDocument d = new BaasDocument(testColl).put("n", i);
         assertTrue(d.saveSync().isSuccess());
     }
 

@@ -124,4 +124,6 @@ public abstract class JsonStructure {
      * @return the values of this structure
      */
     public abstract JsonArray values();
+
+    public abstract JsonStructure clear();
 }

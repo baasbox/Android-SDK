@@ -11,8 +11,6 @@ import org.apache.http.HttpResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -222,36 +220,36 @@ public final class BaasCloudMessagingService {
             if (message==null) throw new IllegalStateException("missing required text message");
             JsonArray to = new JsonArray();
             for (String u:users){
-                to.addString(u);
+                to.add(u);
             }
             JsonObject m = new JsonObject();
-            m.putString("message", message)
-             .putArray("users", to);
+            m.put("message", message)
+             .put("users", to);
             if (body!=null){
-                m.putObject("custom", body);
+                m.put("custom", body);
             }
             if (sound!=null){
-                m.putString("sound",sound);
+                m.put("sound", sound);
             }
             if (actionLocalizedKey!=null){
-                m.putString("actionLocalizedKey",actionLocalizedKey);
+                m.put("actionLocalizedKey", actionLocalizedKey);
             }
             if (localizedKey!=null){
-                m.putString("localizedKey", localizedKey);
+                m.put("localizedKey", localizedKey);
             }
             if (localizedArguments!=null && localizedArguments.length>0){
                 JsonArray args = JsonArray.of(localizedArguments);
-                m.putArray("localizedArguments",args);
+                m.put("localizedArguments", args);
             }
             if (profiles.size()>0){
                 JsonArray profiles = new JsonArray();
                 for (int i: this.profiles){
-                    profiles.addLong(i);
+                    profiles.add(i);
                 }
-                m.putArray("profiles",profiles);
+                m.put("profiles", profiles);
             }
             if (badge!=null){
-                m.putLong("badge",badge.longValue());
+                m.put("badge", badge.longValue());
             }
             return m;
         }

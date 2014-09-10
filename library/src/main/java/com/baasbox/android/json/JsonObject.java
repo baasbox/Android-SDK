@@ -110,12 +110,12 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
             String name = entry.getKey();
             Object value = entry.getValue();
 
-            object.put(name, value);
+            object.putInternal(name, value);
         }
         return object;
     }
 
-    private JsonObject put(String name, Object value) {
+    private JsonObject putInternal(String name, Object value) {
         if (name == null) throw new IllegalArgumentException("name cannot be null");
         if (value == null) {
             putValue(name, null);
@@ -149,7 +149,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
             try {
                 String key = (String) keyValues[i];
                 Object v = keyValues[i + 1];
-                o.put(key, v);
+                o.putInternal(key, v);
             } catch (ClassCastException e) {
                 throw new IllegalArgumentException("even parameters must be strings",e);
             }
@@ -210,20 +210,20 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
                         propertyName = null;
                         break;
                     case STRING:
-                        o.putString(propertyName, reader.nextString());
+                        o.put(propertyName, reader.nextString());
                         propertyName = null;
                         break;
                     case BOOLEAN:
-                        o.putBoolean(propertyName, reader.nextBoolean());
+                        o.put(propertyName, reader.nextBoolean());
                         propertyName = null;
                         break;
                     case NUMBER:
                         String inNum = reader.nextString();
                         try {
-                            o.putLong(propertyName, Long.valueOf(inNum));
+                            o.put(propertyName, Long.valueOf(inNum));
                         } catch (NumberFormatException ne) {
                             try {
-                                o.putDouble(propertyName, Double.valueOf(inNum));
+                                o.put(propertyName, Double.valueOf(inNum));
                             } catch (NumberFormatException ne2) {
                                 o.putNull(propertyName);
                             }
@@ -231,11 +231,11 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
                         propertyName = null;
                         break;
                     case BEGIN_ARRAY:
-                        o.putArray(propertyName, JsonArray.decode(reader));
+                        o.put(propertyName, JsonArray.decode(reader));
                         propertyName = null;
                         break;
                     case BEGIN_OBJECT:
-                        o.putObject(propertyName, JsonObject.decode(reader));
+                        o.put(propertyName, JsonObject.decode(reader));
                         propertyName = null;
                         break;
                     case END_DOCUMENT:
@@ -260,7 +260,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @param value a {@link java.lang.String} value
      * @return this object with the new mapping created
      */
-    public JsonObject putString(String name, String value) {
+    public JsonObject put(String name, String value) {
         putValue(name,value);
         return this;
     }
@@ -273,7 +273,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @param value a <code>boolean</code> value
      * @return this object with the new mapping created
      */
-    public JsonObject putBoolean(String name, boolean value) {
+    public JsonObject put(String name, boolean value) {
         putValue(name,value);
         return this;
     }
@@ -286,7 +286,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @param value a <code>long</code> value
      * @return this object with the new mapping created
      */
-    public JsonObject putLong(String name, long value) {
+    public JsonObject put(String name, long value) {
         putValue(name,value);
         return this;
     }
@@ -299,7 +299,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @param value a <code>double</code> value
      * @return this object with the new mapping created
      */
-    public JsonObject putDouble(String name, double value) {
+    public JsonObject put(String name, double value) {
         putValue(name,value);
         return this;
     }
@@ -328,14 +328,14 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @param value a {@link com.baasbox.android.json.JsonArray} or null
      * @return this object with the new mapping created
      */
-    public JsonObject putArray(String name, JsonArray value) {
+    public JsonObject put(String name, JsonArray value) {
         putValue(name, value);
         return this;
     }
 
     private void putValue(String name, Object value) {
         if (name == null) throw new IllegalArgumentException("name cannot be null");
-        map.put(name,value);
+        map.put(name, value);
         onModify();
     }
 
@@ -352,7 +352,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @param value a  {@link com.baasbox.android.json.JsonObject}
      * @return this object with the new mapping created
      */
-    public JsonObject putObject(String name, JsonObject value) {
+    public JsonObject put(String name, JsonObject value) {
         putValue(name,value);
         return this;
     }
@@ -443,6 +443,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      *
      * @return this object without any mapping
      */
+    @Override
     public JsonObject clear() {
         map.clear();
         onModify();
@@ -776,7 +777,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         throw new JsonException("not a structure");
     }
 
-    public int getType(String key) {
+    public int typeAt(String key) {
         if (!map.containsKey(key)) return ABSENT;
         Object o = map.get(key);
         if (o == null) {
@@ -857,25 +858,25 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
      * @param value a <code>byte[]</code> array
      * @return this object with the new mapping created
      */
-    public JsonObject putBinary(String name, byte[] value) {
+    public JsonObject put(String name, byte[] value) {
         putValue(name,value==null?null:Base64.encode(value,Base64.NO_WRAP));
         return this;
     }
 
-    /**
-     * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonStructure} <code>value</code>
-     * in this object.
-     *
-     * @param name  a non <code>null</code> key
-     * @param value a {@link com.baasbox.android.json.JsonStructure}
-     * @return this object with the new mapping created
-     * @see com.baasbox.android.json.JsonObject#putArray(String, com.baasbox.android.json.JsonArray)
-     * @see com.baasbox.android.json.JsonObject#putObject(String, com.baasbox.android.json.JsonObject)
-     */
-    public JsonObject putStructure(String name, JsonStructure value) {
-        putValue(name,value);
-        return this;
-    }
+//    /**
+//     * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonStructure} <code>value</code>
+//     * in this object.
+//     *
+//     * @param name  a non <code>null</code> key
+//     * @param value a {@link com.baasbox.android.json.JsonStructure}
+//     * @return this object with the new mapping created
+//     * @see com.baasbox.android.json.JsonObject#put(String, com.baasbox.android.json.JsonArray)
+//     * @see com.baasbox.android.json.JsonObject#put(String, com.baasbox.android.json.JsonObject)
+//     */
+////    public JsonObject put(String name, JsonStructure value) {
+//        putValue(name,value);
+//        return this;
+//    }
 
     /**
      * Returns the number of mappings in this object

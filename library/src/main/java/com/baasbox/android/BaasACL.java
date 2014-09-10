@@ -240,12 +240,12 @@ public class BaasACL {
                 continue;
             }
             JsonObject permits = new JsonObject();
-            permits.putArray("users",userArray);
-            permits.putArray("roles",rolesArray);
+            permits.put("users", userArray);
+            permits.put("roles", rolesArray);
             if (precomputed==null){
                 precomputed=new JsonObject();
             }
-            precomputed.putObject(g.action,permits);
+            precomputed.put(g.action, permits);
         }
         return precomputed;
     }

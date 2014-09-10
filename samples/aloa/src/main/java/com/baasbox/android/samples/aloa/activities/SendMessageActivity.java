@@ -198,17 +198,17 @@ public class SendMessageActivity extends BaseActivity{
 
 
     private void sendToUser(String user,String message){
-        JsonObject msg = new JsonObject().putString("message",message);
+        JsonObject msg = new JsonObject().put("message", message);
         mCurrentRequest =BaasUser.withUserName(user).send(msg,sendToUserHandler);
     }
 
     private void sendToChannel(String channel,String message){
-        JsonObject msg = new JsonObject().putString("message",message);
+        JsonObject msg = new JsonObject().put("message", message);
         mCurrentRequest =Aloa.box().rest(HttpRequest.POST,"scripts/channels/"+channel,msg,true,sendToChannelHandler);
     }
 
     private void sendToQuery(String query,String message){
-        JsonObject msg = new JsonObject().putString("message",message);
+        JsonObject msg = new JsonObject().put("message", message);
         mCurrentRequest = Aloa.box().rest(HttpRequest.POST,"scripts/channels?where='"+BaasUser.Scope.PUBLIC.visibility+"."+ Data.FLOWERS+" = "+query+"'",msg,true,sendToChannelHandler);
     }
 

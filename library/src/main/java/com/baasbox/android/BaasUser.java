@@ -301,8 +301,8 @@ public class BaasUser implements Parcelable {
         protected HttpRequest request(BaasBox box) {
             String endpoint = box.requestFactory.getEndpoint("social/{}",provider);
             JsonObject body = new JsonObject();
-            body.putString("oauth_token",token);
-            body.putString("oauth_secret",secret);
+            body.put("oauth_token", token);
+            body.put("oauth_secret", secret);
             return box.requestFactory.put(endpoint,body);
         }
     }
@@ -526,13 +526,13 @@ public class BaasUser implements Parcelable {
 
     private JsonObject toJson() {
         JsonObject object = new JsonObject();
-        object.putString("username", username);
-        object.putString("password", password);
-        object.putString("token", authToken);
-        object.putObject(Scope.PRIVATE.visibility, privateData)
-                .putObject(Scope.FRIEND.visibility, friendVisibleData)
-                .putObject(Scope.REGISTERED.visibility, registeredVisibleData)
-                .putObject(Scope.PUBLIC.visibility, publicVisibleData);
+        object.put("username", username);
+        object.put("password", password);
+        object.put("token", authToken);
+        object.put(Scope.PRIVATE.visibility, privateData)
+                .put(Scope.FRIEND.visibility, friendVisibleData)
+                .put(Scope.REGISTERED.visibility, registeredVisibleData)
+                .put(Scope.PUBLIC.visibility, publicVisibleData);
         return object;
     }
 
@@ -994,13 +994,13 @@ public class BaasUser implements Parcelable {
     JsonObject toJsonBody(boolean credentials) {
         JsonObject object = new JsonObject();
         if (credentials) {
-            object.putString("username", username)
-                    .putString("password", password);
+            object.put("username", username)
+                    .put("password", password);
         }
-        object.putObject(Scope.PRIVATE.visibility, privateData)
-              .putObject(Scope.FRIEND.visibility, friendVisibleData)
-              .putObject(Scope.REGISTERED.visibility, registeredVisibleData)
-              .putObject(Scope.PUBLIC.visibility, publicVisibleData);
+        object.put(Scope.PRIVATE.visibility, privateData)
+              .put(Scope.FRIEND.visibility, friendVisibleData)
+              .put(Scope.REGISTERED.visibility, registeredVisibleData)
+              .put(Scope.PUBLIC.visibility, publicVisibleData);
         return object;
     }
 
@@ -1127,8 +1127,8 @@ public class BaasUser implements Parcelable {
         protected HttpRequest request(BaasBox box) {
             String endpoint = box.requestFactory.getEndpoint("social/{}", provider);
             JsonObject body = new JsonObject();
-            body.putString("oauth_token", token);
-            body.putString("oauth_secret", secret);
+            body.put("oauth_token", token);
+            body.put("oauth_secret", secret);
             return box.requestFactory.post(endpoint, body);
         }
     }
@@ -1236,7 +1236,7 @@ public class BaasUser implements Parcelable {
         protected ChangePassword(BaasBox box, BaasUser user, String password, int flags, BaasHandler<Void> handler) {
             super(box, flags, handler);
             this.user = user;
-            request = box.requestFactory.put("me/password", new JsonObject().putString("old", user.getPassword()).putString("new", password));
+            request = box.requestFactory.put("me/password", new JsonObject().put("old", user.getPassword()).put("new", password));
             this.password = password;
         }
 

@@ -31,8 +31,8 @@ public class ParcelablesTest extends TestBase {
 
     public void testCanParcelJson(){
         JsonObject o = new JsonObject();
-        o.putString("Key1","val1");
-        o.putObject("Key2",new JsonObject().putString("a","a").putArray("b",new JsonArray().addObject(new JsonObject().putString("x","x"))));
+        o.put("Key1", "val1");
+        o.put("Key2", new JsonObject().put("a", "a").put("b", new JsonArray().add(new JsonObject().put("x", "x"))));
 
         Bundle b = new Bundle();
         b.putParcelable("SAVE",o);
@@ -47,9 +47,9 @@ public class ParcelablesTest extends TestBase {
 
     public void testCanParcelDocuments(){
         BaasDocument doc = new BaasDocument("fake");
-        doc.putString("Key","Val1");
-        doc.putString("Key2","Val2");
-        doc.putArray("Key3",new JsonArray().addString("ciao"));
+        doc.put("Key", "Val1");
+        doc.put("Key2", "Val2");
+        doc.put("Key3", new JsonArray().add("ciao"));
 
         Bundle b = new Bundle();
         b.putParcelable("SAVE",doc);

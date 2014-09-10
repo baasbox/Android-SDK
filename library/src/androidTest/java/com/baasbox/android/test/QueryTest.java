@@ -48,24 +48,24 @@ public class QueryTest extends BaasTestBase{
 
     private void createDocuments(){
         BaasDocument doc = new BaasDocument(COLLECTION);
-        doc.putString("title","baas");
-        doc.putLong("n", 1);
-        doc.putString("qp", "aristoteles");
+        doc.put("title", "baas");
+        doc.put("n", 1);
+        doc.put("qp", "aristoteles");
         assertTrue(
                 doc.saveSync(SaveMode.IGNORE_VERSION).isSuccess());
         assertTrue(doc.grantAllSync(Grant.READ, Role.ANONYMOUS).isSuccess());
 
         doc = new BaasDocument(COLLECTION);
-        doc.putString("title","box");
-        doc.putLong("n", 2);
-        doc.putString("qp", "plato");
+        doc.put("title", "box");
+        doc.put("n", 2);
+        doc.put("qp", "plato");
         doc.saveSync(SaveMode.IGNORE_VERSION);
         assertTrue(doc.grantAllSync(Grant.READ, Role.ANONYMOUS).isSuccess());
 
         doc = new BaasDocument(COLLECTION);
-        doc.putString("title","fun");
-        doc.putLong("n", 3);
-        doc.putString("qp","rocchi");
+        doc.put("title", "fun");
+        doc.put("n", 3);
+        doc.put("qp", "rocchi");
         assertTrue(
                 doc.saveSync(SaveMode.IGNORE_VERSION).isSuccess());
         assertTrue(doc.grantAllSync(Grant.READ, Role.ANONYMOUS).isSuccess());

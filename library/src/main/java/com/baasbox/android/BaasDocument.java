@@ -105,12 +105,12 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
 
     public JsonObject toJson() {
         JsonObject json = data.copy();
-        json.putString("@class",collection);
-        json.putString("id",id);
-        json.putString("_author",author);
-        json.putString("_creation_date",creation_date);
-        json.putLong("@version",version);
-        json.putString("@rid",rid);
+        json.put("@class", collection);
+        json.put("id", id);
+        json.put("_author", author);
+        json.put("_creation_date", creation_date);
+        json.put("@version", version);
+        json.put("@rid", rid);
         return json;
     }
 
@@ -884,8 +884,8 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      * @param value a {@link com.baasbox.android.json.JsonArray}
      * @return this document with the new mapping created
      */
-    public BaasDocument putArray(String name, JsonArray value) {
-        data.putArray(checkKey(name), value);
+    public BaasDocument put(String name, JsonArray value) {
+        data.put(checkKey(name), value);
         return this;
     }
 
@@ -908,8 +908,8 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      * @param value a  <code>byte[]</code> array
      * @return this document with the new mapping created
      */
-    public BaasDocument putBinary(String name, byte[] value) {
-        data.putBinary(checkKey(name), value);
+    public BaasDocument put(String name, byte[] value) {
+        data.put(checkKey(name), value);
         return this;
     }
 
@@ -921,8 +921,8 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      * @param value a <code>boolean</code> value
      * @return this document with the new mapping created
      */
-    public BaasDocument putBoolean(String name, boolean value) {
-        data.putBoolean(checkKey(name), value);
+    public BaasDocument put(String name, boolean value) {
+        data.put(checkKey(name), value);
         return this;
     }
 
@@ -934,8 +934,8 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      * @param value a <code>double</code> value
      * @return this document with the new mapping created
      */
-    public BaasDocument putDouble(String name, double value) {
-        data.putDouble(checkKey(name), value);
+    public BaasDocument put(String name, double value) {
+        data.put(checkKey(name), value);
         return this;
     }
 
@@ -947,8 +947,8 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      * @param value a <code>long</code> value
      * @return this document with the new mapping created
      */
-    public BaasDocument putLong(String name, long value) {
-        data.putLong(checkKey(name), value);
+    public BaasDocument put(String name, long value) {
+        data.put(checkKey(name), value);
         return this;
     }
 
@@ -976,8 +976,8 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      * @param value a {@link com.baasbox.android.json.JsonObject}
      * @return this document with the new mapping created
      */
-    public BaasDocument putObject(String name, JsonObject value) {
-        data.putObject(checkKey(name), value);
+    public BaasDocument put(String name, JsonObject value) {
+        data.put(checkKey(name), value);
         return this;
     }
 
@@ -989,25 +989,26 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      * @param value a  {@link java.lang.String}
      * @return this document with the new mapping created
      */
-    public BaasDocument putString(String name, String value) {
-        data.putString(checkKey(name), value);
+    public BaasDocument put(String name, String value) {
+        data.put(checkKey(name), value);
         return this;
     }
 
-    /**
-     * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonStructure} <code>value</code>
-     * in this document.
-     *
-     * @param name  a non <code>null</code> key
-     * @param value a {@link com.baasbox.android.json.JsonStructure}
-     * @return this document with the new mapping created
-     * @see com.baasbox.android.BaasDocument#putArray(String, com.baasbox.android.json.JsonArray)
-     * @see com.baasbox.android.BaasDocument#putObject(String, com.baasbox.android.json.JsonObject)
-     */
-    public BaasDocument putStructure(String name, JsonStructure value) {
-        data.putStructure(checkKey(name), value);
-        return this;
-    }
+//    /**
+//     * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonStructure} <code>value</code>
+//     * in this document.
+//     *
+//     * @param name  a non <code>null</code> key
+//     * @param value a {@link com.baasbox.android.json.JsonStructure}
+//     * @return this document with the new mapping created
+//     * @see com.baasbox.android.BaasDocument#put(String, com.baasbox.android.json.JsonArray)
+//     * @see com.baasbox.android.BaasDocument#put(String, com.baasbox.android.json.JsonObject)
+//     */
+//
+//    public BaasDocument put(String name, JsonStructure value) {
+//        data.put(checkKey(name), value);
+//        return this;
+//    }
 
     /**
      * Asynchronously refresh the content of this document.
@@ -1188,7 +1189,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
             } else {
                 String endpoint = box.requestFactory.getEndpoint("document/{}/{}", coll, docId);
                 if (mode == SaveMode.CHECK_VERSION) {
-                    data.putLong("@version", document.version);
+                    data.put("@version", document.version);
                 }
                 return box.requestFactory.put(endpoint, data);
             }
