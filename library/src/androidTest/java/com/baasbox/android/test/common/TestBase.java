@@ -15,8 +15,10 @@
 
 package com.baasbox.android.test.common;
 
+import android.content.Context;
 import android.test.AndroidTestCase;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -24,9 +26,33 @@ import java.lang.reflect.Method;
  */
 public class TestBase extends AndroidTestCase {
 
+    private static final Method TEST_CONTEXT_METHOD;
+
+    static {
+        Method m;
+        try {
+            m  = AndroidTestCase.class.getMethod("getTestContext");
+        } catch (NoSuchMethodException e) {
+            m = null;
+        }
+        TEST_CONTEXT_METHOD = m;
+    }
+
     private int totalTests;
     private boolean first = true;
 
+    public Context getTest(){
+        try {
+            Object invoke = TEST_CONTEXT_METHOD.invoke(this);
+            return (Context)invoke;
+        } catch (NullPointerException e){
+            return null;
+        }catch (IllegalAccessException e) {
+            return null;
+        } catch (InvocationTargetException e) {
+            return null;
+        }
+    }
     public TestBase(){
         Method[] methods = getClass().getDeclaredMethods();
         int tests = 0;

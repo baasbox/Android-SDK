@@ -229,11 +229,11 @@ public class BaasACL {
             Set<String> users = this.usersGrants.get(g);
             Set<String> roles = this.rolesGrants.get(g);
             JsonArray userArray = null;
-            if (users!=null||users.size()>0){
+            if (users!=null&&users.size()>0){
                 userArray= JsonArray.of(users.toArray());
             }
             JsonArray rolesArray = null;
-            if (roles!=null||roles.size()>0){
+            if (roles!=null&&roles.size()>0){
                 rolesArray=JsonArray.of(roles.toArray());
             }
             if (userArray == null && rolesArray == null){
