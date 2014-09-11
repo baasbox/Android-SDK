@@ -74,6 +74,7 @@ public class BaasFile extends BaasObject implements Parcelable{
     private AtomicReference<byte[]> data = new AtomicReference<byte[]>();
 
 
+
     // --------------------------- CONSTRUCTORS ---------------------------
 
     public BaasFile() {
@@ -289,6 +290,18 @@ public class BaasFile extends BaasObject implements Parcelable{
     public JsonObject getAttachedData() {
         return attachedData;
     }
+
+
+    @Override
+    public final boolean isFile() {
+        return true;
+    }
+
+    @Override
+    public final boolean isDocument() {
+        return false;
+    }
+
 
     /**
      * Retrieves the metadata associated with this file

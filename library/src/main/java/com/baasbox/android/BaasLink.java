@@ -258,7 +258,7 @@ public final class BaasLink implements Parcelable{
     }
 
     public static BaasLink withId(String id) {
-        return new BaasLink("id",null);
+        return new BaasLink(id,null);
     }
 
 
@@ -290,10 +290,12 @@ public final class BaasLink implements Parcelable{
     }
 
     private static class Delete extends NetworkTask<Void>{
-        private BaasLink link;
+        private final BaasLink link;
+        private final String id;
         protected Delete(BaasBox box,BaasLink link, int flags, BaasHandler<Void> handler) {
             super(box, flags, handler);
             this.link = link;
+            this.id=link.id;
         }
 
         @Override
@@ -310,7 +312,7 @@ public final class BaasLink implements Parcelable{
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("Link/{}",link.id);
+            String endpoint = box.requestFactory.getEndpoint("link/{}",id);
             return box.requestFactory.delete(endpoint);
         }
     }

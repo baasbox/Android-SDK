@@ -218,6 +218,18 @@ public abstract class BaasObject implements Parcelable {
      */
     public abstract BaasResult<Void> revokeSync(Grant grant, String username);
 
+    public final BaasDocument asDocument(){
+        return (BaasDocument)this;
+    }
+
+    public abstract boolean isDocument();
+
+    public final BaasFile asFile(){
+        return (BaasFile)this;
+    }
+
+    public abstract boolean isFile();
+
 
 // -------------------------- INNER CLASSES --------------------------
 

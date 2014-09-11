@@ -104,6 +104,16 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
     }
 
 
+    @Override
+    public final boolean isDocument() {
+        return true;
+    }
+
+    @Override
+    public final boolean isFile() {
+        return false;
+    }
+
     public JsonObject toJson() {
         JsonObject json = data.copy();
         json.put("@class", collection);
