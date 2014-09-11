@@ -65,4 +65,5 @@ public class ParcelablesTest extends TestBase {
         assertEquals(newDoc.getString("Key2"),doc.getString("Key2"));
         assertEquals(newDoc.getArray("Key3").getString(0),doc.getArray("Key3").getString(0));
     }
+
 }

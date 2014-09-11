@@ -17,10 +17,14 @@
 
 package com.baasbox.android.test;
 
+import android.os.Bundle;
+import android.os.Parcel;
+
 import com.baasbox.android.BaasDocument;
 import com.baasbox.android.BaasException;
 import com.baasbox.android.BaasHandler;
 import com.baasbox.android.BaasLink;
+import com.baasbox.android.BaasObject;
 import com.baasbox.android.BaasQuery;
 import com.baasbox.android.BaasResult;
 import com.baasbox.android.BaasUser;
@@ -121,6 +125,7 @@ public class LinkTest extends BaasTestBase{
 
             BaasLink fetchedLink = BaasLink.withId(id);
             BaasResult<BaasLink> lnk = fetchedLink.refresh(RequestOptions.DEFAULT, BaasHandler.NOOP).await();
+
             assertTrue(lnk.isSuccess());
             assertEquals(id,lnk.get().getId());
 
@@ -142,6 +147,9 @@ public class LinkTest extends BaasTestBase{
             BaasLink link = res.get();
             String id = link.getId();
             BaasResult<Void> v = link.delete(RequestOptions.DEFAULT, BaasHandler.NOOP).await();
+            if (v.isFailed()){
+                fail(v.error().getMessage());
+            }
             assertTrue(v.isSuccess());
 
             BaasLink nonExisting = BaasLink.withId(id);
@@ -153,4 +161,43 @@ public class LinkTest extends BaasTestBase{
             fail();
         }
     }
+
+
+    public void testCanParcelFetchedLink(){
+        BaasResult<BaasLink> res = BaasLink.createSync("parcelled", first.getId(), second.getId());
+        try {
+            BaasLink linkBefore = res.get();
+
+            String id = linkBefore.getId();
+            String author = linkBefore.getAuthor();
+            String creationDate = linkBefore.getCreationDate();
+            String label = linkBefore.getLabel();
+            long version = linkBefore.getVersion();
+            BaasDocument f = linkBefore.in().asDocument();
+            BaasDocument s = linkBefore.out().asDocument();
+
+            Bundle b = new Bundle();
+            b.putParcelable("parcelled",linkBefore);
+
+            Parcel p = Parcel.obtain();
+            b.writeToParcel(p,0);
+            p.setDataPosition(0);
+            Bundle readBack = p.readBundle();
+            readBack.setClassLoader(BaasLink.class.getClassLoader());
+            BaasLink after = readBack.getParcelable("parcelled");
+
+            assertNotNull(after);
+            assertEquals(id,after.getId());
+            assertEquals(author,after.getAuthor());
+            assertEquals(creationDate,after.getCreationDate());
+            assertEquals(label,after.getLabel());
+            assertEquals(version,after.getVersion());
+            assertEquals(f.getId(),after.in().getId());
+            assertEquals(s.getId(),after.out().getId());
+        } catch (BaasException e) {
+            fail();
+        }
+
+    }
+
 }
