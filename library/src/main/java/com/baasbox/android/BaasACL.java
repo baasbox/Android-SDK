@@ -231,10 +231,14 @@ public class BaasACL {
             JsonArray userArray = null;
             if (users!=null&&users.size()>0){
                 userArray= JsonArray.of(users.toArray());
+            } else {
+                userArray = new JsonArray();
             }
             JsonArray rolesArray = null;
             if (roles!=null&&roles.size()>0){
                 rolesArray=JsonArray.of(roles.toArray());
+            } else {
+                rolesArray = new JsonArray();
             }
             if (userArray == null && rolesArray == null){
                 continue;

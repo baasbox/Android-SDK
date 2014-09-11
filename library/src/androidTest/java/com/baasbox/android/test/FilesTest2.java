@@ -84,6 +84,7 @@ public class FilesTest2 extends BaasTestBase {
 
     public void testCanCreateAFileFromInputStreams(){
         BaasFile file = new BaasFile();
+
         ByteArrayInputStream in = new ByteArrayInputStream(IN_MEMORY.getBytes());
 
         BaasResult<BaasFile> rt =file.upload(in, BaasHandler.NOOP).await();
@@ -158,13 +159,15 @@ public class FilesTest2 extends BaasTestBase {
 
     public void testCanFetchExtractedContent(){
         BaasFile f = new BaasFile();
-        BaasResult<BaasFile> res = f.uploadSync(IN_MEMORY.getBytes(Charset.defaultCharset()));
+        String text = "ciao";
+        BaasResult<BaasFile> res = f.uploadSync(text.getBytes(Charset.defaultCharset()));
         assertTrue(res.isSuccess());
         BaasResult<String> content = res.value().extractedContent(BaasHandler.NOOP).await();
         assertTrue(res.isSuccess());
-        assertEquals(IN_MEMORY,content.value());
+        assertEquals(text+"\n",content.value());
+
         BaasResult<String> contentSync = res.value().extractedContentSync();
-        assertEquals(IN_MEMORY,contentSync.value());
+        assertEquals(text+"\n",contentSync.value());
     }
 
 
