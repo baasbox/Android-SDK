@@ -15,6 +15,7 @@
 
 package com.baasbox.android.test;
 
+import com.baasbox.android.BaasHandler;
 import com.baasbox.android.BaasResult;
 import com.baasbox.android.BaasUser;
 import com.baasbox.android.test.common.BaasTestBase;
@@ -42,6 +43,7 @@ public class UserTest extends BaasTestBase {
         createUser(FRIEND,PASSWORD,"friend2","reg2");
         createUser(USERNAME,PASSWORD,"mefriend","mereg");
     }
+
 
     public void testCanListUsers(){
         BaasResult<List<BaasUser>> res = BaasUser.fetchAll(null).await();

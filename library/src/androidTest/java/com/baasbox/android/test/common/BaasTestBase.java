@@ -32,6 +32,7 @@ public class BaasTestBase extends TestBase {
     protected BaasBox box;
     private Handler mHandler;
     private final String IP_ADDRESS = "192.168.56.1";
+    private final String EMU_ADDRESS = "10.0.2.2";
 
     @Override
     protected void beforeClass() throws Exception {
@@ -43,7 +44,7 @@ public class BaasTestBase extends TestBase {
 
     protected BaasBox initBaasbox(BaasBox.Config.AuthType auth) {
         BaasBox.Builder builder = new BaasBox.Builder(getContext());
-        return builder.setApiDomain(IP_ADDRESS)
+        return builder.setApiDomain(EMU_ADDRESS)
                 .setAuthentication(auth)
                 .setSessionTokenExpires(false)
                 .init();

@@ -236,6 +236,19 @@ public class DocumentsTest extends BaasTestBase{
         }
     }
 
+    public void testCannotRefreshUnboundDocument(){
+        BaasDocument doc = new BaasDocument("coll");
+        boolean hasThrown = false;
+        try {
+
+            BaasResult<BaasDocument> d = doc.refreshSync();
+        } catch (IllegalStateException e){
+            hasThrown = true;
+        } catch (Exception e){
+            fail();
+        }
+        assertTrue(hasThrown);
+    }
     private void createDoc(int i){
         BaasDocument d = new BaasDocument(testColl).put("n", i);
         assertTrue(d.saveSync().isSuccess());

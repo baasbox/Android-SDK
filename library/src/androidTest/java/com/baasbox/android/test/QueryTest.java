@@ -99,6 +99,54 @@ public class QueryTest extends BaasTestBase{
 
     }
 
+    public void  testBuildUpon(){
+        BaasQuery query1 = BaasQuery.builder().collection(COLLECTION)
+                    .where("n = 2").build();
+        BaasQuery query2 = query1.buildUpon().or("n = 3").build();
+        String s = query2.toString();
+        Logger.debug("R: %s",s);
+
+        BaasResult<List<JsonObject>> r = query2.querySync();
+
+        try {
+            int size = r.get().size();
+            assertEquals(2,size);
+        }catch (BaasException e){
+            fail();
+        }
+    }
+    public void testOrCondition(){
+        BaasQuery q = BaasQuery.builder().collection(COLLECTION)
+                .where("n = ?")
+                .or("title = \"fun\"")
+                .whereParams(2)
+                .build();
+        BaasResult<List<JsonObject>> r = q.querySync();
+        try {
+            List<JsonObject> jsonObjects = r.get();
+            assertEquals(2,jsonObjects.size());
+        } catch (BaasException e){
+            fail();
+        }
+
+    }
+
+    public void testAndCondition(){
+        BaasQuery q= BaasQuery.builder().collection(COLLECTION)
+                .where("n >= ?")
+                .and("n <= ?")
+                .whereParams(2, 3)
+                .build();
+        RequestToken t = q.query(BaasHandler.NOOP);
+        BaasResult<List<JsonObject>> p = t.await();
+        try {
+            int size = p.get().size();
+            assertEquals(2,size);
+        } catch (BaasException e){
+            fail();
+        }
+    }
+
     public void testQueryCollections(){
         final BaasQuery q =
                 BaasQuery.builder()

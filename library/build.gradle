@@ -12,6 +12,7 @@ task wrapper(type: Wrapper) {
 }
 
 apply plugin: 'com.android.library'
+apply plugin: 'jacoco'
 apply plugin: 'maven'
 apply plugin: 'signing'
 
@@ -47,6 +48,17 @@ android {
     compileSdkVersion 19
     buildToolsVersion "19.1.0"
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_5
+        targetCompatibility JavaVersion.VERSION_1_5
+    }
+    jacoco {
+        version = '0.6.2.201302030002'
+    }
+
+    testOptions{
+
+    }
     defaultConfig {
         versionCode = majorVersion*10000+minorVersion*1000+patchVersion*100+sdkRevision
         versionName = version
@@ -54,6 +66,12 @@ android {
         buildConfigField "String", "MIN_API_VERSION", "\"${minMajorVersion}.${minMinorVersion}.${minPatchVersion}\""
         buildConfigField "String", "GIT_SHA", "\"${gitSha}\""
         buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
+    }
+
+    buildTypes {
+        debug {
+          testCoverageEnabled true
+        }
     }
 
     libraryVariants.all { variant ->
@@ -81,9 +99,6 @@ dependencies {
     provided 'com.github.bumptech.glide:glide:3.3.+'
     provided 'com.squareup.picasso:picasso:2.3.+'
 }
-
-
-
 
 task coreLibJar(type: Jar) {
     from fileTree(dir: 'build/intermediates/classes/release').matching { 'com/baasbox/android/**' }

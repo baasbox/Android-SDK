@@ -83,6 +83,27 @@ public class BaasQuery {
         this.params=originalBuilder.toParams();
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("BaasQuery<");
+        sb.append("mode: ").append(modeString(mode)).append(",");
+        sb.append("on: ").append(String.valueOf(collOrUsr)).append(",");
+        if (params != null){
+            for (RequestFactory.Param p: params){
+                sb.append(p.paramName).append(": ").append(p.paramValue).append(",");
+            }
+
+        }
+        sb.setLength(sb.length()-1);
+        sb.append(">");
+        return sb.toString();
+    }
+
+    private String modeString(int mode) {
+        return null;
+    }
+
     public RequestToken query(BaasHandler<List<JsonObject>> handler){
         return query(collOrUsr, RequestOptions.DEFAULT,handler);
     }
@@ -306,6 +327,7 @@ public class BaasQuery {
                 if(whereBuilder ==null){
                     whereBuilder = new StringBuilder(where.length()+16);
                 }
+
                 whereBuilder.append(where);
             }
             return this;
@@ -313,10 +335,13 @@ public class BaasQuery {
 
         public Builder and(String where){
             if (where != null){
-                if (whereBuilder ==null){
+                if (whereBuilder == null){
                     whereBuilder = new StringBuilder(where.length()+16);
                 }
-                whereBuilder.insert(0,"(").append(") AND ").append(where);
+                if (whereBuilder.length()>0) {
+                    whereBuilder.insert(0, "(").append(") AND ");
+                }
+                whereBuilder.append(where);
             }
             return this;
         }
@@ -326,7 +351,10 @@ public class BaasQuery {
                 if (whereBuilder ==null){
                     whereBuilder = new StringBuilder(where.length()+16);
                 }
-                whereBuilder.insert(0,"(").append(") OR ").append(where);
+                if (whereBuilder.length()>0) {
+                    whereBuilder.insert(0, "(").append(") OR ");
+                }
+                whereBuilder.append(where);
             }
             return this;
         }

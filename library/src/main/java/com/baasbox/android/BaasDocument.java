@@ -430,28 +430,11 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return box.submitSync(delete);
     }
 
-    public static RequestToken create(String collection, BaasHandler<BaasDocument> handler) {
-        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
-        BaasDocument doc = new BaasDocument(collection);
-        return doc.save(SaveMode.IGNORE_VERSION, RequestOptions.DEFAULT, handler);
-    }
-
     public RequestToken save(SaveMode mode, int flags, BaasHandler<BaasDocument> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (mode == null) throw new IllegalArgumentException("mode cannot be null");
         Save save = new Save(box, mode, this, flags, handler);
         return box.submitAsync(save);
-    }
-
-    public static RequestToken create(String collection, int flags, BaasHandler<BaasDocument> handler) {
-        if (collection == null) throw new IllegalArgumentException("collection cannot be null");
-        BaasDocument doc = new BaasDocument(collection);
-        return doc.save(SaveMode.IGNORE_VERSION, flags, handler);
-    }
-
-    public static BaasResult<BaasDocument> createSync(String collection) {
-        BaasDocument doc = new BaasDocument(collection);
-        return doc.saveSync(SaveMode.IGNORE_VERSION);
     }
 
     public BaasResult<BaasDocument> saveSync(SaveMode mode) {
