@@ -59,6 +59,34 @@ public class DocumentsTest extends BaasTestBase{
 
     }
 
+    public void testCanCountDocuments(){
+        BaasDocument doc = new BaasDocument(testColl);
+        assertTrue(doc.saveSync().isSuccess());
+        doc = new BaasDocument(testColl);
+        doc.put("ciao","ciao");
+        assertTrue(doc.saveSync().isSuccess());
+
+        RequestToken c = BaasDocument.count(testColl, new BaasHandler<Long>() {
+            @Override
+            public void handle(BaasResult<Long> result) {
+
+            }
+        });
+        BaasResult<Long> await = c.await();
+        assertTrue(await.isSuccess());
+        assertEquals(2l,await.value().longValue());
+
+        BaasQuery.Criteria where = BaasQuery.builder().where("ciao = ?").whereParams("ciao").criteria();
+        RequestToken c2 = BaasDocument.count(testColl,where,new BaasHandler<Long>() {
+            @Override
+            public void handle(BaasResult<Long> result) {
+
+            }
+        });
+        BaasResult<Long> await2 = c2.await();
+        assertTrue(await2.isSuccess());
+        assertEquals(1l,await.value().longValue());
+    }
 
     public void testCanCreateDocument(){
         BaasDocument doc = new BaasDocument(testColl);
