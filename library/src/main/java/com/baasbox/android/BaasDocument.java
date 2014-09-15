@@ -1265,7 +1265,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         @Override
         protected HttpRequest request(BaasBox box) {
             String ep = box.requestFactory.getEndpoint("document/{}/count", collection);
-            if (params == null) {
+            if (params != null) {
                 return box.requestFactory.get(ep, params);
             } else {
                 return box.requestFactory.get(ep);
