@@ -4,7 +4,6 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.13.2'
-        //file('gradle/BBDoclet-1.0.jar')
     }
 }
 
@@ -23,8 +22,8 @@ repositories {
 
 // versioning
 def majorVersion = 0
-def minorVersion = 8
-def patchVersion = 4
+def minorVersion = 9
+def patchVersion = 0
 def sdkRevision  = 0 // sdk revision of a release
 
 
