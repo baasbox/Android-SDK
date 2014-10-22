@@ -3,12 +3,13 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.12.2'
+        classpath 'com.android.tools.build:gradle:0.13.2'
+        //file('gradle/BBDoclet-1.0.jar')
     }
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.12'
+    gradleVersion = '2.1'
 }
 
 apply plugin: 'com.android.library'
@@ -43,15 +44,12 @@ def buildTime ={
     new Date().format("yyyy-MM-dd'T'HH:m'Z'", TimeZone.getTimeZone("UTC"))
 }()
 
+
 // android configuration
 android {
-    compileSdkVersion 19
-    buildToolsVersion "19.1.0"
+    compileSdkVersion 21
+    buildToolsVersion "21.0.1"
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_5
-        targetCompatibility JavaVersion.VERSION_1_5
-    }
     jacoco {
         version = '0.6.2.201302030002'
     }
@@ -59,13 +57,21 @@ android {
     testOptions{
 
     }
+
     defaultConfig {
-        versionCode = majorVersion*10000+minorVersion*1000+patchVersion*100+sdkRevision
-        versionName = version
+        versionCode  majorVersion*10000+minorVersion*1000+patchVersion*100+sdkRevision
+        versionName  version
         buildConfigField "String", "API_VERSION", "\"${majorVersion}.${minorVersion}.${patchVersion}\""
         buildConfigField "String", "MIN_API_VERSION", "\"${minMajorVersion}.${minMinorVersion}.${minPatchVersion}\""
         buildConfigField "String", "GIT_SHA", "\"${gitSha}\""
         buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
+        minSdkVersion 10
+        targetSdkVersion 21
+    }
+
+    compileOptions {
+        sourceCompatibility  JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
     }
 
     buildTypes {
@@ -74,18 +80,23 @@ android {
         }
     }
 
+
+
+
+
     libraryVariants.all { variant ->
         task("generate${variant.name}Javadoc", type: Javadoc) {
             description "Generates Javadoc for $variant.name."
             source = variant.javaCompile.source
             ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
             destinationDir = file('docs');
-            exclude "**/impl/**"
-            exclude "**/BuildConfig**"
-
+            //exclude "**/impl/**"
+            //exclude "**/BuildConfig**"
+            exclude "com/baasbox/android/R.java"
             failOnError = false
-            options {
-            }
+            options.docletpath = [file("./doclets/BBDoclet-1.0.jar")]
+            options.doclet = 'com.baasbox.tools.BaasDoclet'
+
             classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
         }
     }
@@ -93,11 +104,10 @@ android {
 }
 
 dependencies {
-    provided 'com.android.support:support-v4:19.+'
-    provided 'com.google.android.gms:play-services:5.2.+'
-    provided 'com.squareup.okhttp:okhttp:2.0.+'
+    provided 'com.android.support:support-v4:+'
+    provided 'com.google.android.gms:play-services:+'
+    provided 'com.squareup.okhttp:okhttp:2.+'
     provided 'com.github.bumptech.glide:glide:3.3.+'
-    provided 'com.squareup.picasso:picasso:2.3.+'
 }
 
 task coreLibJar(type: Jar) {

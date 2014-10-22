@@ -222,6 +222,10 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         }
     }
 
+    @Deprecated
+    public JsonArray addBoolean(boolean value){
+        return add(value);
+    }
     /**
      * Adds the value at the end of this array
      *
@@ -233,6 +237,11 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return this;
     }
 
+
+    @Deprecated
+    public JsonArray addString(String value){
+        return add(value);
+    }
     /**
      * Adds the value at the end of this array
      *
@@ -244,6 +253,11 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return this;
     }
 
+
+    @Deprecated
+    public JsonArray addLong(long value){
+        return add(value);
+    }
     /**
      * Adds the value at the end of this array
      *
@@ -253,6 +267,12 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     public JsonArray add(long value) {
         list.add(value);
         return this;
+    }
+
+
+    @Deprecated
+    public JsonArray addDouble(double value){
+        return add(value);
     }
 
     public JsonArray add(double d) {
@@ -265,15 +285,41 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return this;
     }
 
+
+    @Deprecated
+    public JsonArray addObject(JsonObject value){
+        return add(value);
+    }
+
     public JsonArray add(JsonObject o) {
         list.add(o);
         return this;
+    }
+
+
+    @Deprecated
+    public JsonArray addArray(JsonArray value){
+        return add(value);
     }
 
     public JsonArray add(JsonArray a) {
         list.add(a);
         return this;
     }
+
+
+    @Deprecated
+    public JsonArray addBinary(byte[] v) {
+        list.add(v == null ? null : Base64.encode(v, Base64.NO_WRAP));
+        return this;
+    }
+
+
+    public JsonArray add(byte[] v) {
+        list.add(v == null ? null : Base64.encode(v, Base64.NO_WRAP));
+        return this;
+    }
+
 
 // ------------------------ CANONICAL METHODS ------------------------
 
@@ -362,11 +408,6 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
     }
 
 // -------------------------- OTHER METHODS --------------------------
-
-    public JsonArray add(byte[] v) {
-        list.add(v == null ? null : Base64.encode(v, Base64.NO_WRAP));
-        return this;
-    }
 
 //    public JsonArray add(JsonStructure s) {
 //        if (s instanceof JsonArray) add((JsonArray) s);
@@ -617,7 +658,21 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return o;
     }
 
+    @Deprecated
+    public JsonArray setArray(int index, JsonArray value) {
+        list.set(index, value);
+        return this;
+    }
+
+
     public JsonArray set(int index, JsonArray value) {
+        list.set(index, value);
+        return this;
+    }
+
+
+    @Deprecated
+    public JsonArray setBinary(int index, byte[] value) {
         list.set(index, value);
         return this;
     }
@@ -627,6 +682,12 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return this;
     }
 
+
+    @Deprecated
+    public JsonArray setBoolean(int index, boolean value) {
+        list.set(index, value);
+        return this;
+    }
     /**
      * Sets the content at index to the value passed as parameter
      *
@@ -639,7 +700,21 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return this;
     }
 
+
+    @Deprecated
+    public JsonArray setDouble(int index, double value) {
+        list.set(index, value);
+        return this;
+    }
+
     public JsonArray set(int index, double value) {
+        list.set(index, value);
+        return this;
+    }
+
+
+    @Deprecated
+    public JsonArray setLong(int index, long value) {
         list.set(index, value);
         return this;
     }
@@ -661,7 +736,21 @@ public class JsonArray extends JsonStructure implements Iterable<Object>, Parcel
         return this;
     }
 
+
+    @Deprecated
+    public JsonArray setObject(int index, JsonObject value) {
+        list.set(index, value);
+        return this;
+    }
+
     public JsonArray set(int index, JsonObject value) {
+        list.set(index, value);
+        return this;
+    }
+
+
+    @Deprecated
+    public JsonArray setString(int index, String value) {
         list.set(index, value);
         return this;
     }

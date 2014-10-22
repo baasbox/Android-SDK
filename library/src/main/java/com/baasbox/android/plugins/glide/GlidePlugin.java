@@ -35,6 +35,12 @@ public final class GlidePlugin extends Plugin<Plugin.Options.Empty>{
 
     private GlidePlugin(){}
 
+    /**
+     * @hide
+     * @param context
+     * @param box
+     * @param empty
+     */
     @Override
     protected void setup(Context context, BaasBox box,Options.Empty empty) {
         Glide glide = Glide.get(context);
