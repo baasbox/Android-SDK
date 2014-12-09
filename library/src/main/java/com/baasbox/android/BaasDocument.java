@@ -335,7 +335,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      * @param collection the collection to count not <code>null</code>
      * @return the result of the request
      */
-    public static BaasResult<Long> counSync(String collection) {
+    public static BaasResult<Long> countSync(String collection) {
         return countSync(collection, null);
     }
 

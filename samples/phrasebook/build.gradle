@@ -19,7 +19,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.14.2'
+        classpath 'com.android.tools.build:gradle:1.0.0'
     }
 }
 apply plugin: 'com.android.application'
@@ -44,7 +44,7 @@ android {
     buildTypes {
         release {
 //            buildConfigField "String", "SENDERID", "\"${project.hasProperty("aloa.projectid")?project.property("aloa.projectid"):""}\""
-            runProguard false
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         debug{
