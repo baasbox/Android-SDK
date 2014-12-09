@@ -80,18 +80,6 @@ class HttpUrlConnectionClient implements RestClient {
 
 // --------------------------- CONSTRUCTORS ---------------------------
     HttpUrlConnectionClient() {
-//        this.config = config;
-//
-//        if (config.useHttps) {
-//            if (config.keystoreRes!=0){
-//               this.mSSLSocketFactory = createSocketFactory(context,config.keystoreRes,config.password);
-//               this.mHostVerifier = ACCEPT_ALL;
-//                HttpsURLConnection.setDefaultSSLSocketFactory(mSSLSocketFactory);
-//                HttpsURLConnection.setDefaultHostnameVerifier(mHostVerifier);
-//            }
-//        }
-//        disableReuseConnectionIfNecessary(config.useHttps);
-//        enableHttpCacheIfAvailable(context, HTTP_CACHE_SIZE);
     }
 
     @Override
