@@ -19,6 +19,7 @@ import android.net.Uri;
 
 import com.baasbox.android.impl.Base64;
 import com.baasbox.android.impl.Logger;
+import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 
@@ -80,6 +81,22 @@ class RequestFactory {
 
 // -------------------------- OTHER METHODS --------------------------
 
+    public HttpRequest any(int method,String endpoint, JsonArray array){
+        switch (method) {
+            case HttpRequest.GET:
+                return get(endpoint);
+            case HttpRequest.POST:
+                return post(endpoint, array);
+            case HttpRequest.PUT:
+                return put(endpoint, array);
+            case HttpRequest.DELETE:
+                return delete(endpoint);
+            case HttpRequest.PATCH:
+                throw new UnsupportedOperationException("method not supported");
+            default:
+                throw new IllegalArgumentException("method is not valid");
+        }
+    }
     public HttpRequest any(int method, String endpoint, JsonObject body) {
         switch (method) {
             case HttpRequest.GET:
@@ -101,6 +118,22 @@ class RequestFactory {
         return get(endpoint, null, (Param[]) null);
     }
 
+    public HttpRequest post(String uri,JsonArray array){
+        InputStream body = null;
+        Map<String, String> headers = null;
+        if (array != null) {
+            byte[] bytes = null;
+            try {
+                bytes = array.toString().getBytes(config.httpCharset);
+            } catch (UnsupportedEncodingException e) {
+                throw new BaasRuntimeException("Charset "+config.httpCharset+" is not supported",e);
+            }
+            headers = setContentType(headers, config, JSON_CONTENT, bytes.length);
+            body = new ByteArrayInputStream(bytes);
+        }
+        return post(uri, headers, body);
+
+    }
     public HttpRequest post(String uri, JsonObject object) {
         InputStream body = null;
         Map<String, String> headers = null;
@@ -122,6 +155,22 @@ class RequestFactory {
         headers.put(CONTENT_HEADER, contentType + config.httpCharset);
         headers.put(CONTENT_LENGTH, Integer.toString(length));
         return headers;
+    }
+
+    public HttpRequest put(String uri, JsonArray object) {
+        InputStream body = null;
+        Map<String, String> headers = null;
+        if (object != null) {
+            byte[] bytes = null;
+            try {
+                bytes = object.toString().getBytes(config.httpCharset);
+            } catch (UnsupportedEncodingException e) {
+                throw new BaasRuntimeException("Charset "+config.httpCharset+" is not supported",e);
+            }
+            headers = setContentType(headers, config, JSON_CONTENT, bytes.length);
+            body = new ByteArrayInputStream(bytes);
+        }
+        return put(uri, headers, body);
     }
 
     public HttpRequest put(String uri, JsonObject object) {
@@ -283,7 +332,7 @@ class RequestFactory {
     }
 
     public HttpRequest put(String uri) {
-        return put(uri, null);
+        return put(uri, (JsonObject)null);
     }
 
     public HttpRequest put(String uri, Map<String, String> headers, InputStream body) {
