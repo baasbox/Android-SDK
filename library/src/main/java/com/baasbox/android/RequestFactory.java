@@ -90,7 +90,7 @@ class RequestFactory {
             case HttpRequest.PUT:
                 return put(endpoint, array);
             case HttpRequest.DELETE:
-                return delete(endpoint);
+                return delete(endpoint,array);
             case HttpRequest.PATCH:
                 throw new UnsupportedOperationException("method not supported");
             default:
@@ -106,7 +106,7 @@ class RequestFactory {
             case HttpRequest.PUT:
                 return put(endpoint, body);
             case HttpRequest.DELETE:
-                return delete(endpoint);
+                return delete(endpoint,body);
             case HttpRequest.PATCH:
                 throw new UnsupportedOperationException("method not supported");
             default:
@@ -190,7 +190,44 @@ class RequestFactory {
     }
 
     public HttpRequest delete(String endpoint) {
-        return delete(endpoint, null, null);
+        return delete(endpoint, null, (Map<String,String>)null);
+    }
+
+    public HttpRequest delete(String uri,JsonArray array){
+        InputStream body = null;
+        Map<String, String> headers = null;
+        if (array != null) {
+            byte[] bytes = null;
+            try {
+                bytes = array.toString().getBytes(config.httpCharset);
+            } catch (UnsupportedEncodingException e) {
+                throw new BaasRuntimeException("Charset "+config.httpCharset+" is not supported",e);
+            }
+            headers = setContentType(headers, config, JSON_CONTENT, bytes.length);
+            body = new ByteArrayInputStream(bytes);
+        }
+        return delete(uri, headers, body);
+
+    }
+    public HttpRequest delete(String uri, JsonObject object) {
+        InputStream body = null;
+        Map<String, String> headers = null;
+        if (object != null) {
+            byte[] bytes = null;
+            try {
+                bytes = object.toString().getBytes(config.httpCharset);
+            } catch (UnsupportedEncodingException e) {
+                throw new BaasRuntimeException("Charset "+config.httpCharset+" is not supported",e);
+            }
+            headers = setContentType(headers, config, JSON_CONTENT, bytes.length);
+            body = new ByteArrayInputStream(bytes);
+        }
+        return delete(uri, headers, body);
+    }
+
+    public HttpRequest delete(String uri, Map<String, String> headers, InputStream body) {
+        headers = fillHeaders(headers, config, credentials.currentUser());
+        return new HttpRequest(HttpRequest.DELETE, uri, headers, body);
     }
 
     public HttpRequest delete(String endpoint, Map<String, String> headers) {
@@ -205,6 +242,16 @@ class RequestFactory {
         }
         return new HttpRequest(HttpRequest.DELETE, endpoint, headers, null);
     }
+
+    public HttpRequest delete(String endpoint, Map<String, String> headers,Map<String,String>query, InputStream body) {
+        headers = fillHeaders(headers, config, credentials.currentUser());
+        if (query != null) {
+            String queryUrl = encodeParams(query, config.httpCharset);
+            endpoint = endpoint + "?" + queryUrl;
+        }
+        return new HttpRequest(HttpRequest.DELETE, endpoint, headers, body);
+    }
+
 
     private static Map<String, String> fillHeaders(Map<String, String> headers, BaasBox.Config config, BaasUser credentials) {
         headers = headers == null ? new HashMap<String, String>() : headers;

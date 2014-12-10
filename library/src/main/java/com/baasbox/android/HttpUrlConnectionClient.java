@@ -229,6 +229,7 @@ class HttpUrlConnectionClient implements RestClient {
                     break;
                 case HttpRequest.DELETE:
                     connection.setRequestMethod("DELETE");
+                    addBody(request,connection);
                     break;
                 case HttpRequest.PATCH:
                     connection.setRequestMethod("PATCH");
