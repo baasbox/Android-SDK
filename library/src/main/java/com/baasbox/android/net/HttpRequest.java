@@ -53,6 +53,7 @@ public class HttpRequest {
             sb.append(header.getKey() + ":" + header.getValue());
         }
         sb.append("}}");
+
         return sb.toString();
     }
 
