@@ -158,7 +158,7 @@ public class SendMessageActivity extends BaseActivity{
 
     private void subscribeToChannel() {
         //todo implement subscription
-        Aloa.box().rest(HttpRequest.PUT,"scripts/channels/"+mTarget,null,true,subscribeHandler);
+        Aloa.box().rest(HttpRequest.PUT,"scripts/channels/"+mTarget,(JsonObject)null,true,subscribeHandler);
     }
 
     private void sendMessage(){

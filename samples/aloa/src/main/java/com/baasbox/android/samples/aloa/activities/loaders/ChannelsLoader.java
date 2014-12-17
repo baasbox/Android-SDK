@@ -58,6 +58,6 @@ public class ChannelsLoader extends BaasLoader<JsonObject,List<String>> {
 
     @Override
     protected RequestToken load(BaasHandler<JsonObject> handler) {
-        return Aloa.box().rest(HttpRequest.GET,"scripts/channels",null,true,handler);
+        return Aloa.box().rest(HttpRequest.GET,"scripts/channels",(JsonObject)null,true,handler);
     }
 }

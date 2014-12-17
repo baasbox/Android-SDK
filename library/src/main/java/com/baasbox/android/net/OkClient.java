@@ -90,9 +90,15 @@ public class OkClient implements RestClient{
     public HttpResponse execute(HttpRequest request) throws BaasException {
         String contentType = request.headers.get("Content-Type");
         Request.Builder okRequestBuilder = new Request.Builder();
-
+        boolean contentLengthSet = false;
         for (String name: request.headers.keySet()){
+            if ("Content-Length".equals(name)){
+                contentLengthSet = true;
+            }
             okRequestBuilder.addHeader(name,request.headers.get(name));
+        }
+        if (!contentLengthSet){
+            okRequestBuilder.addHeader("Content-Length","0");
         }
         switch (request.method){
             case HttpRequest.GET:
@@ -104,6 +110,7 @@ public class OkClient implements RestClient{
                 break;
             case HttpRequest.PUT:
                 okRequestBuilder.put(new InputRequestBody(contentType,request.body));
+
                 break;
             case HttpRequest.DELETE:
                 okRequestBuilder.delete();
@@ -113,6 +120,7 @@ public class OkClient implements RestClient{
                 break;
 
         }
+
         okRequestBuilder.url(request.url);
         Request okRequest=okRequestBuilder.build();
         try {

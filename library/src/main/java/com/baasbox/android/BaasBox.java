@@ -22,6 +22,7 @@ import android.util.Patterns;
 import com.baasbox.android.impl.Dispatcher;
 import com.baasbox.android.impl.ImmediateDispatcher;
 import com.baasbox.android.impl.Task;
+import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
@@ -207,15 +208,48 @@ public class BaasBox {
      * @param flags    bitmask of flags for the request {@see Flags}
      * @param method   the method to use
      * @param endpoint the resource
-     * @param body     an optional jsono bject
+     * @param body     an optional json array
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
-    public RequestToken rest(int method, String endpoint, JsonObject body, int flags, BaasHandler<JsonObject> jsonHandler) {
+    public RequestToken rest(int method, String endpoint, JsonArray body, int flags,boolean authenticate, BaasHandler<JsonObject> jsonHandler) {
         if (endpoint == null) throw new IllegalArgumentException("endpoint cannot be null");
         endpoint = requestFactory.getEndpointRaw(endpoint);
         HttpRequest any = requestFactory.any(method, endpoint, body);
-        RawRequest request = new RawRequest(this, any, flags, jsonHandler);
+        RawRequest request = new RawRequest(this, any, flags,authenticate, jsonHandler);
         return submitAsync(request);
+    }
+
+    /**
+     * Asynchronously sends a raw rest request to the server that is specified by
+     * the parameters passed in
+     *
+     * @param flags    bitmask of flags for the request {@see Flags}
+     * @param method   the method to use
+     * @param endpoint the resource
+     * @param body     an optional json object
+     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
+     */
+    public RequestToken rest(int method, String endpoint, JsonObject body, int flags,boolean authenticate, BaasHandler<JsonObject> jsonHandler) {
+        if (endpoint == null) throw new IllegalArgumentException("endpoint cannot be null");
+        endpoint = requestFactory.getEndpointRaw(endpoint);
+        HttpRequest any = requestFactory.any(method, endpoint, body);
+        RawRequest request = new RawRequest(this, any, flags,authenticate, jsonHandler);
+        return submitAsync(request);
+    }
+
+    /**
+     * Asynchronously sends a raw rest request to the server that is specified by
+     * the parameters passed in.
+     *
+     * @param method       the method to use
+     * @param endpoint     the resource
+     * @param body         an optional jsono bject
+     * @param authenticate true if the client should try to refresh authentication automatically
+     * @param handler      a callback to handle the json response
+     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
+     */
+    public RequestToken rest(int method, String endpoint, JsonArray body, boolean authenticate, BaasHandler<JsonObject> handler) {
+        return rest(method, endpoint, body, 0,authenticate, handler);
     }
     /**
      * Asynchronously sends a raw rest request to the server that is specified by
@@ -229,7 +263,24 @@ public class BaasBox {
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
     public RequestToken rest(int method, String endpoint, JsonObject body, boolean authenticate, BaasHandler<JsonObject> handler) {
-        return rest(method, endpoint, body, 0, handler);
+        return rest(method, endpoint, body, 0,authenticate, handler);
+    }
+
+    /**
+     * Synchronously sends a raw rest request to the server that is specified by
+     * the parameters passed in.
+     *
+     * @param method       the method to use
+     * @param endpoint     the resource
+     * @param body         an optional jsono bject
+     * @param authenticate true if the client should try to refresh authentication automatically
+     * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
+     */
+    public BaasResult<JsonObject> restSync(int method, String endpoint, JsonArray body, boolean authenticate) {
+        RequestFactory factory = requestFactory;
+        endpoint = factory.getEndpointRaw(endpoint);
+        HttpRequest any = factory.any(method, endpoint, body);
+        return submitSync(new RawRequest(this, any, RequestOptions.DEFAULT,authenticate, null));
     }
 
     /**
@@ -246,7 +297,7 @@ public class BaasBox {
         RequestFactory factory = requestFactory;
         endpoint = factory.getEndpointRaw(endpoint);
         HttpRequest any = factory.any(method, endpoint, body);
-        return submitSync(new RawRequest(this, any, RequestOptions.DEFAULT, null));
+        return submitSync(new RawRequest(this, any, RequestOptions.DEFAULT,authenticate, null));
     }
 
     boolean resume(RequestToken token, BaasHandler<?> handler) {
@@ -590,8 +641,8 @@ public class BaasBox {
     private static class RawRequest extends NetworkTask<JsonObject> {
         HttpRequest request;
 
-        protected RawRequest(BaasBox box, HttpRequest request, int flags, BaasHandler<JsonObject> handler) {
-            super(box, flags, handler);
+        protected RawRequest(BaasBox box, HttpRequest request, int flags,boolean authenticate, BaasHandler<JsonObject> handler) {
+            super(box, flags, handler,authenticate);
             this.request = request;
         }
 

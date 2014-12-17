@@ -3,8 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.13.2'
-        //file('gradle/BBDoclet-1.0.jar')
+        classpath 'com.android.tools.build:gradle:1.0.0'
     }
 }
 
@@ -23,8 +22,8 @@ repositories {
 
 // versioning
 def majorVersion = 0
-def minorVersion = 8
-def patchVersion = 4
+def minorVersion = 9
+def patchVersion = 0
 def sdkRevision  = 0 // sdk revision of a release
 
 
@@ -105,7 +104,7 @@ android {
 
 dependencies {
     provided 'com.android.support:support-v4:+'
-    provided 'com.google.android.gms:play-services:+'
+    provided 'com.google.android.gms:play-services-base:6.5.+'
     provided 'com.squareup.okhttp:okhttp:2.+'
     provided 'com.github.bumptech.glide:glide:3.3.+'
 }

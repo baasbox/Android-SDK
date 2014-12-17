@@ -27,7 +27,12 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.baasbox.android.BaasBox;
+import com.baasbox.android.BaasCloudMessagingService;
+import com.baasbox.android.BaasHandler;
+import com.baasbox.android.BaasResult;
 import com.baasbox.android.BaasUser;
+import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.samples.aloa.R;
 import com.baasbox.android.samples.aloa.utils.BaseActivity;
 

@@ -19,6 +19,7 @@ import android.net.Uri;
 
 import com.baasbox.android.impl.Base64;
 import com.baasbox.android.impl.Logger;
+import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 
@@ -80,6 +81,22 @@ class RequestFactory {
 
 // -------------------------- OTHER METHODS --------------------------
 
+    public HttpRequest any(int method,String endpoint, JsonArray array){
+        switch (method) {
+            case HttpRequest.GET:
+                return get(endpoint);
+            case HttpRequest.POST:
+                return post(endpoint, array);
+            case HttpRequest.PUT:
+                return put(endpoint, array);
+            case HttpRequest.DELETE:
+                return delete(endpoint,array);
+            case HttpRequest.PATCH:
+                throw new UnsupportedOperationException("method not supported");
+            default:
+                throw new IllegalArgumentException("method is not valid");
+        }
+    }
     public HttpRequest any(int method, String endpoint, JsonObject body) {
         switch (method) {
             case HttpRequest.GET:
@@ -89,7 +106,7 @@ class RequestFactory {
             case HttpRequest.PUT:
                 return put(endpoint, body);
             case HttpRequest.DELETE:
-                return delete(endpoint);
+                return delete(endpoint,body);
             case HttpRequest.PATCH:
                 throw new UnsupportedOperationException("method not supported");
             default:
@@ -101,6 +118,22 @@ class RequestFactory {
         return get(endpoint, null, (Param[]) null);
     }
 
+    public HttpRequest post(String uri,JsonArray array){
+        InputStream body = null;
+        Map<String, String> headers = null;
+        if (array != null) {
+            byte[] bytes = null;
+            try {
+                bytes = array.toString().getBytes(config.httpCharset);
+            } catch (UnsupportedEncodingException e) {
+                throw new BaasRuntimeException("Charset "+config.httpCharset+" is not supported",e);
+            }
+            headers = setContentType(headers, config, JSON_CONTENT, bytes.length);
+            body = new ByteArrayInputStream(bytes);
+        }
+        return post(uri, headers, body);
+
+    }
     public HttpRequest post(String uri, JsonObject object) {
         InputStream body = null;
         Map<String, String> headers = null;
@@ -124,6 +157,22 @@ class RequestFactory {
         return headers;
     }
 
+    public HttpRequest put(String uri, JsonArray object) {
+        InputStream body = null;
+        Map<String, String> headers = null;
+        if (object != null) {
+            byte[] bytes = null;
+            try {
+                bytes = object.toString().getBytes(config.httpCharset);
+            } catch (UnsupportedEncodingException e) {
+                throw new BaasRuntimeException("Charset "+config.httpCharset+" is not supported",e);
+            }
+            headers = setContentType(headers, config, JSON_CONTENT, bytes.length);
+            body = new ByteArrayInputStream(bytes);
+        }
+        return put(uri, headers, body);
+    }
+
     public HttpRequest put(String uri, JsonObject object) {
         InputStream body = null;
         Map<String, String> headers = null;
@@ -141,7 +190,44 @@ class RequestFactory {
     }
 
     public HttpRequest delete(String endpoint) {
-        return delete(endpoint, null, null);
+        return delete(endpoint, null, (Map<String,String>)null);
+    }
+
+    public HttpRequest delete(String uri,JsonArray array){
+        InputStream body = null;
+        Map<String, String> headers = null;
+        if (array != null) {
+            byte[] bytes = null;
+            try {
+                bytes = array.toString().getBytes(config.httpCharset);
+            } catch (UnsupportedEncodingException e) {
+                throw new BaasRuntimeException("Charset "+config.httpCharset+" is not supported",e);
+            }
+            headers = setContentType(headers, config, JSON_CONTENT, bytes.length);
+            body = new ByteArrayInputStream(bytes);
+        }
+        return delete(uri, headers, body);
+
+    }
+    public HttpRequest delete(String uri, JsonObject object) {
+        InputStream body = null;
+        Map<String, String> headers = null;
+        if (object != null) {
+            byte[] bytes = null;
+            try {
+                bytes = object.toString().getBytes(config.httpCharset);
+            } catch (UnsupportedEncodingException e) {
+                throw new BaasRuntimeException("Charset "+config.httpCharset+" is not supported",e);
+            }
+            headers = setContentType(headers, config, JSON_CONTENT, bytes.length);
+            body = new ByteArrayInputStream(bytes);
+        }
+        return delete(uri, headers, body);
+    }
+
+    public HttpRequest delete(String uri, Map<String, String> headers, InputStream body) {
+        headers = fillHeaders(headers, config, credentials.currentUser());
+        return new HttpRequest(HttpRequest.DELETE, uri, headers, body);
     }
 
     public HttpRequest delete(String endpoint, Map<String, String> headers) {
@@ -156,6 +242,16 @@ class RequestFactory {
         }
         return new HttpRequest(HttpRequest.DELETE, endpoint, headers, null);
     }
+
+    public HttpRequest delete(String endpoint, Map<String, String> headers,Map<String,String>query, InputStream body) {
+        headers = fillHeaders(headers, config, credentials.currentUser());
+        if (query != null) {
+            String queryUrl = encodeParams(query, config.httpCharset);
+            endpoint = endpoint + "?" + queryUrl;
+        }
+        return new HttpRequest(HttpRequest.DELETE, endpoint, headers, body);
+    }
+
 
     private static Map<String, String> fillHeaders(Map<String, String> headers, BaasBox.Config config, BaasUser credentials) {
         headers = headers == null ? new HashMap<String, String>() : headers;
@@ -283,7 +379,7 @@ class RequestFactory {
     }
 
     public HttpRequest put(String uri) {
-        return put(uri, null);
+        return put(uri, (JsonObject)null);
     }
 
     public HttpRequest put(String uri, Map<String, String> headers, InputStream body) {

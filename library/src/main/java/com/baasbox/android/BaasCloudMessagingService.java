@@ -120,6 +120,7 @@ public final class BaasCloudMessagingService {
     }
 
     public static class MessageBuilder{
+        private static final int MAX_TTL =2419200;
         private BaasBox box;
 
         private String message;
@@ -127,6 +128,8 @@ public final class BaasCloudMessagingService {
         private Integer badge;
         private String actionLocalizedKey;
         private String localizedKey;
+        private String collapseKey;
+        private int ttl =-1;
         private String[] localizedArguments;
         private JsonObject body;
         private Set<Integer> profiles = new HashSet<Integer>();
@@ -157,6 +160,21 @@ public final class BaasCloudMessagingService {
             for (int p:profiles){
                 this.profiles.add(p);
             }
+            return this;
+        }
+
+        public MessageBuilder timeToLive(int ttl){
+            if (ttl<0){
+                ttl = -1;
+            } else if(ttl>MAX_TTL){
+                ttl = MAX_TTL;
+            }
+            this.ttl = ttl;
+            return this;
+        }
+
+        public MessageBuilder collapseKey(String key){
+            this.collapseKey=key;
             return this;
         }
 
@@ -250,6 +268,12 @@ public final class BaasCloudMessagingService {
             }
             if (badge!=null){
                 m.put("badge", badge.longValue());
+            }
+            if (ttl!=-1){
+                m.put("time_to_live",(long)ttl);
+            }
+            if (collapseKey!=null){
+                m.put("collapse_key",collapseKey);
             }
             return m;
         }
