@@ -20,6 +20,8 @@ import android.os.Build;
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
+import com.squareup.okhttp.internal.http.RetryableSink;
+
 import org.apache.http.*;
 import org.apache.http.conn.scheme.HostNameResolver;
 import org.apache.http.entity.BasicHttpEntity;
@@ -41,6 +43,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
+
+import okio.Buffer;
 
 /**
  * Created by eto on 23/12/13.
@@ -256,6 +260,7 @@ class HttpUrlConnectionClient implements RestClient {
             while ((reads = in.read(buffer)) != -1) {
                 out.write(buffer, 0, reads);
             }
+            out.flush();
         } finally {
             in.close();
             out.close();
