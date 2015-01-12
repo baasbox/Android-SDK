@@ -30,6 +30,7 @@ import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpRequestFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
@@ -50,8 +51,13 @@ import okio.Source;
  */
 public class OkClient implements RestClient{
 
-    private OkHttpClient mOkHttp;
+    private static final byte[] ZERO_BYTES=new byte[0];
 
+    private OkHttpClient mOkHttp;
+    private String charset;
+    public OkClient() { this(new OkHttpClient());}
+
+    @Deprecated
     public OkClient(BaasBox.Config config){
         this(new OkHttpClient());
     }
@@ -62,6 +68,7 @@ public class OkClient implements RestClient{
 
     @Override
     public void init(Context context, BaasBox.Config config) {
+        this.charset=config.httpCharset;
         mOkHttp.setConnectTimeout(config.httpConnectionTimeout, TimeUnit.MILLISECONDS);
         mOkHttp.setReadTimeout(config.httpSocketTimeout,TimeUnit.MILLISECONDS);
         mOkHttp.setFollowSslRedirects(true);
@@ -86,13 +93,21 @@ public class OkClient implements RestClient{
         }
     }
 
+    private RequestBody buildBody(String contentType,InputStream bodyData) {
+        if (bodyData==null){
+            return RequestBody.create(MediaType.parse("application/json;charset=" + charset), "{}");
+        } else {
+            return new InputRequestBody(contentType,bodyData);
+        }
+    }
+
     @Override
     public HttpResponse execute(HttpRequest request) throws BaasException {
         String contentType = request.headers.get("Content-Type");
         Request.Builder okRequestBuilder = new Request.Builder();
         boolean contentLengthSet = false;
         for (String name: request.headers.keySet()){
-            if ("Content-Length".equals(name)){
+            if (!contentLengthSet &&"Content-Length".equals(name)){
                 contentLengthSet = true;
             }
             okRequestBuilder.addHeader(name,request.headers.get(name));
@@ -100,23 +115,26 @@ public class OkClient implements RestClient{
         if (!contentLengthSet){
             okRequestBuilder.addHeader("Content-Length","0");
         }
+        RequestBody rb;
         switch (request.method){
             case HttpRequest.GET:
                 okRequestBuilder.get();
                 break;
             case HttpRequest.POST:
-                InputRequestBody rb = new InputRequestBody(contentType,request.body);
+                rb = buildBody(contentType,request.body);
+                //InputRequestBody rb = new InputRequestBody(contentType,request.body);
                 okRequestBuilder.post(rb);
                 break;
             case HttpRequest.PUT:
-                okRequestBuilder.put(new InputRequestBody(contentType,request.body));
-
+                rb = buildBody(contentType,request.body);
+                okRequestBuilder.put(rb);
                 break;
             case HttpRequest.DELETE:
                 okRequestBuilder.delete();
                 break;
             case HttpRequest.PATCH:
-                okRequestBuilder.patch(new InputRequestBody(contentType,request.body));
+                rb = buildBody(contentType,request.body);
+                okRequestBuilder.patch(rb);
                 break;
 
         }
