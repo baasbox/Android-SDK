@@ -256,7 +256,7 @@ public final class BaasCloudMessagingService {
                 m.put("localizedKey", localizedKey);
             }
             if (localizedArguments!=null && localizedArguments.length>0){
-                JsonArray args = JsonArray.of(localizedArguments);
+                JsonArray args = JsonArray.of((Object[])localizedArguments);
                 m.put("localizedArguments", args);
             }
             if (profiles.size()>0){

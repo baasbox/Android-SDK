@@ -643,7 +643,7 @@ public class BaasFile extends BaasObject implements Parcelable{
     }
 
     public RequestToken upload(byte[] bytes, int flags, BaasHandler<BaasFile> handler) {
-        return upload(new BaasACL(), bytes, flags, handler);
+        return upload(BaasACL.builder().build(), bytes, flags, handler);
     }
 
     public RequestToken upload(BaasACL acl, byte[] bytes, BaasHandler<BaasFile> handler) {

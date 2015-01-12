@@ -47,7 +47,7 @@ def buildTime ={
 // android configuration
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.0.1"
+    buildToolsVersion "21.1.2"
 
     jacoco {
         version = '0.6.2.201302030002'

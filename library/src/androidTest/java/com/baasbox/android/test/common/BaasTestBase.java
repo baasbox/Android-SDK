@@ -24,6 +24,7 @@ import com.baasbox.android.Rest;
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
+import com.baasbox.android.net.OkClient;
 import com.baasbox.android.test.R;
 
 /**
@@ -44,9 +45,10 @@ public class BaasTestBase extends TestBase {
     }
 
     protected BaasBox initBaasbox(BaasBox.Config.AuthType auth) {
-        BaasBox.Builder builder = new BaasBox.Builder(getContext());
+        BaasBox.Builder builder = BaasBox.builder(getContext());
         return builder.setApiDomain(EMU_ADDRESS)
                 .setAuthentication(auth)
+                .setRestClient(new OkClient())
                 .setSessionTokenExpires(false)
                 .init();
     }
