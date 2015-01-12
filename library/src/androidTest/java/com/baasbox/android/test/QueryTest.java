@@ -37,9 +37,9 @@ public class QueryTest extends BaasTestBase{
         asAdmin(new Runnable() {
             @Override
             public void run() {
-                BaasResult<JsonObject> res = box.restSync(HttpRequest.POST, "admin/collection/" + COLLECTION, null, true);
+                BaasResult<JsonObject> res = BaasBox.rest().sync(Rest.Method.POST, "admin/collection/" + COLLECTION, null, true);
                 assertTrue(res.isSuccess());
-                res = box.restSync(HttpRequest.POST,"admin/collection/"+ALT_COLLECTION,null,true);
+                res = BaasBox.rest().sync(Rest.Method.POST, "admin/collection/" + ALT_COLLECTION, null, true);
                 assertTrue(res.isSuccess());
                 createDocuments();
             }

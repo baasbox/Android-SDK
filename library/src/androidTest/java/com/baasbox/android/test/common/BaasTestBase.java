@@ -20,6 +20,7 @@ import android.os.Looper;
 import com.baasbox.android.BaasBox;
 import com.baasbox.android.BaasResult;
 import com.baasbox.android.BaasUser;
+import com.baasbox.android.Rest;
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
@@ -58,7 +59,7 @@ public class BaasTestBase extends TestBase {
         asAdmin(new Runnable() {
             @Override
             public void run() {
-                BaasResult<JsonObject> o = BaasBox.getDefault().restSync(HttpRequest.DELETE, "admin/db/0", null, true);
+                BaasResult<JsonObject> o = BaasBox.rest().sync(Rest.Method.DELETE, "admin/db/0", null, true);
                 if (o.isFailed()) fail(o.toString());
             }
         });

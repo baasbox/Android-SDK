@@ -20,6 +20,7 @@ package com.baasbox.android.test;
 import android.os.Bundle;
 import android.os.Parcel;
 
+import com.baasbox.android.BaasBox;
 import com.baasbox.android.BaasDocument;
 import com.baasbox.android.BaasException;
 import com.baasbox.android.BaasHandler;
@@ -30,6 +31,7 @@ import com.baasbox.android.BaasResult;
 import com.baasbox.android.BaasUser;
 import com.baasbox.android.RequestOptions;
 import com.baasbox.android.RequestToken;
+import com.baasbox.android.Rest;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.test.common.BaasTestBase;
@@ -53,7 +55,7 @@ public class LinkTest extends BaasTestBase{
         asAdmin(new Runnable() {
             @Override
             public void run() {
-                BaasResult<JsonObject> res = box.restSync(HttpRequest.POST,"admin/collection/"+TESTCOLL,null,true);
+                BaasResult<JsonObject> res = BaasBox.rest().sync(Rest.Method.POST, "admin/collection/" + TESTCOLL, null, true);
                 assertTrue(res.isSuccess());
             }
         });

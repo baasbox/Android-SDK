@@ -51,7 +51,7 @@ public class DocumentsTest extends BaasTestBase{
         asAdmin(new Runnable() {
             @Override
             public void run() {
-                BaasResult<JsonObject> res = box.restSync(HttpRequest.POST, "admin/collection/" + testColl, null, true);
+                BaasResult<JsonObject> res = BaasBox.rest().sync(Rest.Method.POST, "admin/collection/" + testColl, null, true);
                 assertTrue(res.isSuccess());
             }
         });
@@ -182,7 +182,7 @@ public class DocumentsTest extends BaasTestBase{
         String id = res.value().getObject("data").getString("id");
         BaasResult<BaasDocument> doc = BaasDocument.fetchSync(testColl, id);
         assertTrue(doc.isSuccess());
-        BaasResult<JsonObject> res2 = box.restSync(HttpRequest.GET,"/document/"+testColl+"/"+id,null,true);
+        BaasResult<JsonObject> res2 = BaasBox.rest().sync(Rest.Method.GET, "/document/" + testColl + "/" + id, null, true);
         assertTrue(res2.isSuccess());
         JsonObject rawData = res2.value().getObject("data");
         assertEquals(rawData,doc.value().toJson());
