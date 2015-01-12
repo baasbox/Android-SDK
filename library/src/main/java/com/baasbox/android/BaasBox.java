@@ -100,6 +100,7 @@ public class BaasBox {
     final Context context;
     private BaasCloudMessagingService messagingService;
 
+    private final Rest mRest;
     private final Dispatcher asyncDispatcher;
     private final ImmediateDispatcher syncDispatcher;
 
@@ -118,6 +119,7 @@ public class BaasBox {
         this.syncDispatcher = new ImmediateDispatcher();
         this.asyncDispatcher = new Dispatcher(this);
         this.messagingService=new BaasCloudMessagingService(this);
+        this.mRest = new RestImpl(this);
         for (Pair<Plugin<?>,Plugin.Options> p: plugins){
             Plugin<Plugin.Options> first = (Plugin<Plugin.Options>) p.first;
             Plugin.Options opt = p.second;
@@ -172,6 +174,14 @@ public class BaasBox {
         return BaasBox.getDefaultChecked().messagingService;
     }
 
+    /**
+     * Returns the raw passthrough rest client
+     * @return Rest
+     */
+    public static Rest rest(){
+        return BaasBox.getDefaultChecked().mRest;
+    }
+
     static BaasBox getDefaultChecked() {
         if (sDefaultClient == null)
             throw new IllegalStateException("Trying to use implicit client, but no default initialized");
@@ -211,12 +221,9 @@ public class BaasBox {
      * @param body     an optional json array
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
+    @Deprecated
     public RequestToken rest(int method, String endpoint, JsonArray body, int flags,boolean authenticate, BaasHandler<JsonObject> jsonHandler) {
-        if (endpoint == null) throw new IllegalArgumentException("endpoint cannot be null");
-        endpoint = requestFactory.getEndpointRaw(endpoint);
-        HttpRequest any = requestFactory.any(method, endpoint, body);
-        RawRequest request = new RawRequest(this, any, flags,authenticate, jsonHandler);
-        return submitAsync(request);
+        return mRest.async(RestImpl.methodFrom(method),endpoint,body,authenticate,flags,jsonHandler);
     }
 
     /**
@@ -229,12 +236,9 @@ public class BaasBox {
      * @param body     an optional json object
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
+    @Deprecated
     public RequestToken rest(int method, String endpoint, JsonObject body, int flags,boolean authenticate, BaasHandler<JsonObject> jsonHandler) {
-        if (endpoint == null) throw new IllegalArgumentException("endpoint cannot be null");
-        endpoint = requestFactory.getEndpointRaw(endpoint);
-        HttpRequest any = requestFactory.any(method, endpoint, body);
-        RawRequest request = new RawRequest(this, any, flags,authenticate, jsonHandler);
-        return submitAsync(request);
+        return mRest.async(RestImpl.methodFrom(method),endpoint,body,authenticate,jsonHandler);
     }
 
     /**
@@ -248,6 +252,7 @@ public class BaasBox {
      * @param handler      a callback to handle the json response
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
+    @Deprecated
     public RequestToken rest(int method, String endpoint, JsonArray body, boolean authenticate, BaasHandler<JsonObject> handler) {
         return rest(method, endpoint, body, 0,authenticate, handler);
     }
@@ -262,6 +267,7 @@ public class BaasBox {
      * @param handler      a callback to handle the json response
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
+    @Deprecated
     public RequestToken rest(int method, String endpoint, JsonObject body, boolean authenticate, BaasHandler<JsonObject> handler) {
         return rest(method, endpoint, body, 0,authenticate, handler);
     }
@@ -276,11 +282,9 @@ public class BaasBox {
      * @param authenticate true if the client should try to refresh authentication automatically
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
+    @Deprecated
     public BaasResult<JsonObject> restSync(int method, String endpoint, JsonArray body, boolean authenticate) {
-        RequestFactory factory = requestFactory;
-        endpoint = factory.getEndpointRaw(endpoint);
-        HttpRequest any = factory.any(method, endpoint, body);
-        return submitSync(new RawRequest(this, any, RequestOptions.DEFAULT,authenticate, null));
+        return mRest.sync(RestImpl.methodFrom(method),endpoint,body,authenticate);
     }
 
     /**
@@ -293,12 +297,11 @@ public class BaasBox {
      * @param authenticate true if the client should try to refresh authentication automatically
      * @return a raw {@link com.baasbox.android.json.JsonObject} response wrapped as {@link com.baasbox.android.BaasResult}
      */
+    @Deprecated
     public BaasResult<JsonObject> restSync(int method, String endpoint, JsonObject body, boolean authenticate) {
-        RequestFactory factory = requestFactory;
-        endpoint = factory.getEndpointRaw(endpoint);
-        HttpRequest any = factory.any(method, endpoint, body);
-        return submitSync(new RawRequest(this, any, RequestOptions.DEFAULT,authenticate, null));
+        return mRest.sync(RestImpl.methodFrom(method),endpoint,body,authenticate);
     }
+
 
     boolean resume(RequestToken token, BaasHandler<?> handler) {
         return asyncDispatcher.resume(token.requestId, handler);
@@ -638,52 +641,5 @@ public class BaasBox {
         }
     }
 
-    private static class RawRequest extends NetworkTask<JsonObject> {
-        HttpRequest request;
-
-        protected RawRequest(BaasBox box, HttpRequest request, int flags,boolean authenticate, BaasHandler<JsonObject> handler) {
-            super(box, flags, handler,authenticate);
-            this.request = request;
-        }
-
-        @Override
-        protected JsonObject onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            return parseJson(response, box);
-        }
-
-        @Override
-        protected HttpRequest request(BaasBox box) {
-            return request;
-        }
-    }
-
-    private static final class RegisterPush extends NetworkTask<Void> {
-        private final String registrationId;
-        private final boolean enable;
-
-        protected RegisterPush(BaasBox box, String registrationId,boolean enable,
-                               int flags, BaasHandler<Void> handler) {
-            super(box, flags, handler);
-            this.registrationId = registrationId;
-            this.enable = enable;
-        }
-
-        @Override
-        protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            // todo since we know the used registrationId we can save and remove it from the preferences
-            // so we don't need it again to unregister.
-
-            return null;
-        }
-
-        @Override
-        protected HttpRequest request(BaasBox box) {
-            String pushEnable = "push/device/android/{}"; //0.7.3
-            pushEnable = "push/enable/android/{}"; //0.7.4
-            String pushDisable = "push/disable/{}";
-            String endpoint=enable?pushEnable:pushDisable;
-            return box.requestFactory.put(box.requestFactory.getEndpoint(endpoint, registrationId));
-        }
-    }
 
 }
