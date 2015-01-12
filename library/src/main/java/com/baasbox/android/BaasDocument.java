@@ -853,11 +853,6 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return this;
     }
 
-    @Deprecated
-    public BaasDocument putArray(String name, JsonArray value) {
-        data.put(checkKey(name), value);
-        return this;
-    }
 
     /**
      * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonArray} <code>value</code>
@@ -882,11 +877,6 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return key;
     }
 
-    @Deprecated
-    public BaasDocument putBinary(String name, byte[] value) {
-        data.put(checkKey(name), value);
-        return this;
-    }
     /**
      * Associate <code>name</code> key to the <code>byte[]</code> <code>value</code>
      * in this document.
@@ -901,11 +891,6 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return this;
     }
 
-    @Deprecated
-    public BaasDocument putBoolean(String name, boolean value) {
-        data.put(checkKey(name), value);
-        return this;
-    }
     /**
      * Associate <code>name</code> key to the <code>boolean</code> <code>value</code>
      * in this document.
@@ -919,11 +904,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return this;
     }
 
-    @Deprecated
-    public BaasDocument putDouble(String name, double value) {
-        data.put(checkKey(name), value);
-        return this;
-    }
+
     /**
      * Associate <code>name</code> key to the <code>double</code> <code>value</code>
      * in this document.
@@ -937,11 +918,6 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return this;
     }
 
-    @Deprecated
-    public BaasDocument putLong(String name, long value) {
-        data.put(checkKey(name), value);
-        return this;
-    }
     /**
      * Associate <code>name</code> key to the <code>long</code> <code>value</code>
      * in this document.
@@ -971,11 +947,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return this;
     }
 
-    @Deprecated
-    public BaasDocument putObject(String name, JsonObject value) {
-        data.put(checkKey(name), value);
-        return this;
-    }
+
     /**
      * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonObject} <code>value</code>
      * in this document.
@@ -989,12 +961,6 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return this;
     }
 
-
-    @Deprecated
-    public BaasDocument putString(String name, String value) {
-        data.put(checkKey(name), value);
-        return this;
-    }
     /**
      * Associate <code>name</code> key to the {@link java.lang.String} <code>value</code>
      * in this document.

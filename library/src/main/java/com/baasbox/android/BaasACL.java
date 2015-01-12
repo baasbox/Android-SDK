@@ -37,13 +37,10 @@ public class BaasACL {
     EnumMap<Grant,Set<String>> rolesGrants;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    /**
-     * Creates a new empty set of grants.
-     */
-    @Deprecated
-    public BaasACL() {
-        this.usersGrants=new EnumMap<Grant, Set<String>>(Grant.class);
-        this.rolesGrants=new EnumMap<Grant, Set<String>>(Grant.class);
+
+    private BaasACL(EnumMap<Grant,Set<String>> userGrants,EnumMap<Grant,Set<String>> roleGrants){
+        this.rolesGrants = roleGrants.clone();
+        this.usersGrants = userGrants.clone();
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -182,31 +179,6 @@ public class BaasACL {
         return new Builder(this.usersGrants,this.rolesGrants);
     }
 
-    /**
-     * Adds the given grant to the list of roles passed in
-     *
-     * @param grant the grant to give
-     * @param roles one or more roles
-     * @return a new BaasAcl with grants added
-     */
-    @Deprecated
-    public BaasACL grantRoles(Grant grant, String... roles) {
-        BaasACL acl =buildUpon().roles(grant,roles).build();
-        return acl;
-    }
-
-    /**
-     * Adds the given grant to the list of users
-     *
-     * @param grant a grant to add
-     * @param usrs  the users to give the grant to
-     * @return this BaasAcl with the grants added
-     */
-    @Deprecated
-    public BaasACL grantUsers(Grant grant, String... usrs) {
-        BaasACL acl =buildUpon().users(grant, usrs).build();
-        return acl;
-    }
 
     JsonObject toJson() {
         if (this.permissions==null){
@@ -216,10 +188,6 @@ public class BaasACL {
     }
 
 
-    private BaasACL(EnumMap<Grant,Set<String>> userGrants,EnumMap<Grant,Set<String>> roleGrants){
-        this.rolesGrants = roleGrants.clone();
-        this.usersGrants = userGrants.clone();
-    }
 
     private JsonObject parseGrants() {
         JsonObject precomputed = null;
