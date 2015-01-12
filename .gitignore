@@ -32,3 +32,5 @@ build/**
 dev-config.gradle
 dev-config/**
 gradle.properties
+
+samples/googleauthenticate/**
