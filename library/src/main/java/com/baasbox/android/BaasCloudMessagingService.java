@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import com.baasbox.android.impl.GCMWrapper;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
+import com.baasbox.android.json.JsonStructure;
 import com.baasbox.android.net.HttpRequest;
 import org.apache.http.HttpResponse;
 
@@ -121,6 +122,20 @@ public final class BaasCloudMessagingService {
 
     public static class MessageBuilder{
         private static final int MAX_TTL =2419200;
+        private static final String MESSAGE = "message";
+        private static final String USERS = "users";
+        private static final String PROFILES = "profiles";
+        private static final String SOUND = "sound";
+        private static final String BADGE = "badge";
+        private static final String ACTION_LOCALIZED_KEY="actionLocalizedKey";
+        private static final String LOCALIZED_KEY="localizedKey";
+        private static final String LOCALIZED_ARGUMENTS="localizedArguments";
+        private static final String CUSTOM="custom";
+        private static final String COLLAPSE_KEY="collapse_key";
+        private static final String TTL="time_to_live";
+        private static final String CONTENT_AVAILABLE="content-available";
+        private static final String CATEGORY="category";
+
         private BaasBox box;
 
         private String message;
@@ -131,10 +146,12 @@ public final class BaasCloudMessagingService {
         private String collapseKey;
         private int ttl =-1;
         private String[] localizedArguments;
-        private JsonObject body;
+        private JsonStructure body;
         private Set<Integer> profiles = new HashSet<Integer>();
 
         private List<String> users = new ArrayList<String>();
+        private boolean contentAvailable = false;
+        private String category = null;
 
         private MessageBuilder(BaasBox box){
             this.box=box;
@@ -178,6 +195,10 @@ public final class BaasCloudMessagingService {
             return this;
         }
 
+        public MessageBuilder extra(JsonArray body) {
+            this.body = body;
+            return this;
+        }
         public MessageBuilder extra(JsonObject body){
             this.body=body;
             return this;
@@ -199,6 +220,17 @@ public final class BaasCloudMessagingService {
             this.users.add(user);
             return this;
         }
+
+        public MessageBuilder contentAvailable(boolean isAvailable){
+            this.contentAvailable = isAvailable;
+            return this;
+        }
+
+        public MessageBuilder category(String category){
+            this.category = category;
+            return this;
+        }
+
 
         public MessageBuilder actionLocalizedKey(String key){
             this.actionLocalizedKey=key;
@@ -241,39 +273,49 @@ public final class BaasCloudMessagingService {
                 to.add(u);
             }
             JsonObject m = new JsonObject();
-            m.put("message", message)
-             .put("users", to);
+            m.put(MESSAGE, message)
+             .put(USERS, to);
             if (body!=null){
-                m.put("custom", body);
+                if (body instanceof JsonObject){
+                    m.put(CUSTOM,(JsonObject)body);
+                } else if (body instanceof JsonArray){
+                    m.put(CUSTOM,(JsonArray)body);
+                }
             }
             if (sound!=null){
-                m.put("sound", sound);
+                m.put(SOUND, sound);
             }
             if (actionLocalizedKey!=null){
-                m.put("actionLocalizedKey", actionLocalizedKey);
+                m.put(ACTION_LOCALIZED_KEY, actionLocalizedKey);
             }
             if (localizedKey!=null){
-                m.put("localizedKey", localizedKey);
+                m.put(LOCALIZED_KEY, localizedKey);
             }
             if (localizedArguments!=null && localizedArguments.length>0){
                 JsonArray args = JsonArray.of((Object[])localizedArguments);
-                m.put("localizedArguments", args);
+                m.put(LOCALIZED_ARGUMENTS, args);
             }
             if (profiles.size()>0){
                 JsonArray profiles = new JsonArray();
                 for (int i: this.profiles){
                     profiles.add(i);
                 }
-                m.put("profiles", profiles);
+                m.put(PROFILES, profiles);
             }
             if (badge!=null){
-                m.put("badge", badge.longValue());
+                m.put(BADGE, badge.longValue());
             }
             if (ttl!=-1){
-                m.put("time_to_live",(long)ttl);
+                m.put(TTL,(long)ttl);
             }
             if (collapseKey!=null){
-                m.put("collapse_key",collapseKey);
+                m.put(COLLAPSE_KEY,collapseKey);
+            }
+            if (contentAvailable){
+                m.put(CONTENT_AVAILABLE,1);
+            }
+            if (category!=null){
+                m.put(CATEGORY,category);
             }
             return m;
         }
