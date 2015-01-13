@@ -915,24 +915,6 @@ public class BaasUser implements Parcelable {
         return box.submitSync(task);
     }
 
-    @Deprecated
-    public RequestToken send(JsonObject message, BaasHandler<Void> handler) {
-        return send(message, RequestOptions.DEFAULT, handler);
-    }
-
-    @Deprecated
-    public RequestToken send(JsonObject message, int flags, BaasHandler<Void> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Push push = new Push(box, username, message, flags, handler);
-        return box.submitAsync(push);
-    }
-
-    @Deprecated
-    public BaasResult<Void> sendSync(JsonObject message) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        Push push = new Push(box, username, message, RequestOptions.DEFAULT, null);
-        return box.submitSync(push);
-    }
 
     /**
      * Sets the password for this user.
@@ -1130,29 +1112,6 @@ public class BaasUser implements Parcelable {
             body.put("oauth_token", token);
             body.put("oauth_secret", secret);
             return box.requestFactory.post(endpoint, body);
-        }
-    }
-
-    @Deprecated
-    private static class Push extends NetworkTask<Void> {
-        private final String name;
-        private final JsonObject message;
-
-        protected Push(BaasBox box, String user, JsonObject message, int flags, BaasHandler<Void> handler) {
-            super(box, flags, handler);
-            this.name = user;
-            this.message = message;
-        }
-
-        @Override
-        protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            return null;
-        }
-
-        @Override
-        protected HttpRequest request(BaasBox box) {
-            String endpoint = box.requestFactory.getEndpoint("push/message/{}", name);
-            return box.requestFactory.post(endpoint, message);
         }
     }
 

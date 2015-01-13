@@ -20,9 +20,11 @@ import android.os.Looper;
 import com.baasbox.android.BaasBox;
 import com.baasbox.android.BaasResult;
 import com.baasbox.android.BaasUser;
+import com.baasbox.android.Rest;
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
+import com.baasbox.android.net.OkClient;
 import com.baasbox.android.test.R;
 
 /**
@@ -43,9 +45,10 @@ public class BaasTestBase extends TestBase {
     }
 
     protected BaasBox initBaasbox(BaasBox.Config.AuthType auth) {
-        BaasBox.Builder builder = new BaasBox.Builder(getContext());
+        BaasBox.Builder builder = BaasBox.builder(getContext());
         return builder.setApiDomain(EMU_ADDRESS)
                 .setAuthentication(auth)
+                .setRestClient(new OkClient())
                 .setSessionTokenExpires(false)
                 .init();
     }
@@ -58,7 +61,7 @@ public class BaasTestBase extends TestBase {
         asAdmin(new Runnable() {
             @Override
             public void run() {
-                BaasResult<JsonObject> o = BaasBox.getDefault().restSync(HttpRequest.DELETE, "admin/db/0", null, true);
+                BaasResult<JsonObject> o = BaasBox.rest().sync(Rest.Method.DELETE, "admin/db/0", null, true);
                 if (o.isFailed()) fail(o.toString());
             }
         });

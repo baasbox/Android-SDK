@@ -254,11 +254,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         }
     }
 
-    @Deprecated
-    public JsonObject putString(String name,String value){
-        return put(name,value);
-    }
-
     /**
      * Associate <code>name</code> key to the {@link java.lang.String} <code>value</code>
      * in this object.
@@ -270,11 +265,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     public JsonObject put(String name, String value) {
         putValue(name,value);
         return this;
-    }
-
-    @Deprecated
-    public JsonObject putBoolean(String name,boolean value){
-        return put(name,value);
     }
 
     /**
@@ -290,10 +280,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         return this;
     }
 
-    @Deprecated
-    public JsonObject putLong(String name,long value){
-        return put(name,value);
-    }
     /**
      * Associate <code>name</code> key to the <code>long</code> <code>value</code>
      * in this object.
@@ -305,11 +291,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
     public JsonObject put(String name, long value) {
         putValue(name,value);
         return this;
-    }
-
-    @Deprecated
-    public JsonObject putDouble(String name,double value){
-        return put(name,value);
     }
 
     /**
@@ -341,11 +322,6 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
         return this;
     }
 
-    @Deprecated
-    public JsonObject putArray(String name,JsonArray value){
-        return put(name,value);
-    }
-
     /**
      * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonArray} <code>value</code>
      * in this object.
@@ -369,11 +345,7 @@ public class JsonObject extends JsonStructure implements Iterable<Map.Entry<Stri
 
     }
 
-    @Deprecated
-    public JsonObject putObject(String name,JsonObject value){
-        return put(name,value);
-    }
-    /**
+     /**
      * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonObject} <code>value</code>
      * in this object.
      *

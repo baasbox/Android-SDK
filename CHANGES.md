@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.9.1
+
+### Changes
+    * Removed deprecated methods
+    * Deprecated rest and restSync in favor of a rest interface accessible through
+      BaasBox.rest()
+
+
 ## 0.8.3
 
 ### Changes
