@@ -26,6 +26,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.baasbox.android.BaasBox;
+import com.baasbox.android.BaasCloudMessagingService;
 import com.baasbox.android.BaasException;
 import com.baasbox.android.BaasHandler;
 import com.baasbox.android.BaasResult;
@@ -198,8 +200,12 @@ public class SendMessageActivity extends BaseActivity{
 
 
     private void sendToUser(String user,String message){
-        JsonObject msg = new JsonObject().put("message", message);
-        mCurrentRequest =BaasUser.withUserName(user).send(msg,sendToUserHandler);
+       // JsonObject msg = new JsonObject().put("message", message);
+        BaasCloudMessagingService service = BaasBox.messagingService();
+        mCurrentRequest =service.newMessage()
+                                .text(message)
+                                .to(BaasUser.withUserName(user))
+                                .send(sendToUserHandler);
     }
 
     private void sendToChannel(String channel,String message){

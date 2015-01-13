@@ -7,6 +7,12 @@
     * Deprecated rest and restSync in favor of a rest interface accessible through
       BaasBox.rest()
 
+### Features
+    * Added support to all keys of the push api
+
+### Bugs
+    * Fixed #32
+
 
 ## 0.8.3
 
