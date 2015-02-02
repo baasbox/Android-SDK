@@ -1,6 +1,5 @@
 package com.baasbox.android;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
@@ -23,8 +22,6 @@ abstract class StreamBody<R> implements DataStreamHandler<R> {
 
     @Override
     public final R endData(String id, long contentLength, String contentType) throws Exception {
-//        byte[] bArr = bos.arr();
-//        bArr = bArr.length==contentLength?bArr:bos.toByteArray();
         byte[] content = bos.data();
         return convert(content,id,contentType,contentLength);
     }
@@ -45,18 +42,9 @@ abstract class StreamBody<R> implements DataStreamHandler<R> {
         }
     }
 
-    // -------------------------- OTHER METHODS --------------------------
+// -------------------------- OTHER METHODS --------------------------
 
     protected abstract R convert(byte[] body, String id,String contentType,long contentLength);
 
-// -------------------------- INNER CLASSES --------------------------
 
-//    private static class ByteArrayOut extends ByteArrayOutputStream {
-//        ByteArrayOut(int minSize) {
-//        }
-//
-//        public byte[] arr() {
-//            return buf;
-//        }
-//    }
 }
