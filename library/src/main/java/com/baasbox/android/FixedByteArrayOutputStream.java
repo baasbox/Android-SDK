@@ -96,6 +96,6 @@ class FixedByteArrayOutputStream extends OutputStream {
 
     @Override
     public void close() throws IOException {
-
+        // ignore
     }
 }

@@ -37,7 +37,9 @@ abstract class StreamBody<R> implements DataStreamHandler<R> {
     @Override
     public final void finishStream(String stremId) {
         try {
-            bos.close();
+            if(bos != null){
+                bos.close();
+            }
         } catch (IOException e) {
             // swallow
         }

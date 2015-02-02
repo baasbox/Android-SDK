@@ -91,7 +91,8 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
             while ((read = in.read(data, 0, Math.min((int) available, data.length))) > 0) {
                 available -= read;
                 cacheStream.write(data, 0, read);
-                dataStream.onData(data,read);}
+                dataStream.onData(data,read);
+            }
             cacheStream.commit();
             result = dataStream.endData(streamId(), contentLength, contentType);
         } catch (IOException e) {
