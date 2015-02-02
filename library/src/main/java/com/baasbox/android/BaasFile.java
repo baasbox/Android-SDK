@@ -77,6 +77,21 @@ public class BaasFile extends BaasObject implements Parcelable{
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
+    public static BaasFile create(){
+        return new BaasFile();
+    }
+
+    public static BaasFile create(JsonObject attachedData) {
+        return new BaasFile(attachedData);
+    }
+
+    public static BaasFile from(JsonObject file){
+        if (!file.contains("@version") || !file.contains("_creationDate")||!file.contains("id")){
+            throw new IllegalArgumentException("This seems not to be a valid file representation");
+        }
+        return new BaasFile(file,true);
+    }
+
     public BaasFile() {
         this(new JsonObject(), false);
     }

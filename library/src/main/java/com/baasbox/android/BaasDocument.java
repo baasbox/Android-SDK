@@ -85,6 +85,21 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return new BaasDocument(data);
     }
 
+    public static BaasDocument create(String collection,String id){
+        BaasDocument doc = new BaasDocument(collection);
+        doc.id = id;
+        return doc;
+    }
+
+    public static BaasDocument create(String collection){
+        return new BaasDocument(collection);
+    }
+
+    public static BaasDocument create(String collection,JsonObject initialData){
+        return new BaasDocument(collection,initialData);
+    }
+
+
     BaasDocument(JsonObject o) {
         super();
         JsonWrapper data = new JsonWrapper(o);
