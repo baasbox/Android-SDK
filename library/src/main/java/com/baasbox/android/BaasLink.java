@@ -366,6 +366,18 @@ public final class BaasLink implements Parcelable{
         }
     }
 
+    public JsonObject toJson() {
+        JsonObject o = new JsonObject();
+        o.put("label",this.label);
+        o.put("id",this.id);
+        o.put("author",this.author);
+        o.put("_creation_date",this.creationDate);
+        o.put("@version",this.version);
+        o.put("out",this.source.toJson());
+        o.put("in",this.destination.toJson());
+        return o;
+    }
+
     private void update(JsonObject data) {
         this.label=data.getString("label");
         this.id=data.getString("id");

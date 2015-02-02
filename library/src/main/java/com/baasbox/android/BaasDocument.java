@@ -114,6 +114,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return false;
     }
 
+    @Override
     public JsonObject toJson() {
         JsonObject json = data.copy();
         json.put("@class", collection);
@@ -852,6 +853,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         data.merge(o);
         return this;
     }
+
 
 
     /**

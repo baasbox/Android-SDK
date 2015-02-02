@@ -111,6 +111,21 @@ public class BaasFile extends BaasObject implements Parcelable{
         attachedData.setDirty(false);
     }
 
+    @Override
+    public JsonObject toJson() {
+        JsonObject o = new JsonObject();
+        o.put("attachedData",this.attachedData.asObject());
+        if (this.metaData!=null){
+            o.put("metadata",this.metaData);
+        }
+        o.put("id",this.id);
+        o.put("_creation_date",this.creationDate);
+        o.put("_author",this.author);
+        o.put("fileName",this.name);
+        o.put("contentLength",this.contentLength);
+        o.put("@version",this.version);
+        return o;
+    }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {

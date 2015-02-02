@@ -111,6 +111,7 @@ public class BaasUser implements Parcelable {
         this.signupDate = user.getString("signUpDate");
     }
 
+
     private static void addRoles(Set<String> roles, JsonArray jsonRoles) {
         for (Object roleSpec : jsonRoles) {
             String role = ((JsonObject) roleSpec).getString("name");
