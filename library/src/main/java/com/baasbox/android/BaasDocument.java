@@ -216,22 +216,6 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         this.data = values == null ? new JsonWrapper() : checkObject(JsonObject.from(values));
     }
 
-// -------------------------- STATIC METHODS --------------------------
-
-    private static JsonObject cleanObject(JsonObject data) {
-        if (data == null) return new JsonObject();
-        data.remove("id");
-        for (String k : data.fields()) {
-            char f = k.charAt(0);
-            switch (f) {
-                case '@':
-                case '_':
-                    data.remove(k);
-                    break;
-            }
-        }
-        return data;
-    }
 
     ///--------------------- REQUESTS ------------------------------
 
