@@ -484,12 +484,27 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         Refresh refresh = new Refresh(box, this,withAcl, RequestOptions.DEFAULT, null);
         return box.submitSync(refresh);
     }
-    
 
+
+    /**
+     * Asynchronously deletes the document with {@code id} from {@code collection} 
+     * @param collection the collection of the document
+     * @param id the id of the document
+     * @param handler a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     */
     public static RequestToken delete(String collection, String id, BaasHandler<Void> handler) {
         return delete(collection, id, RequestOptions.DEFAULT, handler);
     }
 
+    /**
+     * Asynchronously deletes the document with {@code id} from {@code collection}
+     * @param collection the collection of the document
+     * @param id the id of the document
+     * @param flags {@link RequestOptions}
+     * @param handler a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     */
     public static RequestToken delete(String collection, String id, int flags, BaasHandler<Void> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
@@ -498,6 +513,12 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return box.submitAsync(delete);
     }
 
+    /**
+     * Syncrhonously deletes the document with {@code id} from {@code collection} 
+     * @param collection the collection of the document
+     * @param id the id of the document
+     * @return the result of the request
+     */
     public static BaasResult<Void> deleteSync(String collection, String id) {
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         if (id == null) throw new IllegalArgumentException("id cannot be null");
@@ -506,42 +527,131 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return box.submitSync(delete);
     }
 
+    /**
+     * Asynchronously deletes this document on the serve 
+     * @param handler a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the request
+     */
+    public RequestToken delete(BaasHandler<Void> handler) {
+        return delete(RequestOptions.DEFAULT, handler);
+    }
+
+
+    /**
+     * Asyncrhonously deletes this document on the server.
+     * @param flags {@link com.baasbox.android.RequestOptions}
+     * @param handler a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the request
+     */
+    public RequestToken delete(int flags, BaasHandler<Void> handler) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (id == null)
+            throw new IllegalStateException("this document is not bound to any remote entity");
+        Delete delete = new Delete(box, this, flags, handler);
+        return box.submitAsync(delete);
+    }
+
+    /**
+     * Syncrhonously deletes this document on the server.
+     * @return the result of the request
+     */
+    public BaasResult<Void> deleteSync() {
+        if (id == null)
+            throw new IllegalStateException("this document is not bound to any remote entity");
+        BaasBox box = BaasBox.getDefaultChecked();
+        Delete delete = new Delete(box, this, RequestOptions.DEFAULT, null);
+        return box.submitSync(delete);
+    }
+
+    /**
+     * Asynchronously saves this document on the server ignoring its version.
+     * @param acl {@link com.baasbox.android.BaasACL} the initial acl settings
+     * @param handler a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the request.
+     */
     public RequestToken save(BaasACL acl,BaasHandler<BaasDocument> handler){
         return save(SaveMode.IGNORE_VERSION,acl,handler);
     }
-    
+
+    /**
+     * Asynchronously saves this document on the server ignoring its version.
+     * @param handler a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the request.
+     */
     public RequestToken save(BaasHandler<BaasDocument> handler) {
         return save(SaveMode.IGNORE_VERSION,null, RequestOptions.DEFAULT, handler);
     }
 
+    /**
+     * Asynchronously saves this document on the server.
+     * @param mode {@link com.baasbox.android.SaveMode}
+     * @param handler a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the request.
+     */
     public RequestToken save(SaveMode mode, BaasHandler<BaasDocument> handler) {
         return save(mode,null, RequestOptions.DEFAULT, handler);
     }
 
 
+    /**
+     * Asynchronously saves this document on the server, with initial {@link com.baasbox.android.BaasACL}.
+     * @param mode {@link com.baasbox.android.SaveMode}
+     * @param acl the initial acl settings 
+     * @param handler a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the request.
+     */
     public RequestToken save(SaveMode mode,BaasACL acl, BaasHandler<BaasDocument> handler) {
         return save(mode,acl, RequestOptions.DEFAULT, handler);
     }
 
+    /**
+     * Asynchronously saves this document on the server, with initial {@link com.baasbox.android.BaasACL}.
+     * @param mode {@link com.baasbox.android.SaveMode}
+     * @param acl the initial acl settings
+     * @param flags {@link com.baasbox.android.RequestOptions}
+     * @param handler a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the request.
+     */
     public RequestToken save(SaveMode mode,BaasACL acl, int flags, BaasHandler<BaasDocument> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (mode == null) throw new IllegalArgumentException("mode cannot be null");
         Save save = new Save(box, mode,acl, this, flags, handler);
         return box.submitAsync(save);
     }
-    
-    
+
+
+    /**
+     * Synchronously saves the document on the server ignoring it's version 
+     * @return the result of the request
+     */
     public BaasResult<BaasDocument> saveSync() {
         return saveSync(SaveMode.IGNORE_VERSION,null);
     }
 
+    /**
+     * Synchronously saves the document on the server
+     * @param mode {@link com.baasbox.android.SaveMode}
+     * @return the result of the request
+     */
     public BaasResult<BaasDocument> saveSync(SaveMode mode){
         return saveSync(mode,null);
     }
+
+    /**
+     * Synchronously saves the document on the server with initial acl
+     * @param acl {@link com.baasbox.android.BaasACL} the initial acl settings
+     * @return the result of the request
+     */
     public BaasResult<BaasDocument> saveSync(BaasACL acl){
         return saveSync(SaveMode.IGNORE_VERSION,acl);
     }
 
+    /**
+     * Synchronously saves the document on the server with initial acl
+     * @param mode {@link com.baasbox.android.SaveMode}
+     * @param acl {@link com.baasbox.android.BaasACL} the initial acl settings
+     * @return the result of the request
+     */
     public BaasResult<BaasDocument> saveSync(SaveMode mode,BaasACL acl) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (mode == null) throw new IllegalArgumentException("mode cannot be null");
@@ -638,25 +748,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return data.contains(name);
     }
 
-    public RequestToken delete(BaasHandler<Void> handler) {
-        return delete(RequestOptions.DEFAULT, handler);
-    }
-
-    public RequestToken delete(int flags, BaasHandler<Void> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (id == null)
-            throw new IllegalStateException("this document is not bound to any remote entity");
-        Delete delete = new Delete(box, this, flags, handler);
-        return box.submitAsync(delete);
-    }
-
-    public BaasResult<Void> deleteSync() {
-        if (id == null)
-            throw new IllegalStateException("this document is not bound to any remote entity");
-        BaasBox box = BaasBox.getDefaultChecked();
-        Delete delete = new Delete(box, this, RequestOptions.DEFAULT, null);
-        return box.submitSync(delete);
-    }
+    
 
     /**
      * Returns the value mapped to <code>name</code> as a {@link com.baasbox.android.json.JsonArray}
