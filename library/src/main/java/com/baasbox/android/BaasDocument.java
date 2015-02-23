@@ -74,6 +74,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
     private String creation_date;
     private String rid;
     private long version;
+    private BaasACL acl;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -366,35 +367,42 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      *
      * @param collection the collection to retrieve the document from. Not <code>null</code>
      * @param id         the id of the document to retrieve. Not <code>null</code>
+     * @param withAcl if true will fetch acl
+     * @param handler    a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     */
+    public static RequestToken fetch(String collection, String id,boolean withAcl, BaasHandler<BaasDocument> handler) {
+        return doFetch(collection, id, withAcl, RequestOptions.DEFAULT, handler);
+    }
+    
+    /**
+     * Asynchronously fetches the document identified by <code>id</code> in <code>collection</code>
+     *
+     * @param collection the collection to retrieve the document from. Not <code>null</code>
+     * @param id         the id of the document to retrieve. Not <code>null</code>
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
     public static RequestToken fetch(String collection, String id, BaasHandler<BaasDocument> handler) {
-        return fetch(collection, id, RequestOptions.DEFAULT, handler);
+        return doFetch(collection, id, false, RequestOptions.DEFAULT, handler);
     }
 
-    private static RequestToken fetch(String collection, String id, int flags, BaasHandler<BaasDocument> handler) {
+    
+    private static RequestToken doFetch(String collection, String id,boolean withAcl, int flags, BaasHandler<BaasDocument> handler) {
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
         BaasDocument doc = new BaasDocument(collection);
         doc.id = id;
-        return doc.refresh(flags, handler);
+        return doc.doRefresh(withAcl, flags, handler);
     }
 
-    /**
-     * Asynchronously refresh the content of this document.
-     *
-     * @param handler a callback to be invoked with the result of the request
-     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
-     * @throws java.lang.IllegalStateException if this document has no id
-     */
-    private RequestToken refresh(int flags, BaasHandler<BaasDocument> handler) {
+    private RequestToken doRefresh(boolean withAcl,int flags, BaasHandler<BaasDocument> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (handler == null) throw new IllegalArgumentException("handler cannot be null");
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
-        Refresh refresh = new Refresh(box, this, flags, handler);
+        Refresh refresh = new Refresh(box, this,withAcl, flags, handler);
         return box.submitAsync(refresh);
     }
 
@@ -405,13 +413,52 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      * @param id         the id of the document to retrieve. Not <code>null</code>
      * @return the result of the request
      */
-    public static BaasResult<BaasDocument> fetchSync(String collection, String id) {
+    public static BaasResult<BaasDocument> fetchSync(String collection,String id){
+        return fetchSync(collection,id,false);
+    }
+    
+    /**
+     * Synchronously fetches a document from the server
+     *
+     * @param collection the collection to retrieve the document from. Not <code>null</code>
+     * @param id         the id of the document to retrieve. Not <code>null</code>
+     * @param withAcl if true will fetch acl
+     * @return the result of the request
+     */
+    public static BaasResult<BaasDocument> fetchSync(String collection, String id,boolean withAcl) {
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
         if (id == null) throw new IllegalArgumentException("id cannot be null");
         BaasDocument doc = new BaasDocument(collection);
         doc.id = id;
-        return doc.refreshSync();
+        return doc.refreshSync(withAcl);
     }
+
+
+
+    /**
+     * Asynchronously refresh the content of this document.
+     * *
+     * @param withAcl if true will fetch acl
+     * @param handler a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     * @throws java.lang.IllegalStateException if this document has no id
+     */
+    public RequestToken refresh(boolean withAcl,BaasHandler<BaasDocument> handler){
+        return doRefresh(withAcl,RequestOptions.DEFAULT,handler);
+    }
+
+    /**
+     * Asynchronously refresh the content of this document.
+     *
+     * @param handler a callback to be invoked with the result of the request
+     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
+     * @throws java.lang.IllegalStateException if this document has no id
+     */
+    public RequestToken refresh(BaasHandler<BaasDocument> handler) {
+        return doRefresh(false,RequestOptions.DEFAULT, handler);
+    }
+
+
 
     /**
      * Synchronously refresh the content of this document
@@ -419,13 +466,25 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      * @return the result of the request
      * @throws java.lang.IllegalStateException if this document has no id
      */
-    public BaasResult<BaasDocument> refreshSync() {
+    public BaasResult<BaasDocument> refreshSync(){
+        return refreshSync(false);
+    }
+    
+    /**
+     * Synchronously refresh the content of this document
+     *
+     * @param withAcl if true will fetch acl
+     * @return the result of the request
+     * @throws java.lang.IllegalStateException if this document has no id
+     */
+    public BaasResult<BaasDocument> refreshSync(boolean withAcl) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (id == null)
             throw new IllegalStateException("this document is not bound to any remote entity");
-        Refresh refresh = new Refresh(box, this, RequestOptions.DEFAULT, null);
+        Refresh refresh = new Refresh(box, this,withAcl, RequestOptions.DEFAULT, null);
         return box.submitSync(refresh);
     }
+    
 
     public static RequestToken delete(String collection, String id, BaasHandler<Void> handler) {
         return delete(collection, id, RequestOptions.DEFAULT, handler);
@@ -447,17 +506,46 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return box.submitSync(delete);
     }
 
-    public RequestToken save(SaveMode mode, int flags, BaasHandler<BaasDocument> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (mode == null) throw new IllegalArgumentException("mode cannot be null");
-        Save save = new Save(box, mode, this, flags, handler);
-        return box.submitAsync(save);
+    public RequestToken save(BaasACL acl,BaasHandler<BaasDocument> handler){
+        return save(SaveMode.IGNORE_VERSION,acl,handler);
+    }
+    
+    public RequestToken save(BaasHandler<BaasDocument> handler) {
+        return save(SaveMode.IGNORE_VERSION,null, RequestOptions.DEFAULT, handler);
     }
 
-    public BaasResult<BaasDocument> saveSync(SaveMode mode) {
+    public RequestToken save(SaveMode mode, BaasHandler<BaasDocument> handler) {
+        return save(mode,null, RequestOptions.DEFAULT, handler);
+    }
+
+
+    public RequestToken save(SaveMode mode,BaasACL acl, BaasHandler<BaasDocument> handler) {
+        return save(mode,acl, RequestOptions.DEFAULT, handler);
+    }
+
+    public RequestToken save(SaveMode mode,BaasACL acl, int flags, BaasHandler<BaasDocument> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (mode == null) throw new IllegalArgumentException("mode cannot be null");
-        Save save = new Save(box, mode, this, RequestOptions.DEFAULT, null);
+        Save save = new Save(box, mode,acl, this, flags, handler);
+        return box.submitAsync(save);
+    }
+    
+    
+    public BaasResult<BaasDocument> saveSync() {
+        return saveSync(SaveMode.IGNORE_VERSION,null);
+    }
+
+    public BaasResult<BaasDocument> saveSync(SaveMode mode){
+        return saveSync(mode,null);
+    }
+    public BaasResult<BaasDocument> saveSync(BaasACL acl){
+        return saveSync(SaveMode.IGNORE_VERSION,acl);
+    }
+
+    public BaasResult<BaasDocument> saveSync(SaveMode mode,BaasACL acl) {
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (mode == null) throw new IllegalArgumentException("mode cannot be null");
+        Save save = new Save(box, mode,acl, this, RequestOptions.DEFAULT, null);
         return box.submitSync(save);
     }
 
@@ -487,6 +575,13 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return version;
     }
 
+    /**
+     * Returns the acl of this document. It may return null if the acl is not known
+     * You can refresh the acl with {@link com.baasbox.android.BaasDocument#refresh(boolean, BaasHandler)}
+     * @return {@link com.baasbox.android.BaasACL}
+     */
+    public BaasACL getAcl(){return this.acl;}
+    
 // ------------------------ INTERFACE METHODS ------------------------
 
 
@@ -982,33 +1077,6 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return this;
     }
 
-//    /**
-//     * Associate <code>name</code> key to the {@link com.baasbox.android.json.JsonStructure} <code>value</code>
-//     * in this document.
-//     *
-//     * @param name  a non <code>null</code> key
-//     * @param value a {@link com.baasbox.android.json.JsonStructure}
-//     * @return this document with the new mapping created
-//     * @see com.baasbox.android.BaasDocument#put(String, com.baasbox.android.json.JsonArray)
-//     * @see com.baasbox.android.BaasDocument#put(String, com.baasbox.android.json.JsonObject)
-//     */
-//
-//    public BaasDocument put(String name, JsonStructure value) {
-//        data.put(checkKey(name), value);
-//        return this;
-//    }
-
-    /**
-     * Asynchronously refresh the content of this document.
-     *
-     * @param handler a callback to be invoked with the result of the request
-     * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
-     * @throws java.lang.IllegalStateException if this document has no id
-     */
-    public RequestToken refresh(BaasHandler<BaasDocument> handler) {
-        return refresh(RequestOptions.DEFAULT, handler);
-    }
-
 
     /**
      * Removes the mapping with <code>name</code> key from the document.
@@ -1048,18 +1116,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return box.submitSync(access);
     }
 
-    public RequestToken save(BaasHandler<BaasDocument> handler) {
-        return save(SaveMode.IGNORE_VERSION, RequestOptions.DEFAULT, handler);
-    }
-
-    public RequestToken save(SaveMode mode, BaasHandler<BaasDocument> handler) {
-        return save(mode, RequestOptions.DEFAULT, handler);
-    }
-
-    public BaasResult<BaasDocument> saveSync() {
-        return saveSync(SaveMode.IGNORE_VERSION);
-    }
-
+   
     /**
      * Returns the number of mappings contained in this document.
      *
@@ -1085,6 +1142,21 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         data.remove("@version");
         this.rid=data.getString("@rid");
         data.remove("@rid");
+        
+        // acl
+        //[{"@version":4,"@class":"ORole","name":"anonymous","isrole":true},{"@version":1,"@class":"OUser","name":"user2"}]
+        JsonArray allowRead = data.getArray("_allowRead");
+        JsonArray allowUpdate = data.getArray("_allowUpdate");
+        JsonArray allowDelete = data.getArray("_allowDelete");
+        
+        data.remove("_allowRead");
+        data.remove("_allowUpdate");
+        data.remove("_allowDelete");
+        if (allowRead != null|| allowUpdate!=null||allowDelete != null) {
+            BaasACL acl = BaasACL.fromDocumentAcl(allowRead, allowUpdate, allowDelete);
+            //
+            this.acl = acl;
+        }
         this.data.merge(data);
         this.data.setDirty(false);
     }
@@ -1152,11 +1224,13 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         private final BaasDocument document;
         private final SaveMode mode;
         private JsonObject data;
-
-        protected Save(BaasBox box, SaveMode mode, BaasDocument document, int flags, BaasHandler<BaasDocument> handler) {
+        private BaasACL acl;
+        
+        protected Save(BaasBox box, SaveMode mode,BaasACL acl, BaasDocument document, int flags, BaasHandler<BaasDocument> handler) {
             super(box, flags, handler);
             this.document = document;
             this.data = document.data.copy();
+            this.acl = acl;
             this.mode = mode;
         }
 
@@ -1164,6 +1238,9 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         protected BaasDocument onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             JsonObject jsonData = parseJson(response, box).getObject("data");
             document.update(jsonData);
+            if (acl!=null){
+                document.acl = acl;
+            }
             return document;
         }
 
@@ -1171,6 +1248,21 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         protected HttpRequest request(BaasBox box) {
             String coll = document.collection;
             String docId = document.id;
+            if (acl != null){
+                JsonArray readGrants =acl.arrayForGrant(Grant.READ);
+                JsonArray updateGrants = acl.arrayForGrant(Grant.UPDATE);
+                JsonArray deleteGrants = acl.arrayForGrant(Grant.DELETE);
+                if (readGrants!=null){
+                    data.put("_allowRead",readGrants);
+                }
+                if (updateGrants != null){
+                    data.put("_allowUpdate",updateGrants);
+                }
+                if (deleteGrants != null){
+                    data.put("_allowDelete",deleteGrants);
+                }
+            }
+            
             if (docId == null) {
                 String endpoint = box.requestFactory.getEndpoint("document/{}", coll);
                 return box.requestFactory.post(endpoint, data);
@@ -1203,9 +1295,12 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
     private static final class Refresh extends NetworkTask<BaasDocument> {
         private final BaasDocument document;
 
-        protected Refresh(BaasBox box, BaasDocument doc, int flags, BaasHandler<BaasDocument> handler) {
+        private RequestFactory.Param aclParam;
+
+        protected Refresh(BaasBox box, BaasDocument doc,boolean withAcl, int flags, BaasHandler<BaasDocument> handler) {
             super(box, flags, handler);
             this.document = doc;
+            aclParam = withAcl? new RequestFactory.Param("withAcl","true"):null;
         }
 
         @Override
@@ -1218,7 +1313,11 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         @Override
         protected HttpRequest request(BaasBox box) {
             String endpoint = box.requestFactory.getEndpoint("document/{}/{}", document.getCollection(), document.getId());
-            return box.requestFactory.get(endpoint);
+            if (aclParam!=null){
+                return box.requestFactory.get(endpoint,aclParam);
+            } else {
+                return box.requestFactory.get(endpoint);
+            }
         }
     }
 
