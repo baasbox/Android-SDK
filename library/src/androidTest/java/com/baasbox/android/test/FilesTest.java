@@ -103,7 +103,8 @@ public class FilesTest extends BaasTestBase {
                 assertEquals(theFile[i],data[i]);
             }
         }catch (BaasException e){
-            fail("Something went wrong in upload/download");
+
+            fail("Something went wrong in upload/download: "+e.getMessage());
         }
     }
 

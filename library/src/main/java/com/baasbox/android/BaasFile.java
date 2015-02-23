@@ -773,7 +773,7 @@ public class BaasFile extends BaasObject implements Parcelable{
         protected BaasFile convert(byte[] body, String id, String contentType, long contentLength) {
             file.data.set(body);
             file.mimeType = contentType;
-            file.contentLength = contentLength;
+            file.contentLength = contentLength==-1?body.length:contentLength;
             return file;
         }
     }
