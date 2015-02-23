@@ -77,6 +77,7 @@ public class DocumentsTest extends BaasTestBase{
         assertEquals(2l,await.value().longValue());
 
         BaasQuery.Criteria where = BaasQuery.builder().where("ciao = ?").whereParams("ciao").criteria();
+
         RequestToken c2 = BaasDocument.count(testColl,where,new BaasHandler<Long>() {
             @Override
             public void handle(BaasResult<Long> result) {
@@ -85,9 +86,29 @@ public class DocumentsTest extends BaasTestBase{
         });
         BaasResult<Long> await2 = c2.await();
         assertTrue(await2.isSuccess());
-        assertEquals(1l,await.value().longValue());
+        assertEquals(1l,await2.value().longValue());
     }
 
+    
+    public void testCanCreateDocumentWithACL(){
+        BaasDocument doc = new BaasDocument(testColl);
+        doc.put("key1", "value1")
+                .put("key2", 0)
+                .put("key3", new JsonObject().put("sub", "sub"));
+        JsonArray a = new JsonArray();
+        a.typeAt(2);
+        BaasACL acl = BaasACL.builder().users(Grant.READ,USER2).build();
+        BaasResult<BaasDocument> await = doc.save(acl,BaasHandler.NOOP).await();
+        try {
+            BaasDocument docFromServer = await.get();
+            assertNotNull(doc.getId());
+            assertEquals(doc.getAuthor(),BaasUser.current().getName());
+            assertEquals(doc,docFromServer);
+        } catch (BaasException e) {
+            fail("failed to create document");
+        }
+        
+    }
     public void testCanCreateDocument(){
         BaasDocument doc = new BaasDocument(testColl);
         doc.put("key1", "value1")
@@ -169,7 +190,7 @@ public class DocumentsTest extends BaasTestBase{
     public void testCanFetchDocument(){
         JsonObject data = new JsonObject();
         data.put("key", "value");
-        BaasResult<JsonObject> res = box.restSync(HttpRequest.POST, "/document/" + testColl, data, true);
+        BaasResult<JsonObject> res = BaasBox.rest().sync(Rest.Method.POST, "/document/" + testColl, data, true);
         if (!res.isSuccess()){
             try {
                 throw res.error();
@@ -186,10 +207,43 @@ public class DocumentsTest extends BaasTestBase{
         assertTrue(res2.isSuccess());
         JsonObject rawData = res2.value().getObject("data");
         assertEquals(rawData,doc.value().toJson());
-        /*
-        expected:<{"@rid":"#23:0","@version":2,"@class":"test0","key":"value","id":"e1c40795-7529-4981-a25b-c9836ed188ee","_creation_date":"2014-08-04T12:01:05.005+0200","_author":"user2"}>
-        but was:<{"key":"value","@class":"test0","id":"e1c40795-7529-4981-a25b-c9836ed188ee","_author":"user2","_creation_date":"2014-08-04T12:01:05.005+0200","@version":2}>
-         */
+        
+    }
+    
+    public void testCanFetchDocumentWithAcl(){
+        JsonObject data = new JsonObject();
+        data.put("key", "value");
+        BaasResult<JsonObject> res = BaasBox.rest().sync(Rest.Method.POST, "/document/" + testColl, data, true);
+        if (!res.isSuccess()){
+            try {
+                throw res.error();
+            } catch (BaasException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        assertTrue(res.isSuccess());
+
+        
+        String id = res.value().getObject("data").getString("id");
+        BaasResult<BaasDocument> doc = BaasDocument.fetchSync(testColl, id);
+        
+        assertTrue(doc.isSuccess());
+        BaasResult<JsonObject> res2 = BaasBox.rest().sync(Rest.Method.GET, "/document/" + testColl + "/" + id, null, true);
+        assertTrue(res2.isSuccess());
+        JsonObject rawData = res2.value().getObject("data");
+        assertEquals(rawData,doc.value().toJson());
+        BaasDocument value = doc.value();
+        value.grantAllSync(Grant.READ,Role.REGISTERED);
+        value.grantSync(Grant.UPDATE, USER2);
+        value.grantAllSync(Grant.UPDATE,Role.ANONYMOUS);
+
+        BaasResult<BaasDocument> docWithAcl = doc.value().refreshSync(true);
+        assertTrue(docWithAcl.isSuccess());
+        BaasDocument withAcl = docWithAcl.value();
+        BaasACL acl = withAcl.getAcl();
+        assertTrue(acl.hasUserGrant(Grant.UPDATE,USER2));
+        assertTrue(acl.hasRoleGrant(Grant.UPDATE,Role.ANONYMOUS));
+        assertTrue(acl.hasRoleGrant(Grant.READ,Role.REGISTERED));
     }
 
     public void testCanDeleteDocument(){

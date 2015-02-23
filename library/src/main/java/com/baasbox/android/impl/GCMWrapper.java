@@ -1,9 +1,11 @@
 package com.baasbox.android.impl;
 
 import android.content.Context;
-import com.google.android.gms.gcm.GoogleCloudMessaging;
+//import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * GCM Wrapper class.
@@ -12,14 +14,43 @@ import java.io.IOException;
  */
 public class GCMWrapper {
     private final static boolean HAS_GOOGLE_LIBS;
+    private final static Class<?> GCM;
+    private final static Method GET_INSTANCE;
+    private final static Method REGISTER;
+    private final static Method UNREGISTER;
+    
     static {
         boolean hasGoogleLibs = true;
+        Class<?> gcm;
+        Method getInstance = null;
+        Method register = null;
+        Method unregister =  null;
         try {
-            Class.forName("com.google.android.gms.gcm.GoogleCloudMessaging");
+            gcm=Class.forName("com.google.android.gms.gcm.GoogleCloudMessaging");
+            
         } catch (ClassNotFoundException e) {
             hasGoogleLibs = false;
+            gcm=null;
         }
         HAS_GOOGLE_LIBS = hasGoogleLibs;
+        GCM = gcm;
+        if (gcm != null){
+            
+            try {
+                getInstance=gcm.getDeclaredMethod("getInstance",Context.class);
+                register = gcm.getDeclaredMethod("register",String[].class);
+                unregister = gcm.getDeclaredMethod("unregister");
+            } catch (NoSuchMethodException e) {
+                getInstance = null;
+                register = null;
+                unregister= null;
+            }
+            
+           
+        }
+        GET_INSTANCE = getInstance;
+        REGISTER = register;
+        UNREGISTER = unregister;
     }
 
     public static void unregisterGCM(Context context) throws IOException {
@@ -31,7 +62,14 @@ public class GCMWrapper {
     }
 
     private static void  unregisterGCM0(Context context) throws IOException{
-        GoogleCloudMessaging.getInstance(context).unregister();
+        try {
+            Object gcm = GET_INSTANCE.invoke(null, context);
+            UNREGISTER.invoke(gcm);
+        } catch (IllegalAccessException e) {
+            Logger.warn("Registration failed due to reflection error");
+        } catch (InvocationTargetException e) {
+            Logger.warn("Registration failed due to reflection error");
+        }
     }
 
     public static String registerGCM(Context context,String[] senderId) throws IOException {
@@ -43,7 +81,16 @@ public class GCMWrapper {
     }
 
     private static String registerGCM0(Context context, String[] senderId) throws IOException {
-        return GoogleCloudMessaging.getInstance(context).register(senderId);
+        
+        try {
+            Object gcm = GET_INSTANCE.invoke(null,context);
+            return (String)REGISTER.invoke(gcm,(Object[])senderId);
+        } catch (IllegalAccessException e){
+            Logger.warn("Registration failed due to reflection error");
+        } catch (InvocationTargetException e){
+            Logger.warn("Registration failed due to reflection error");
+        }
+        return null;
     }
 
     private static String throwMissingLibrary() throws IllegalStateException{

@@ -25,7 +25,7 @@ import java.util.Arrays;
 /**
  * Created by Andrea Tortorella on 19/05/14.
  */
-class FixedByteArrayOutputStream extends OutputStream {
+class FixedByteArrayOutputStream extends OutputStream implements ByteOutput{
     private byte[] mData;
     private int mCount;
 
@@ -96,6 +96,6 @@ class FixedByteArrayOutputStream extends OutputStream {
 
     @Override
     public void close() throws IOException {
-
+        // ignore
     }
 }

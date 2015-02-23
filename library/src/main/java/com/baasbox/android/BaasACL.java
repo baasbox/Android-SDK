@@ -21,6 +21,7 @@ import com.baasbox.android.json.JsonObject;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -31,40 +32,154 @@ import java.util.Set;
  * @since 0.7.3
  */
 public class BaasACL {
+
     // ------------------------------ FIELDS ------------------------------
+
+    private final Map<Grant,Set<String>> userGrants;
+    private final Map<Grant,Set<String>> rolesGrants;
     private JsonObject permissions;
-    EnumMap<Grant,Set<String>> usersGrants;
-    EnumMap<Grant,Set<String>> rolesGrants;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    private BaasACL(EnumMap<Grant,Set<String>> userGrants,EnumMap<Grant,Set<String>> roleGrants){
-        this.rolesGrants = roleGrants.clone();
-        this.usersGrants = userGrants.clone();
+    private BaasACL(Builder builder){
+        this(new EnumMap<Grant, Set<String>>(Grant.class),new EnumMap<Grant, Set<String>>(Grant.class));
+        userGrants.putAll(builder.userGrants);
+        rolesGrants.putAll(builder.rolegrants);
+    }
+    
+    private BaasACL(Map<Grant,Set<String>> userGrants,Map<Grant,Set<String>> rolesGrants){
+        this.userGrants=userGrants;
+        this.rolesGrants=rolesGrants;
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
     /**
-     * Returns a new acl builder
+     * Returns a new empty acl builder
      * @return
      */
     public static Builder builder(){
         return new Builder();
     }
 
-    public static class Builder{
-        EnumMap<Grant,Set<String>> usersGrants;
-        EnumMap<Grant,Set<String>> rolesGrants;
 
+    /**
+     * Returns a new {@link com.baasbox.android.BaasACL.Builder} based on current grants
+     * @return a new Builder
+     */
+    public Builder buildUpon(){
+        return new Builder(this.userGrants,this.rolesGrants);
+    }
+   
+
+    /**
+     * Returns the roles that have the specified {@code grant} 
+     * @param grant a {@link com.baasbox.android.Grant}
+     * @return
+     */
+    public Set<String> rolesWithGrant(Grant grant){
+        if (grant==null) throw new IllegalArgumentException("grant cannot be null");
+        return rolesGrants.get(grant);
+    }
+
+    /**
+     * Returns the users that have the specified {@code grant}
+     * @param grant a {@link com.baasbox.android.Grant}
+     * @return
+     */
+    public Set<String> usersWithGrant(Grant grant){
+        if (grant==null) throw new IllegalArgumentException("grant cannot be null");
+        return userGrants.get(grant);
+    }
+
+    /**
+     * Checks if the user with {@code username} has the specified {@code grant}
+     * @param grant a {@link com.baasbox.android.Grant}
+     * @param username a username
+     * @return
+     */
+    public boolean hasUserGrant(Grant grant,String username){
+        if (grant == null) throw new IllegalArgumentException("grant cannot be null");
+        if (username==null) throw new IllegalArgumentException("username cannot be null");
+        Set<String> users = userGrants.get(grant);
+        return users!=null &&users.contains(username);
+    }
+
+    /**
+     * Checks if the {@code user} has the specified {@code grant} 
+     * @param grant a {@link com.baasbox.android.Grant}
+     * @param user a {@link com.baasbox.android.BaasUser}
+     * @return
+     */
+    public boolean hasUserGrant(Grant grant,BaasUser user){
+        if (user==null) throw new IllegalArgumentException("username cannot be null");
+        return hasUserGrant(grant, user.getName());
+    }
+
+    /**
+     * Checks if the role has the specified {@code grant}
+     * @param grant a {@link com.baasbox.android.Grant}
+     * @param role a role
+     * @return
+     */
+    public boolean hasRoleGrant(Grant grant,String role){
+        if (grant == null) throw new IllegalArgumentException("grant cannot be null");
+        if (role == null) throw new IllegalArgumentException("role cannot be null");
+        Set<String> roles = rolesGrants.get(grant);
+        return roles!=null&&roles.contains(role);
+    }
+
+
+    static BaasACL fromDocumentAcl(JsonArray allowRead, JsonArray allowUpdate, JsonArray allowDelete) {
+        Map<Grant,Set<String>> userGrants = new EnumMap<Grant, Set<String>>(Grant.class);
+        Map<Grant,Set<String>> roleGrants = new EnumMap<Grant, Set<String>>(Grant.class);
+        add(Grant.READ,allowRead,userGrants,roleGrants);
+        add(Grant.UPDATE,allowUpdate,userGrants,roleGrants);
+        add(Grant.DELETE,allowDelete,userGrants,roleGrants);
+        return new BaasACL(userGrants,roleGrants);
+    }
+    
+    
+    private static void add(Grant grant,JsonArray array,Map<Grant,Set<String>> users,Map<Grant,Set<String>> roles){
+        if (array == null || array.size()==0) return;
+        for(Object o: array) {
+            JsonObject obj = (JsonObject)o;
+            Map<Grant,Set<String>> target = obj.getBoolean("isrole",false)?roles:users;
+            Set<String> grantSet = target.get(grant);
+            if (grantSet == null){
+                grantSet = new HashSet<String>();
+                target.put(grant,grantSet);
+            }
+            grantSet.add(obj.getString("name"));
+        }
+        
+    }
+    
+    public static class Builder{
+        
+        Map<Grant,Set<String>> userGrants;
+        Map<Grant,Set<String>> rolegrants;
+        
+        
+        
         Builder(){
-            usersGrants = new EnumMap<Grant, Set<String>>(Grant.class);
-            rolesGrants=new EnumMap<Grant, Set<String>>(Grant.class);
+            userGrants = new EnumMap<Grant, Set<String>>(Grant.class);
+            rolegrants = new EnumMap<Grant, Set<String>>(Grant.class);
+        }
+        
+        Builder(Map<Grant,Set<String>> users,Map<Grant,Set<String>> roles){
+            this();
+            userGrants.putAll(users);
+            rolegrants.putAll(roles);
         }
 
-        Builder(EnumMap<Grant,Set<String>> users,EnumMap<Grant,Set<String>> roles){
-            usersGrants = users.clone();
-            rolesGrants=roles.clone();
+
+        /**
+         * Builds a {@link com.baasbox.android.BaasACL}
+         * @return a new BaasAcl
+         */
+        public BaasACL build(){
+            return new BaasACL(this);
         }
 
         /**
@@ -74,21 +189,22 @@ public class BaasACL {
          * @return this builder
          */
         public Builder users(Grant grant,String ... users){
-            if (users.length==0) return this;
+            if (users==null||users.length==0) return this;
             if (Grant.ALL.equals(grant)){
                 users(Grant.READ,users);
-                users(Grant.DELETE,users);
                 users(Grant.UPDATE,users);
+                users(Grant.DELETE,users);
                 return this;
             }
-            Set<String> grantedUsers = usersGrants.get(grant);
-            if (grantedUsers == null){
-                grantedUsers = new HashSet<String>();
-                usersGrants.put(grant,grantedUsers);
+            Set<String> granted = userGrants.get(grant);
+            if (granted == null){
+                granted = new HashSet<String>();
+                userGrants.put(grant,granted);
             }
-            Collections.addAll(grantedUsers, users);
+            Collections.addAll(granted,users);
             return this;
         }
+
 
         /**
          * Gives the specified {@link com.baasbox.android.Grant} to the provided users
@@ -104,15 +220,14 @@ public class BaasACL {
                 users(Grant.UPDATE,users);
                 return this;
             }
-            Set<String> grantedUsers = usersGrants.get(grant);
+            Set<String> grantedUsers = userGrants.get(grant);
             if (grantedUsers==null){
                 grantedUsers=new HashSet<String>();
-                usersGrants.put(grant,grantedUsers);
+                userGrants.put(grant,grantedUsers);
             }
             for (BaasUser u:users){
                 grantedUsers.add(u.getName());
             }
-
             return this;
         }
 
@@ -130,24 +245,14 @@ public class BaasACL {
                 roles(Grant.DELETE,roles);
                 return this;
             }
-            Set<String> grantedRoles = rolesGrants.get(grant);
+            Set<String> grantedRoles = rolegrants.get(grant);
             if (grantedRoles==null){
                 grantedRoles = new HashSet<String>();
-                rolesGrants.put(grant,grantedRoles);
+                rolegrants.put(grant,grantedRoles);
             }
             Collections.addAll(grantedRoles,roles);
             return this;
         }
-
-        /**
-         * Builds a {@link com.baasbox.android.BaasACL}
-         * @return a new BaasAcl
-         */
-        public BaasACL build(){
-            BaasACL acl = new BaasACL(usersGrants,rolesGrants);
-            return acl;
-        }
-
 
     }
 
@@ -171,15 +276,6 @@ public class BaasACL {
         return b.build();
     }
 
-    /**
-     * Returns a new {@link com.baasbox.android.BaasACL.Builder} based on current grants
-     * @return a new Builder
-     */
-    public Builder buildUpon(){
-        return new Builder(this.usersGrants,this.rolesGrants);
-    }
-
-
     JsonObject toJson() {
         if (this.permissions==null){
             permissions = parseGrants();
@@ -187,14 +283,34 @@ public class BaasACL {
         return permissions;
     }
 
-
-
+    JsonArray arrayForGrant(Grant grant){
+        JsonArray granted = new JsonArray();
+        Set<String> users = userGrants.get(grant);
+        if (users!=null) {
+            for (String user : users) {
+                JsonObject o = new JsonObject();
+                o.put("name", user);
+                granted.add(o);
+            }
+        }
+        Set<String> roles = rolesGrants.get(grant);
+        if (roles!=null){
+            for (String role:roles){
+                JsonObject o= new JsonObject();
+                o.put("isrole",true);
+                o.put("name",role);
+                granted.add(o);
+            }
+        }
+        return granted.size()==0?null:granted;
+    }
+    
     private JsonObject parseGrants() {
         JsonObject precomputed = null;
         for (Grant g:Grant.values()){
 
             if (g==Grant.ALL) continue;
-            Set<String> users = this.usersGrants.get(g);
+            Set<String> users = this.userGrants.get(g);
             Set<String> roles = this.rolesGrants.get(g);
             JsonArray userArray = null;
             if (users!=null&&users.size()>0){
@@ -221,4 +337,5 @@ public class BaasACL {
         }
         return precomputed;
     }
+    
 }

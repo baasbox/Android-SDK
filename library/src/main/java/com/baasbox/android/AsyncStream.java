@@ -81,18 +81,27 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
             if (contentTypeHeader != null) {
                 contentType = contentTypeHeader.getValue();
             }
+            
             long contentLength = entity.getContentLength();
-            byte[] data = new byte[Math.min((int) contentLength, 4096)];
+            boolean unknownLength = contentLength == -1;
+            
+            int readBufferSize = unknownLength?4096:Math.min((int)contentLength,4096);
+            
+            byte[] data = new byte[readBufferSize];
+            
             in = BaasStream.getInput(entity);
             int read = 0;
-            long available = contentLength;
+            
             cacheStream = box.mCache.beginStream(streamId());
+            
             dataStream.startData(streamId(),contentLength,contentType);
-            while ((read = in.read(data, 0, Math.min((int) available, data.length))) > 0) {
-                available -= read;
-                cacheStream.write(data, 0, read);
-                dataStream.onData(data,read);}
+
+            while (((read = in.read(data,0,data.length)))>0){
+                cacheStream.write(data,0,read);
+                dataStream.onData(data,read);
+            }
             cacheStream.commit();
+            
             result = dataStream.endData(streamId(), contentLength, contentType);
         } catch (IOException e) {
             throw new BaasException(e);

@@ -1,6 +1,5 @@
 package com.baasbox.android;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
@@ -9,8 +8,9 @@ import java.io.IOException;
 abstract class StreamBody<R> implements DataStreamHandler<R> {
 // ------------------------------ FIELDS ------------------------------
 
-    private FixedByteArrayOutputStream bos;
-
+    //private FixedByteArrayOutputStream bos;
+    private ByteOutput bos;
+    
 // ------------------------ INTERFACE METHODS ------------------------
 
 
@@ -18,14 +18,17 @@ abstract class StreamBody<R> implements DataStreamHandler<R> {
 
     @Override
     public final void startData(String id, long contentLength, String contentType) throws Exception {
-        bos = new FixedByteArrayOutputStream(contentLength);
+        if (contentLength==-1){
+            bos = new DyanmicByteArrayOutputStream();
+        } else {
+            bos = new FixedByteArrayOutputStream(contentLength);
+        }
     }
 
     @Override
     public final R endData(String id, long contentLength, String contentType) throws Exception {
-//        byte[] bArr = bos.arr();
-//        bArr = bArr.length==contentLength?bArr:bos.toByteArray();
         byte[] content = bos.data();
+        
         return convert(content,id,contentType,contentLength);
     }
 
@@ -37,24 +40,17 @@ abstract class StreamBody<R> implements DataStreamHandler<R> {
     @Override
     public final void finishStream(String stremId) {
         try {
-            bos.close();
+            if(bos != null){
+                bos.close();
+            }
         } catch (IOException e) {
             // swallow
         }
     }
 
-    // -------------------------- OTHER METHODS --------------------------
+// -------------------------- OTHER METHODS --------------------------
 
     protected abstract R convert(byte[] body, String id,String contentType,long contentLength);
 
-// -------------------------- INNER CLASSES --------------------------
 
-//    private static class ByteArrayOut extends ByteArrayOutputStream {
-//        ByteArrayOut(int minSize) {
-//        }
-//
-//        public byte[] arr() {
-//            return buf;
-//        }
-//    }
 }

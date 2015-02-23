@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 0.9.2
+
+
+### Features
+    * Added support for initial acl on documents
+    * Added getters and test methods to acl
+    
+### Bugs
+    * Fixed #34 wrong change password url
+    * Fixed #33 files throw null pointer exception when streaming
+    
+    
 ## 0.9.1
 
 ### Changes

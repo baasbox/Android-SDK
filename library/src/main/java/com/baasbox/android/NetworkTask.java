@@ -15,7 +15,6 @@
 
 package com.baasbox.android;
 
-import android.os.storage.StorageManager;
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.impl.Task;
 import com.baasbox.android.json.JsonException;

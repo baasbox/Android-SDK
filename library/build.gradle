@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.0.0'
+        classpath 'com.android.tools.build:gradle:1.1.0'
     }
 }
 
@@ -33,7 +33,7 @@ def minPatchVersion = patchVersion
 
 def releaseType = "SNAPSHOT";
 
-version = "${majorVersion}.${minorVersion}.${patchVersion}-${releaseType}"
+version = "${majorVersion}.${minorVersion}.${patchVersion}"//-${releaseType}"
 
 def gitSha ={
     'git rev-parse --short HEAD'.execute().text.trim()
@@ -103,10 +103,14 @@ android {
 }
 
 dependencies {
-    provided 'com.android.support:support-v4:+'
-    provided 'com.google.android.gms:play-services-base:6.5.+'
-    provided 'com.squareup.okhttp:okhttp:2.+'
-    provided 'com.github.bumptech.glide:glide:3.3.+'
+    provided ('com.squareup.okhttp:okhttp:2.+'){
+        exclude group: 'com.android.support'
+        
+    }
+    provided ('com.github.bumptech.glide:glide:3.3.+'){
+        exclude group: 'com.android.support'
+        
+    }
 }
 
 task coreLibJar(type: Jar) {

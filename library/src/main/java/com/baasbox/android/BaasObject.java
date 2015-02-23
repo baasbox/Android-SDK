@@ -230,6 +230,8 @@ public abstract class BaasObject implements Parcelable {
 
     public abstract boolean isFile();
 
+    public abstract JsonObject toJson();
+
 
 // -------------------------- INNER CLASSES --------------------------
 
