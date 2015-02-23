@@ -256,12 +256,10 @@ public class BaasACL {
 
     }
 
-    @Deprecated
     public static BaasACL grantUser(BaasUser u, Grant... grants) {
         return grantUser(u.getName(),grants);
     }
 
-    @Deprecated
     public static BaasACL grantUser(String user,Grant ... grants){
         Builder b = BaasACL.builder();
         for (Grant g: grants){
@@ -270,7 +268,6 @@ public class BaasACL {
         return b.build();
     }
 
-    @Deprecated
     public static BaasACL grantRole(String role,Grant ...grants){
         Builder b = BaasACL.builder();
         for (Grant g:grants){
