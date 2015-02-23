@@ -17,19 +17,21 @@ package com.baasbox.android;
 
 import android.content.Context;
 import android.os.Build;
+
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
-import com.squareup.okhttp.internal.http.RetryableSink;
 
-import org.apache.http.*;
-import org.apache.http.conn.scheme.HostNameResolver;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolVersion;
+import org.apache.http.StatusLine;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
 
-import javax.net.ssl.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,13 +40,19 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.security.*;
-import java.security.cert.CertificateException;
+import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 
-import okio.Buffer;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
 
 /**
  * Created by eto on 23/12/13.
