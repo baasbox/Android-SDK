@@ -19,6 +19,7 @@ package com.baasbox.android;
 import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
+
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.impl.Util;
 import com.baasbox.android.json.JsonArray;
@@ -280,51 +281,55 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
     /**
      * Asynchronously retrieves the number of documents readable to the user in <code>collection</code>.
      *
-     * @param collection the collection to count not <code>null</code>
+     * @param collection the collection to doCount not <code>null</code>
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
     public static RequestToken count(String collection, BaasHandler<Long> handler) {
-        return count(collection, null, RequestOptions.DEFAULT, handler);
+        return doCount(collection, null, RequestOptions.DEFAULT, handler);
     }
 
     /**
      * Asynchronously retrieves the number of documents readable to the user that match the <code>filter</code>
      * in <code>collection</code>.
      *
-     * @param collection the collection to count not <code>null</code>
+     * @param collection the collection to doCount not <code>null</code>
      * @param filter     a {@link BaasQuery.Criteria} to apply to the request. May be <code>null</code>
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
     public static RequestToken count(String collection, BaasQuery.Criteria filter, BaasHandler<Long> handler) {
-        return count(collection, filter, RequestOptions.DEFAULT, handler);
+        return doCount(collection, filter, RequestOptions.DEFAULT, handler);
     }
 
     /**
      * Asynchronously retrieves the number of documents readable to the user in <code>collection</code>
      *
-     * @param collection the collection to count not <code>null</code>
+     * @param collection the collection to doCount not <code>null</code>
      * @param flags {@link RequestOptions}
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
     public static RequestToken count(String collection, int flags, BaasHandler<Long> handler) {
-        return count(collection, null, flags, handler);
+        return doCount(collection, null, flags, handler);
     }
 
     /**
      * Asynchronously retrieves the number of documents readable to the user that match the <code>filter</code>
      * in <code>collection</code>
      *
-     * @param collection the collection to count not <code>null</code>
+     * @param collection the collection to doCount not <code>null</code>
      * @param filter     a {@link BaasQuery.Criteria} to apply to the request. May be <code>null</code>
      * @param handler    a callback to be invoked with the result of the request
      * @return a {@link com.baasbox.android.RequestToken} to handle the asynchronous request
      */
-    private static RequestToken count(String collection, BaasQuery.Criteria filter, int flags, BaasHandler<Long> handler) {
+    private static RequestToken doCount(String collection, BaasQuery.Criteria filter, int flags, final BaasHandler<Long> handler) {
         BaasBox box = BaasBox.getDefaultChecked();
+        filter = filter==null?BaasQuery.builder().count(true).criteria()
+                             :filter.buildUpon().count(true).criteria();
+        
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
+
         Count count = new Count(box, collection, filter, flags, handler);
         return box.submitAsync(count);
     }
@@ -332,7 +337,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
     /**
      * Synchronously retrieves the number of document readable to the user in <code>collection</code>
      *
-     * @param collection the collection to count not <code>null</code>
+     * @param collection the collection to doCount not <code>null</code>
      * @return the result of the request
      */
     public static BaasResult<Long> countSync(String collection) {
@@ -343,13 +348,15 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
      * Synchronously retrieves the number of document readable to the user that match <code>filter</code>
      * in <code>collection</code>
      *
-     * @param collection the collection to count not <code>null</code>
+     * @param collection the collection to doCount not <code>null</code>
      * @param filter     a filter to apply to the request
      * @return the result of the request
      */
     public static BaasResult<Long> countSync(String collection, BaasQuery.Criteria filter) {
         BaasBox box = BaasBox.getDefaultChecked();
         if (collection == null) throw new IllegalArgumentException("collection cannot be null");
+        filter = filter==null?BaasQuery.builder().count(true).criteria()
+                             :filter.buildUpon().count(true).criteria();
         Count request = new Count(box, collection, filter, RequestOptions.DEFAULT, null);
         return box.submitSync(request);
     }
@@ -1263,12 +1270,14 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
 
         @Override
         protected Long onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            return parseJson(response, box).getObject("data").getLong("count");
+            JsonObject entries = parseJson(response, box);
+            
+            return entries.getArray("data").getObject(0).getLong("count");
         }
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            String ep = box.requestFactory.getEndpoint("document/{}/count", collection);
+            String ep = box.requestFactory.getEndpoint("document/{}", collection);
             if (params != null) {
                 return box.requestFactory.get(ep, params);
             } else {

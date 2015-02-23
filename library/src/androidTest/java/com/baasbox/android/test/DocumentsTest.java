@@ -77,6 +77,7 @@ public class DocumentsTest extends BaasTestBase{
         assertEquals(2l,await.value().longValue());
 
         BaasQuery.Criteria where = BaasQuery.builder().where("ciao = ?").whereParams("ciao").criteria();
+
         RequestToken c2 = BaasDocument.count(testColl,where,new BaasHandler<Long>() {
             @Override
             public void handle(BaasResult<Long> result) {
@@ -85,7 +86,7 @@ public class DocumentsTest extends BaasTestBase{
         });
         BaasResult<Long> await2 = c2.await();
         assertTrue(await2.isSuccess());
-        assertEquals(1l,await.value().longValue());
+        assertEquals(1l,await2.value().longValue());
     }
 
     public void testCanCreateDocument(){

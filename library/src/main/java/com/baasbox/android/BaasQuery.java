@@ -212,28 +212,26 @@ public class BaasQuery {
         private Paging paging = null;
         private String target = null;
         private int skip = -1;
+        private boolean count = false;
 
         Builder(Builder builder){
             mMode =builder.mMode;
             whereBuilder= builder.whereBuilder==null?null:new StringBuilder(builder.whereBuilder.toString());
-            params = params==null?null:new ArrayList<CharSequence>(params);
+            params = builder.params==null?null:new ArrayList<CharSequence>(builder.params);
             sortOrder=builder.sortOrder;
             fields=builder.fields;
             groupBy=builder.groupBy;
             paging=builder.paging==null?null:new Paging(builder.paging.page,builder.paging.records);
             target=builder.target;
             skip = builder.skip;
+            count = builder.count;
         }
 
         Builder(){
             mMode = FILTER;
         }
 
-//        public Filterz filter(){
-//            String where = whereBuilder==null?null:whereBuilder.toString();
-//            return new Filterz(where,params,sortOrder,paging,skip);
-//        }
-
+        
 
         public BaasQuery build(){
             return new BaasQuery(mMode,target,this);
@@ -280,6 +278,9 @@ public class BaasQuery {
                         reqParams.add(new RequestFactory.Param("params",p.toString()));
                     }
                 }
+            }
+            if (count){
+                reqParams.add(new RequestFactory.Param("count","true"));
             }
             if (sortOrder!=null){
                 reqParams.add(new RequestFactory.Param("orderBy",sortOrder));
@@ -380,12 +381,12 @@ public class BaasQuery {
 
 
         public Builder whereParams(Object... params){
-             if (params!=null&&params.length>0){
+            if (params!=null&&params.length>0){
                 this.params =new ArrayList<CharSequence>();
                 for (Object p:params){
                     this.params.add(p==null?"":p.toString());
                 }
-             }
+            }
             return this;
         }
 
@@ -401,6 +402,11 @@ public class BaasQuery {
             return this;
         }
 
+        public Builder count(boolean count){
+            this.count = count;
+            return this;
+        }
+        
         public Builder pagination(int page,int records){
             if(paging==null){
                 paging = new Paging(page,records);
