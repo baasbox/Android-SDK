@@ -43,7 +43,6 @@ import java.util.*;
  * it is the only one that is modifiable.
  * <p/>
  * BaasUser also exposes methods to handle friendship, through {@link #follow(BaasHandler)}/{@link #unfollow(BaasHandler)}
- * and direct gcm messaging throuhg {@link #send(com.baasbox.android.json.JsonObject, BaasHandler)}
  * <p/>
  * In any other respect users are treated similarly to other resources
  * exposed by the server.
@@ -1196,7 +1195,8 @@ public class BaasUser implements Parcelable {
         protected ChangePassword(BaasBox box, BaasUser user, String password, int flags, BaasHandler<Void> handler) {
             super(box, flags, handler);
             this.user = user;
-            request = box.requestFactory.put("me/password", new JsonObject().put("old", user.getPassword()).put("new", password));
+            String endpoint = box.requestFactory.getEndpoint("me/password");
+            request = box.requestFactory.put(endpoint, new JsonObject().put("old", user.getPassword()).put("new", password));
             this.password = password;
         }
 
