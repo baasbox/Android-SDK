@@ -175,7 +175,7 @@ public class OkClient implements RestClient{
         }
     }
 
-    private HttpEntity asEntity(Response resp) {
+    private HttpEntity asEntity(Response resp) throws IOException{
         BasicHttpEntity entity =new BasicHttpEntity();
         InputStream inputStream = resp.body().byteStream();
         entity.setContent(inputStream);

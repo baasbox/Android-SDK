@@ -382,16 +382,6 @@ public class BaasBox {
             return this;
         }
 
-//        public Builder setKeyStoreRes(int keyStoreRes) {
-//            this.mKeyStoreRes = keyStoreRes;
-//            return this;
-//        }
-
-//        public Builder setKeyStorePass(String pass){
-//            this.mKeyStorePass=pass;
-//            return this;
-//        }
-
         /**
          * Sets the charset to use defaults to 'UTF-8'.
          *
