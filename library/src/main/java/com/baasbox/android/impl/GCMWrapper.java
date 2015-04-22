@@ -84,7 +84,7 @@ public class GCMWrapper {
         
         try {
             Object gcm = GET_INSTANCE.invoke(null,context);
-            return (String)REGISTER.invoke(gcm,(Object[])senderId);
+            return (String)REGISTER.invoke(gcm,new Object[]{senderId});
         } catch (IllegalAccessException e){
             Logger.warn("Registration failed due to reflection error");
         } catch (InvocationTargetException e){
