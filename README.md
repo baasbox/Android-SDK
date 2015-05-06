@@ -9,7 +9,7 @@ The binary of the library can be downloaded from [BaasBox](http://www.baasbox.co
 
 Check out our [blog](http://www.baasbox.com/blog/), for updates and tutorials.
 
-# Building
+## Building
 
 To build the library jar
 
