@@ -81,14 +81,27 @@ public class GCMWrapper {
     }
 
     private static String registerGCM0(Context context, String[] senderId) throws IOException {
-        
         try {
             Object gcm = GET_INSTANCE.invoke(null,context);
             return (String)REGISTER.invoke(gcm,new Object[]{senderId});
         } catch (IllegalAccessException e){
             Logger.warn("Registration failed due to reflection error");
         } catch (InvocationTargetException e){
-            Logger.warn("Registration failed due to reflection error");
+            Throwable targetException = e.getTargetException();
+            if (targetException == null){
+                Logger.warn("Registration failed due to reflection error");
+                throw new RuntimeException(e);
+            }
+            if (targetException instanceof RuntimeException){
+                throw (RuntimeException) targetException;
+            } else if (targetException instanceof Error){
+                throw (Error)targetException;
+            } else if (targetException instanceof IOException){
+                throw (IOException)targetException;
+            } else {
+                Logger.error("Unexpected exception",targetException);
+                throw new RuntimeException(targetException);
+            }
         }
         return null;
     }
