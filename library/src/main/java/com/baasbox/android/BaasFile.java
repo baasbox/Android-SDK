@@ -780,6 +780,7 @@ public class BaasFile extends BaasObject implements Parcelable{
 
     private static class FileStream<R> extends AsyncStream<R> {
         private final String id;
+        private final String cacheKey;
         private HttpRequest request;
 
         protected FileStream(BaasBox box, String id, String sizeSpec, int sizeId, int flags, DataStreamHandler<R> dataStream, BaasHandler<R> handler) {
@@ -788,8 +789,12 @@ public class BaasFile extends BaasObject implements Parcelable{
             RequestFactory.Param param = null;
             if (sizeSpec != null) {
                 param = new RequestFactory.Param("resize", sizeSpec);
+                this.cacheKey = id + "_" + sizeSpec.replace("<=", "lte");
             } else if (sizeId >= 0) {
                 param = new RequestFactory.Param("sizeId", Integer.toString(sizeId));
+                this.cacheKey = id + "_" + sizeId;
+            } else {
+                cacheKey = id;
             }
             String endpoint = box.requestFactory.getEndpoint("file/{}", id);
             if (param != null) {
@@ -802,6 +807,11 @@ public class BaasFile extends BaasObject implements Parcelable{
         @Override
         protected String streamId() {
             return id;
+        }
+
+        @Override
+        protected String cacheKey() {
+            return cacheKey;
         }
 
         @Override
