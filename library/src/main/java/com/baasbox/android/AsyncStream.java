@@ -48,7 +48,7 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
     protected R getFromCache(BaasBox box) throws BaasException {
         boolean handle = false;
         try {
-            byte[] bytes = box.mCache.get(streamId());
+            byte[] bytes = box.mCache.get(cacheKey());
             if (bytes == null) {
                 Logger.info("GOT FROM CACHE MISS");
                 return null;
@@ -67,6 +67,10 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
     }
 
     protected abstract String streamId();
+
+    protected String cacheKey() {
+        return streamId();
+    }
 
     @Override
     protected R onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
@@ -92,7 +96,7 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
             in = BaasStream.getInput(entity);
             int read = 0;
             
-            cacheStream = box.mCache.beginStream(streamId());
+            cacheStream = box.mCache.beginStream(cacheKey());
             
             dataStream.startData(streamId(),contentLength,contentType);
 
