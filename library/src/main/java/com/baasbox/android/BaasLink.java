@@ -37,6 +37,11 @@ import java.util.List;
  */
 public final class BaasLink implements Parcelable{
 
+
+    public enum Direction{
+        TO,FROM,BOTH
+    }
+
     private String label;
     private BaasObject source;
     private BaasObject destination;

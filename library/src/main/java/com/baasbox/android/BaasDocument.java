@@ -19,6 +19,7 @@ package com.baasbox.android;
 import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.impl.Util;
@@ -1208,6 +1209,54 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
         return box.submitSync(access);
     }
 
+
+
+
+
+    public RequestToken fetchLinked(String relationship,BaasHandler<List<BaasObject>> handler){
+        return fetchLinked(relationship, BaasLink.Direction.TO, BaasQuery.Criteria.ANY, RequestOptions.DEFAULT, handler);
+    }
+
+    public RequestToken fetchLinekd(String relationship,BaasLink.Direction direction,BaasHandler<List<BaasObject>> handler){
+        return fetchLinked(relationship, direction, BaasQuery.Criteria.ANY, RequestOptions.DEFAULT, handler);
+    }
+
+    public RequestToken fetchLinked(String relationship,BaasLink.Direction direction,BaasQuery.Criteria criteria,BaasHandler<List<BaasObject>> handler){
+        return fetchLinked(relationship,direction,criteria,RequestOptions.DEFAULT,handler);
+    }
+
+    public RequestToken fetchLinked(String relationship,
+                                    BaasLink.Direction direction,
+                                    BaasQuery.Criteria criteria,
+                                    int flags,
+                                    BaasHandler<List<BaasObject>> handler){
+        BaasBox box = BaasBox.getDefault();
+        if (TextUtils.isEmpty(relationship)) throw new IllegalArgumentException("Link relationship is empty");
+        if (TextUtils.isEmpty(id)||TextUtils.isEmpty(collection)) throw  new IllegalStateException("document is not boundded to the server");
+        if (direction == null) direction = BaasLink.Direction.TO;
+        if (criteria == null) criteria = BaasQuery.Criteria.ANY;
+        FetchLinked fetchLinked = new FetchManyLinked(box,flags,collection,id,relationship,direction,criteria,handler);
+        return box.submitAsync(fetchLinked);
+    }
+
+    public BaasResult<List<BaasObject>> fetchLinkedSync(String relationship){
+        return fetchLinkedSync(relationship, BaasLink.Direction.TO);
+    }
+
+    public BaasResult<List<BaasObject>> fetchLinkedSync(String relationship,BaasLink.Direction direction){
+        return fetchLinkedSync(relationship,direction,BaasQuery.Criteria.ANY);
+    }
+
+    public BaasResult<List<BaasObject>> fetchLinkedSync(String relationship,BaasLink.Direction direction,BaasQuery.Criteria criteria){
+        BaasBox box = BaasBox.getDefault();
+        if (TextUtils.isEmpty(relationship)) throw new IllegalArgumentException("Link relationship is empty");
+        if (TextUtils.isEmpty(id)||TextUtils.isEmpty(collection)) throw  new IllegalStateException("document is not boundded to the server");
+        if (direction == null) direction = BaasLink.Direction.TO;
+        if (criteria == null) criteria = BaasQuery.Criteria.ANY;
+        FetchManyLinked fetchLinekd = new FetchManyLinked(box,RequestOptions.DEFAULT,collection,id,relationship,direction,criteria,null);
+        return box.submitSync(fetchLinekd);
+    }
+
    
     /**
      * Returns the number of mappings contained in this document.
@@ -1446,6 +1495,74 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
             } else {
                 return box.requestFactory.get(ep, filter);
             }
+        }
+    }
+
+
+    private static abstract class FetchLinked<T> extends NetworkTask<T> {
+
+        private final String collection;
+        private final String id;
+        private final String relationship;
+        private RequestFactory.Param[] criteria;
+
+        protected FetchLinked(BaasBox box, int flags,String collection,String id,String relationship,BaasLink.Direction direction,BaasQuery.Criteria criteria, BaasHandler<T> handler) {
+            super(box, flags, handler);
+            this.collection = collection;
+            this.id = id;
+            this.relationship = relationship;
+            RequestFactory.Param dirParam = new RequestFactory.Param("linkDir",direction.name().toLowerCase());
+            if (criteria == null) {
+                this.criteria = new RequestFactory.Param[]{dirParam};
+            } else {
+                RequestFactory.Param[] rp = criteria.toParams();
+                this.criteria = new RequestFactory.Param[rp.length+1];
+                System.arraycopy(rp,0,this.criteria,1,rp.length);
+                this.criteria[0] = dirParam;
+            }
+        }
+
+
+        protected BaasObject parseObject(JsonObject object) {
+            if (object == null) return null;
+            BaasObject ret;
+            if (object.contains("@class")){
+                ret = new BaasDocument(object);
+            } else {
+                BaasFile file = new BaasFile();
+                file.update(object);
+                ret = file;
+            }
+            return ret;
+        }
+
+        @Override
+        protected HttpRequest request(BaasBox box) {
+            String ep = box.requestFactory.getEndpoint("document/{}/{}/{}", collection, id, relationship);
+            if (criteria != null) {
+                return box.requestFactory.get(ep,criteria);
+            } else {
+                return box.requestFactory.get(ep);
+            }
+        }
+    }
+
+    private static final class FetchManyLinked extends FetchLinked<List<BaasObject>> {
+
+        protected FetchManyLinked(BaasBox box, int flags, String collection, String id, String relationship, BaasLink.Direction direction, BaasQuery.Criteria criteria, BaasHandler<List<BaasObject>> handler) {
+            super(box, flags, collection, id, relationship, direction, criteria, handler);
+        }
+
+        @Override
+        protected List<BaasObject> onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
+            JsonObject entries = parseJson(response, box);
+            ArrayList<BaasObject> ret = new ArrayList<>();
+            for (Object o: entries) {
+                JsonObject object = (JsonObject)o;
+                BaasObject val = parseObject(object);
+                ret.add(val);
+            }
+            return ret;
         }
     }
 
