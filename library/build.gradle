@@ -3,16 +3,17 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.2.3'
+        classpath 'com.android.tools.build:gradle:1.5.0-beta1'
+//        classpath 'org.jacoco:org.jacoco.core:0.7.4.201502262128'
     }
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.1'
+    gradleVersion = '2.8'
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'jacoco'
+//apply plugin: 'jacoco'
 apply plugin: 'maven'
 apply plugin: 'signing'
 
@@ -23,7 +24,7 @@ repositories {
 // versioning
 def majorVersion = 0
 def minorVersion = 9
-def patchVersion = 3
+def patchVersion = 4
 def sdkRevision  = 0 // sdk revision of a release
 
 
@@ -46,12 +47,10 @@ def buildTime ={
 
 // android configuration
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
 
-    jacoco {
-        version = '0.6.2.201302030002'
-    }
+    useLibrary 'org.apache.http.legacy'
 
     testOptions{
 
@@ -65,7 +64,7 @@ android {
         buildConfigField "String", "GIT_SHA", "\"${gitSha}\""
         buildConfigField "String", "BUILD_TIME", "\"${buildTime}\""
         minSdkVersion 10
-        targetSdkVersion 21
+        targetSdkVersion 23
     }
 
     compileOptions {
@@ -75,7 +74,7 @@ android {
 
     buildTypes {
         debug {
-          testCoverageEnabled true
+//          testCoverageEnabled true
         }
     }
 
