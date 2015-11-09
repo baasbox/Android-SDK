@@ -16,8 +16,8 @@
 package com.baasbox.android;
 
 import com.baasbox.android.impl.DiskLruCache;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
+import com.baasbox.android.net.HttpResponse;
+
 
 import java.io.BufferedInputStream;
 import java.io.FilterInputStream;
@@ -49,7 +49,7 @@ public final class BaasStream extends FilterInputStream {
      * The id of the file.
      */
     public final String id;
-    private final HttpEntity entity;
+    private final HttpResponse.Body entity;
     private final DiskLruCache.Snapshot snapshot;
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -62,21 +62,21 @@ public final class BaasStream extends FilterInputStream {
         this.snapshot = null;
     }
 
-    BaasStream(String id, HttpEntity entity) throws IOException {
+    BaasStream(String id, HttpResponse.Body entity) throws IOException {
         super(getInput(entity));
         this.entity = entity;
         this.snapshot = null;
         this.id = id;
-        Header contentTypeHeader = entity.getContentType();
+        String contentTypeHeader = entity.contentType();
         String contentType = "application/octet-stream";
         if (contentTypeHeader != null) {
-            contentType = contentTypeHeader.getValue();
+            contentType = contentTypeHeader;
         }
         this.contentType = contentType;
-        contentLength = entity.getContentLength();
+        contentLength = entity.contentLength();
     }
 
-    static BufferedInputStream getInput(HttpEntity entity) throws IOException {
+    static BufferedInputStream getInput(HttpResponse.Body entity) throws IOException {
         InputStream in = entity.getContent();
         if (in instanceof BufferedInputStream) {
             return (BufferedInputStream) in;
@@ -93,7 +93,8 @@ public final class BaasStream extends FilterInputStream {
     public void close() throws IOException {
         super.close();
         if (entity != null) {
-            entity.consumeContent();
+
+            entity.close();
         }
         if (snapshot != null) snapshot.close();
     }

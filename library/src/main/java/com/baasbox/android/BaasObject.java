@@ -19,7 +19,7 @@ import android.os.Parcelable;
 
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
-import org.apache.http.HttpResponse;
+import com.baasbox.android.net.HttpResponse;
 
 
 /**

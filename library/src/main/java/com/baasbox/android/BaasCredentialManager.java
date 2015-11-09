@@ -21,7 +21,7 @@ import com.baasbox.android.impl.Logger;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
-import org.apache.http.HttpResponse;
+import com.baasbox.android.net.HttpResponse;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -105,7 +105,7 @@ class BaasCredentialManager {
             String pass = c.getPassword();
             HttpRequest req = loginRequest(user, pass, null);
             HttpResponse resp = box.restClient.execute(req);
-            if (resp.getStatusLine().getStatusCode() / 100 == 2) {
+            if (resp.getStatusCode() / 100 == 2) {
                 JsonObject sessionObject = NetworkTask.parseJson(resp, box);
                 Logger.debug("!!!! %s !!!!!", sessionObject.toString());
                 String session = sessionObject.getObject("data").getString("X-BB-SESSION");

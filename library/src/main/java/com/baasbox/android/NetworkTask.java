@@ -20,9 +20,8 @@ import com.baasbox.android.impl.Task;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.util.EntityUtils;
+import com.baasbox.android.net.HttpResponse;
+
 
 import java.io.IOException;
 
@@ -49,7 +48,7 @@ abstract class NetworkTask<R> extends Task<R> {
 // -------------------------- OTHER METHODS --------------------------
 
     protected final R parseResponse(HttpResponse response, BaasBox box) throws BaasException {
-        final int status = response.getStatusLine().getStatusCode();
+        final int status = response.getStatusCode();
         final int statusClass = status / 100;
         try {
             switch (statusClass) {
@@ -99,12 +98,12 @@ abstract class NetworkTask<R> extends Task<R> {
     }
 
     protected static JsonObject parseJson(HttpResponse response, BaasBox box) throws BaasException {
-        HttpEntity entity = response.getEntity();
+        HttpResponse.Body entity = response.getEntity();
         if (entity != null) {
             String content = null;
             try {
                 JsonObject decoded;
-                content = EntityUtils.toString(entity, box.config.httpCharset);
+                content = HttpResponse.Body.toString(entity, box.config.httpCharset);
                 if (content == null) {
                     decoded = new JsonObject();
                 } else {

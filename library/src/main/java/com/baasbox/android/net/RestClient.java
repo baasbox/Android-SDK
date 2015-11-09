@@ -19,7 +19,6 @@ import android.content.Context;
 
 import com.baasbox.android.BaasBox;
 import com.baasbox.android.BaasException;
-import org.apache.http.HttpResponse;
 
 /**
  * This interface represent an http client for Baasbox.

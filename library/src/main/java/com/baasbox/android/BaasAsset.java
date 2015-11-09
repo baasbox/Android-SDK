@@ -17,7 +17,7 @@ package com.baasbox.android;
 
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
-import org.apache.http.HttpResponse;
+import com.baasbox.android.net.HttpResponse;
 
 /**
  * Collection of functions that work with assets.

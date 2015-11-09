@@ -4,8 +4,8 @@ import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.json.JsonStructure;
 import com.baasbox.android.net.HttpRequest;
+import com.baasbox.android.net.HttpResponse;
 
-import org.apache.http.HttpResponse;
 
 /**
  * Created by Andrea Tortorella on 1/12/15.

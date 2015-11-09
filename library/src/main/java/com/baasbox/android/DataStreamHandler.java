@@ -30,7 +30,7 @@ package com.baasbox.android;
  * retrieved from the server.
  * </p>
  * <p>
- * The return value of the last call to {@link #onData(byte[], int, long, String, String)} is what will be presented
+ * The return value of the last call to {@link #onData(byte[], int)} is what will be presented
  * to the handler, wrapped in a {@link com.baasbox.android.BaasResult}, if during any invocation an exception is thrown
  * it will be wrapped as a {@link com.baasbox.android.BaasResult#failure(BaasException)}.
  * </p>

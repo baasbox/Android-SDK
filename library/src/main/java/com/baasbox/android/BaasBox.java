@@ -15,7 +15,6 @@
 
 package com.baasbox.android;
 
-import android.app.Activity;
 import android.content.Context;
 import android.util.Pair;
 import android.util.Patterns;
@@ -24,13 +23,9 @@ import com.baasbox.android.impl.ImmediateDispatcher;
 import com.baasbox.android.impl.Task;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
-import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.RestClient;
 
-import org.apache.http.HttpResponse;
-
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**

@@ -26,8 +26,7 @@ import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonException;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.util.EntityUtils;
+import com.baasbox.android.net.HttpResponse;
 
 import java.io.*;
 import java.net.URLConnection;
@@ -490,7 +489,7 @@ public class BaasFile extends BaasObject implements Parcelable{
         @Override
         protected String onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             try {
-                return EntityUtils.toString(response.getEntity());
+                return HttpResponse.Body.toString(response.getEntity());
             } catch (IOException e) {
                 throw new BaasIOException("unable to parse content");
             }

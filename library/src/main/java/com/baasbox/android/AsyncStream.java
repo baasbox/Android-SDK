@@ -16,9 +16,7 @@
 package com.baasbox.android;
 
 import com.baasbox.android.impl.Logger;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
+import com.baasbox.android.net.HttpResponse;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -74,19 +72,19 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
 
     @Override
     protected R onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-        HttpEntity entity = null;
+        HttpResponse.Body entity = null;
         BufferedInputStream in = null;
         Cache.CacheStream cacheStream = null;
         R result = null;
         try {
             entity = response.getEntity();
-            Header contentTypeHeader = entity.getContentType();
+            String contentTypeHeader = entity.contentType();
             String contentType = "application/octet-stream";
             if (contentTypeHeader != null) {
-                contentType = contentTypeHeader.getValue();
+                contentType = contentTypeHeader;
             }
             
-            long contentLength = entity.getContentLength();
+            long contentLength = entity.contentLength();
             boolean unknownLength = contentLength == -1;
             
             int readBufferSize = unknownLength?4096:Math.min((int)contentLength,4096);
@@ -117,7 +115,7 @@ abstract class AsyncStream<R> extends NetworkTask<R> {
                     in.close();
                 }
                 if (entity != null) {
-                    entity.consumeContent();
+                    entity.close();
                 }
                 if (cacheStream != null) {
                     cacheStream.close();

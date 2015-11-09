@@ -16,8 +16,7 @@
 package com.baasbox.android;
 
 import com.baasbox.android.net.HttpRequest;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
+import com.baasbox.android.net.HttpResponse;
 
 import java.io.IOException;
 
@@ -58,7 +57,7 @@ class StreamRequest extends NetworkTask<BaasStream> {
     @Override
     protected BaasStream onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
         boolean close = true;
-        HttpEntity entity = null;
+        HttpResponse.Body entity = null;
         try {
             entity = response.getEntity();
 
@@ -71,7 +70,7 @@ class StreamRequest extends NetworkTask<BaasStream> {
             if (close) {
                 try {
                     if (entity != null) {
-                        entity.consumeContent();
+                        entity.close();
                     }
                 } catch (IOException e) {
                     // ignored

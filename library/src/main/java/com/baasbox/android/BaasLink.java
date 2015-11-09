@@ -25,7 +25,7 @@ import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 
-import org.apache.http.HttpResponse;
+import com.baasbox.android.net.HttpResponse;
 
 import java.util.ArrayList;
 import java.util.List;

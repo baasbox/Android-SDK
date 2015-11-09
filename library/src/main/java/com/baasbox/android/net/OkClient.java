@@ -22,21 +22,14 @@ import android.content.Context;
 import com.baasbox.android.BaasBox;
 import com.baasbox.android.BaasException;
 import com.baasbox.android.BaasIOException;
+import com.baasbox.android.BaasRuntimeException;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Protocol;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpRequestFactory;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
-import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.message.BasicStatusLine;
+import com.squareup.okhttp.ResponseBody;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -144,27 +137,10 @@ public class OkClient implements RestClient{
         try {
             Response resp = mOkHttp.newCall(okRequest).execute();
             Protocol protocol = resp.protocol();
-            ProtocolVersion pv;
-            switch (protocol){
-                case HTTP_1_0:
-                    pv = new ProtocolVersion("HTTP",1,0);
-                    break;
-                case HTTP_1_1:
-                    pv = new ProtocolVersion("HTTP",1,1);
-                    break;
-                case HTTP_2:
-                    pv = new ProtocolVersion("HTTP",2,0);
-                    break;
-                case SPDY_3:
-                    pv = new ProtocolVersion("spdy",3,1);
-                    break;
-                default:
-                    throw new BaasIOException("Invalid protocol");
-            }
-            StatusLine line = new BasicStatusLine(pv,resp.code(),resp.message());
-            BasicHttpResponse bresp = new BasicHttpResponse(line);
-            bresp.setEntity(asEntity(resp));
-
+            HttpResponse.HttpVersion version = HttpResponse.HttpVersion.get(protocol.toString());
+            HttpResponse bresp = new HttpResponse(version,resp.code(),resp.message());
+            OkBody body = new OkBody(resp.body());
+            bresp.setEntity(body);
             for (String name:resp.headers().names()){
                 String val = resp.headers().get(name);
                 bresp.addHeader(name,val);
@@ -175,13 +151,43 @@ public class OkClient implements RestClient{
         }
     }
 
-    private HttpEntity asEntity(Response resp) throws IOException{
-        BasicHttpEntity entity =new BasicHttpEntity();
-        InputStream inputStream = resp.body().byteStream();
-        entity.setContent(inputStream);
-        entity.setContentLength(resp.body().contentLength());
-        String ctnt=resp.body().contentType().toString();
-        entity.setContentType(ctnt);
-        return entity;
+    private static class OkBody extends HttpResponse.Body{
+        private final ResponseBody body;
+
+        OkBody(ResponseBody body){
+            this.body = body;
+        }
+
+
+        @Override
+        protected String contentString(String charset) throws IOException {
+            return body.string();
+        }
+
+        @Override
+        public String contentType() {
+            return body.contentType().toString();
+        }
+
+        @Override
+        public long contentLength() {
+            try {
+                return body.contentLength();
+            } catch (IOException e) {
+                throw new BaasRuntimeException(e);
+            }
+        }
+
+        @Override
+        public InputStream getContent() throws IOException{
+            return body.byteStream();
+        }
+
+        @Override
+        public void close() throws IOException {
+            body.close();
+        }
+
+
     }
 }

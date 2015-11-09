@@ -20,22 +20,16 @@ import android.os.Build;
 
 import com.baasbox.android.impl.Logger;
 import com.baasbox.android.net.HttpRequest;
+import com.baasbox.android.net.HttpResponse;
 import com.baasbox.android.net.RestClient;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
-import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.message.BasicStatusLine;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
@@ -176,14 +170,15 @@ class HttpUrlConnectionClient implements RestClient {
             if (responseCode == -1) {
                 throw new IOException("Connection failed");
             }
-            StatusLine line = new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1),
-                    responseCode, connection.getResponseMessage());
-            BasicHttpResponse response = new BasicHttpResponse(line);
+
+
+            HttpResponse response = new HttpResponse(HttpResponse.HttpVersion.HTTP_1_1,responseCode,connection.getResponseMessage());
+
             response.setEntity(asEntity(connection));
             for (Map.Entry<String, List<String>> header : connection.getHeaderFields().entrySet()) {
                 if (header.getKey() != null) {
-                    Header h = new BasicHeader(header.getKey(), header.getValue().get(0));
-                    response.addHeader(h);
+//                    Header h = new BasicHeader(header.getKey(), header.getValue().get(0));
+                    response.addHeader(header.getKey(),header.getValue().get(0));
                 }
             }
             return response;
@@ -194,19 +189,78 @@ class HttpUrlConnectionClient implements RestClient {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    private HttpEntity asEntity(HttpURLConnection connection) {
-        BasicHttpEntity entity = new BasicHttpEntity();
+    private HttpResponse.Body asEntity(HttpURLConnection connection) {
+//        BasicHttpEntity entity = new BasicHttpEntity();
         InputStream in;
         try {
             in = connection.getInputStream();
         } catch (IOException e) {
             in = connection.getErrorStream();
         }
-        entity.setContent(in);
-        entity.setContentLength(connection.getContentLength());
-        entity.setContentEncoding(connection.getContentEncoding());
-        entity.setContentType(connection.getContentType());
-        return entity;
+        UrlConnectionBody body = new UrlConnectionBody(connection);
+        return body;
+    }
+
+    private static class UrlConnectionBody extends HttpResponse.Body{
+
+        private final String contentType;
+        private final long contentLength;
+        private final InputStream in;
+        protected final String encoding;
+        private volatile boolean closed;
+
+        private UrlConnectionBody(HttpURLConnection connection){
+            this.contentType = connection.getContentType();
+            this.contentLength = connection.getContentLength();
+            this.encoding = connection.getContentEncoding();
+            InputStream in;
+            try {
+                in = connection.getInputStream();
+            } catch (IOException e) {
+                in = connection.getErrorStream();
+            }
+            this.in = in;
+        }
+
+        @Override
+        public String contentType() {
+            return contentType;
+        }
+
+        @Override
+        public long contentLength() {
+            return contentLength;
+        }
+
+        @Override
+        protected String contentString(String charset) throws IOException {
+            try {
+                StringWriter w = new StringWriter();
+                InputStreamReader reader = new InputStreamReader(in, charset);
+                char[] buff = new char[2048];
+                int read = 0;
+                while ((read =reader.read(buff))!=-1){
+                    w.write(buff,0,read);
+                }
+                w.flush();
+                return w.toString();
+            } finally {
+                in.close();
+            }
+        }
+
+        @Override
+        public InputStream getContent() {
+            return in;
+        }
+
+        @Override
+        public synchronized void close() throws IOException {
+            if (!closed) {
+                closed = true;
+                in.close();
+            }
+        }
     }
 
     private HttpURLConnection openConnection(String urlString) throws BaasIOException, IOException {
