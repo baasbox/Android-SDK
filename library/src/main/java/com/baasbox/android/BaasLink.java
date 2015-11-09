@@ -391,6 +391,7 @@ public final class BaasLink implements Parcelable{
     }
 
     private BaasObject parseObject(JsonObject object){
+        if (object == null) return null;
         BaasObject ret;
         if (object.contains("@class")){
             ret = new BaasDocument(object);
