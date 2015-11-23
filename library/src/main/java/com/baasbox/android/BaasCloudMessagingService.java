@@ -4,11 +4,15 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import com.baasbox.android.impl.GCMWrapper;
+import com.baasbox.android.impl.GoogleCloudMessagingWrapper;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.json.JsonStructure;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.net.HttpResponse;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.iid.InstanceIDListenerService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,6 +28,38 @@ public final class BaasCloudMessagingService {
     public static final int DEFAULT_PROFILE=1;
     public static final int PROFILE2=2;
     public static final int PROFILE3=3;
+
+
+    public static class TokenRefreshService extends InstanceIDListenerService{
+
+
+        @Override
+        public void onTokenRefresh() {
+            super.onTokenRefresh();
+            BaasBox.messagingService().enable(new BaasHandler<Void>() {
+                @Override
+                public void handle(BaasResult<Void> result) {
+                    if (result.isSuccess()){
+
+                    }
+                }
+            });
+        }
+
+    }
+
+    public boolean isAvailable(){
+        GoogleApiAvailability availability = GoogleApiAvailability.getInstance();
+        int resultCode = availability.isGooglePlayServicesAvailable(box.getContext());
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (availability.isUserResolvableError(resultCode)) {
+
+            }
+        }
+        return false;
+    }
+
+
 
 
     private static final String MESSAGING_PREFS_NAME = ".BAAS_MESSAGING_PREFS";
@@ -70,6 +106,9 @@ public final class BaasCloudMessagingService {
         return box.submitSync(req);
     }
 
+    public String getMessagingToken(){
+        return null;
+    }
     public boolean isEnabled(){
         return !getRegistrationId(true).isEmpty();
     }
@@ -343,6 +382,61 @@ public final class BaasCloudMessagingService {
         }
 
     }
+
+
+    private static final class RegisterInstance extends NetworkTask<Void> {
+        private static final String ENABLE_ENDPOINT = "push/enable/android/{}";
+        private static final String DISABLE_ENDPOINT = "push/disable/{}";
+
+        private boolean mRegister;
+        private GoogleCloudMessagingWrapper mWrapper;
+        private String mIdToken;
+
+        RegisterInstance(boolean register,BaasBox box,GoogleCloudMessagingWrapper wrapper,int flags,BaasHandler<Void> handler){
+            super(box,flags,handler);
+            mRegister = register;
+            mWrapper = wrapper;
+
+        }
+
+        @Override
+        protected Void asyncCall() throws BaasException {
+            if (BaasUser.current() == null) {
+                throw new BaasException("A user must be logged in");
+            }
+            if (mRegister) {
+                try {
+                    mIdToken = mWrapper.registerInstance();
+                    super.asyncCall();
+                    mWrapper.setTokenSynced(true);
+                } catch (IOException e){
+                    mWrapper.setTokenSynced(false);
+                }
+            } else {
+                try {
+                    mWrapper.unregisterInstance();
+                    super.asyncCall();
+                    mWrapper.setTokenSynced(false);
+                } catch (IOException e){
+                    throw new BaasException(e);
+                }
+            }
+            return null;
+
+        }
+
+        @Override
+        protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
+            return null;
+        }
+
+        @Override
+        protected HttpRequest request(BaasBox box) {
+            final String endpoint=mRegister?ENABLE_ENDPOINT:DISABLE_ENDPOINT;
+            return box.requestFactory.put(box.requestFactory.getEndpoint(endpoint, mIdToken));
+        }
+    }
+
     private static final class RegisterMessaging extends NetworkTask<Void>{
         private static final String ENABLE_ENDPOINT = "push/enable/android/{}";
         private static final String DISABLE_ENDPOINT = "push/disable/{}";

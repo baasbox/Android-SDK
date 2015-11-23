@@ -1,7 +1,10 @@
 package com.baasbox.android.impl;
 
 import android.content.Context;
-//import com.google.android.gms.gcm.GoogleCloudMessaging;
+//import com.google.android.gms.gcm.GoogleCloudMessagingWrapper;
+
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.android.gms.iid.InstanceID;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -18,7 +21,7 @@ public class GCMWrapper {
     private final static Method GET_INSTANCE;
     private final static Method REGISTER;
     private final static Method UNREGISTER;
-    
+
     static {
         boolean hasGoogleLibs = true;
         Class<?> gcm;
@@ -26,7 +29,7 @@ public class GCMWrapper {
         Method register = null;
         Method unregister =  null;
         try {
-            gcm=Class.forName("com.google.android.gms.gcm.GoogleCloudMessaging");
+            gcm=Class.forName("com.google.android.gms.gcm.GoogleCloudMessagingWrapper");
             
         } catch (ClassNotFoundException e) {
             hasGoogleLibs = false;
@@ -109,4 +112,5 @@ public class GCMWrapper {
     private static String throwMissingLibrary() throws IllegalStateException{
         throw new IllegalStateException("Google Cloud Messaging is not available on your classpath. To use push notifications you must include google play services library");
     }
+
 }
