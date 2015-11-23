@@ -40,6 +40,12 @@ public final class Logger {
         }
     }
 
+    public static void warn(Throwable e,String format, Object... args) {
+        if (ENABLED && Log.isLoggable(TAG, Log.WARN)) {
+            Log.w(TAG, String.format(Locale.US, format, args),e);
+        }
+    }
+
     public static void trace(String format, Object... args) {
         if (ENABLED && Log.isLoggable(TAG, Log.VERBOSE)) {
             Log.v(TAG, String.format(Locale.US, format, args));

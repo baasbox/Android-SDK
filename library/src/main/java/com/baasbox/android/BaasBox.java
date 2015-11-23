@@ -16,6 +16,7 @@
 package com.baasbox.android;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Pair;
 import android.util.Patterns;
 import com.baasbox.android.impl.Dispatcher;
@@ -351,7 +352,7 @@ public class BaasBox {
         private String mKeyStorePass = null;
         private RestClient mRestClient = null;
         private boolean mTokenExpires = false;
-        private String[] mSenderIds;
+        private String mSenderIds;
 
         private Set<Pair<Plugin<?>,Plugin.Options>> plugins = new HashSet<Pair<Plugin<?>, Plugin.Options>>();
 
@@ -361,6 +362,7 @@ public class BaasBox {
     s     */
         public Builder(Context context){
             mContext=context.getApplicationContext();
+            mSenderIds = null;
         }
 
         /**
@@ -374,15 +376,23 @@ public class BaasBox {
             return this;
         }
 
+        public Builder setSenderId(String senderId){
+            mSenderIds = senderId;
+            return this;
+        }
+
         /**
          * Sets gcm sender id to use for notifications
          *
          * @param senderIds the senderIds to use
          * @return this builder
          */
+        @Deprecated
         public Builder setPushSenderId(String ... senderIds){
-            mSenderIds = senderIds;
-            return this;
+            if (senderIds ==null) return this;
+            if (senderIds.length==0) return this;
+
+            return setPushSenderId(senderIds[0]);
         }
 
         /**
@@ -613,9 +623,18 @@ public class BaasBox {
         /**
          * GCM SenderIds to use for notifications
          */
+        @Deprecated
         public final String[] senderIds;
 
-        Config(ExceptionHandler exceptionHandler, boolean useHttps, String httpCharset, int httpPort, int httpConnectionTimeout, int httpSocketTimeout, String apiDomain, String apiBasepath, String appCode, AuthType authenticationType,boolean sessionTokenExpires, int workerThreads,int keystoreRes,String keystorepass,String[] senderIds) {
+        /**
+         * GCM SenderId to use for notifications
+         */
+        public final String senderId;
+
+        Config(ExceptionHandler exceptionHandler, boolean useHttps, String httpCharset, int httpPort, int httpConnectionTimeout,
+               int httpSocketTimeout, String apiDomain, String apiBasepath, String appCode,
+               AuthType authenticationType,boolean sessionTokenExpires, int workerThreads,
+               int keystoreRes,String keystorepass,String senderIds) {
             this.exceptionHandler = exceptionHandler;
             this.useHttps = useHttps;
             this.httpCharset = httpCharset;
@@ -630,7 +649,8 @@ public class BaasBox {
             this.keystoreRes=keystoreRes;
             this.password=keystorepass;
             this.sessionTokenExpires=sessionTokenExpires;
-            this.senderIds = senderIds;
+            this.senderId = senderIds;
+            this.senderIds = new String[]{senderId};
         }
     }
 
