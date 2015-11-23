@@ -94,6 +94,7 @@ public class BaasBox {
     final BaasCredentialManager store;
     final Context context;
     private BaasCloudMessagingService messagingService;
+    private BaasAdmin mAdmin;
 
     private final Rest mRest;
     private final Dispatcher asyncDispatcher;
@@ -114,6 +115,7 @@ public class BaasBox {
         this.syncDispatcher = new ImmediateDispatcher();
         this.asyncDispatcher = new Dispatcher(this);
         this.messagingService=new BaasCloudMessagingService(this);
+        this.mAdmin = new BaasAdmin(this);
         this.mRest = new RestImpl(this);
         for (Pair<Plugin<?>,Plugin.Options> p: plugins){
             Plugin<Plugin.Options> first = (Plugin<Plugin.Options>) p.first;
@@ -177,6 +179,11 @@ public class BaasBox {
         return BaasBox.getDefaultChecked().mRest;
     }
 
+
+    public static BaasAdmin administration(){
+        return BaasBox.getDefaultChecked().mAdmin;
+    }
+
     static BaasBox getDefaultChecked() {
         if (sDefaultClient == null)
             throw new IllegalStateException("Trying to use implicit client, but no default initialized");
@@ -218,7 +225,7 @@ public class BaasBox {
      */
     @Deprecated
     public RequestToken rest(int method, String endpoint, JsonArray body, int flags,boolean authenticate, BaasHandler<JsonObject> jsonHandler) {
-        return mRest.async(RestImpl.methodFrom(method),endpoint,body,authenticate,flags,jsonHandler);
+        return mRest.async(RestImpl.methodFrom(method), endpoint, body, authenticate, flags, jsonHandler);
     }
 
     /**
@@ -249,7 +256,7 @@ public class BaasBox {
      */
     @Deprecated
     public RequestToken rest(int method, String endpoint, JsonArray body, boolean authenticate, BaasHandler<JsonObject> handler) {
-        return rest(method, endpoint, body, 0,authenticate, handler);
+        return rest(method, endpoint, body, 0, authenticate, handler);
     }
     /**
      * Asynchronously sends a raw rest request to the server that is specified by
@@ -279,7 +286,7 @@ public class BaasBox {
      */
     @Deprecated
     public BaasResult<JsonObject> restSync(int method, String endpoint, JsonArray body, boolean authenticate) {
-        return mRest.sync(RestImpl.methodFrom(method),endpoint,body,authenticate);
+        return mRest.sync(RestImpl.methodFrom(method), endpoint, body, authenticate);
     }
 
     /**
@@ -319,6 +326,7 @@ public class BaasBox {
     public final Context getContext() {
         return context;
     }
+
 
     // -------------------------- INNER CLASSES --------------------------
 
