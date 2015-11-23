@@ -36,7 +36,9 @@ import com.baasbox.android.json.JsonObject;
 import com.baasbox.android.net.HttpRequest;
 import com.baasbox.android.test.common.BaasTestBase;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Andrea Tortorella on 10/09/14.
@@ -47,6 +49,8 @@ public class LinkTest extends BaasTestBase{
 
     BaasDocument first;
     BaasDocument second;
+    BaasDocument third;
+    BaasDocument fourth;
 
     @Override
     protected void beforeClass() throws Exception {
@@ -63,17 +67,19 @@ public class LinkTest extends BaasTestBase{
                 .setPassword("test")
                 .signupSync();
 
+        first = createKeyedDocs("first");
+        second = createKeyedDocs("second");
+        third = createKeyedDocs("third");
+        fourth = createKeyedDocs("fourth");
+    }
 
+
+    private BaasDocument createKeyedDocs(String key){
         BaasDocument doc = new BaasDocument(TESTCOLL);
-        doc.put("key","first");
-        BaasResult<BaasDocument> res1 = doc.saveSync();
-        assertTrue(res1.isSuccess());
-        first = res1.value();
-        BaasDocument doc2 = new BaasDocument(TESTCOLL);
-        doc2.put("key", "second");
-        BaasResult<BaasDocument> res2 = doc2.saveSync();
-        assertTrue(res2.isSuccess());
-        second = res2.value();
+        doc.put("key", key);
+        BaasResult<BaasDocument> res = doc.saveSync();
+        assertTrue(res.isSuccess());
+        return res.value();
     }
 
 
@@ -85,13 +91,13 @@ public class LinkTest extends BaasTestBase{
         assertNotNull(l.getId());
         assertNotNull(l.in());
         assertNotNull(l.out());
-        assertEquals(first.getId(),l.in().getId());
+        assertEquals(first.getId(), l.in().getId());
         assertEquals(second.getId(),l.out().getId());
     }
 
 
     public void testCanFetchALink(){
-        RequestToken r = BaasLink.create("toFetch",first,second,RequestOptions.DEFAULT,BaasHandler.NOOP);
+        RequestToken r = BaasLink.create("toFetch", first, second, RequestOptions.DEFAULT, BaasHandler.NOOP);
         BaasResult<BaasLink> link = r.await();
         assertTrue(link.isSuccess());
         String id = link.value().getId();
@@ -100,6 +106,62 @@ public class LinkTest extends BaasTestBase{
         assertTrue(linkFetch.isSuccess());
         assertEquals(id,link.value().getId());
         assertEquals("toFetch",link.value().getLabel());
+    }
+
+    public void testFetchLinked(){
+        String outFromFirst = "linkName";
+        String outFromFirst2 = "outFromFirst2";
+
+
+        RequestToken outFormFirstLink = BaasLink.create(outFromFirst, first, second, RequestOptions.DEFAULT, BaasHandler.NOOP);
+        BaasResult<BaasLink> link = outFormFirstLink.await();
+        assertTrue(link.isSuccess());
+        outFormFirstLink = BaasLink.create(outFromFirst, first, third, RequestOptions.DEFAULT, BaasHandler.NOOP);
+        link = outFormFirstLink.await();
+        assertTrue(link.isSuccess());
+        outFormFirstLink = BaasLink.create(outFromFirst2, first, first, RequestOptions.DEFAULT, BaasHandler.NOOP);
+        link = outFormFirstLink.await();
+        assertTrue(link.isSuccess());
+
+        RequestToken reverse = BaasLink.create(outFromFirst, fourth, first, RequestOptions.DEFAULT, BaasHandler.NOOP);
+        assertTrue(link.isSuccess());
+        link = reverse.await();
+        assertTrue(link.isSuccess());
+
+
+        RequestToken tok = first.fetchLinekd(outFromFirst, BaasLink.Direction.TO, BaasHandler.NOOP);
+        BaasResult<List<BaasObject>> res =tok.await();
+        assertTrue(res.isSuccess());
+        List<BaasObject> value = res.value();
+
+        Set<String> linkedOut = new HashSet<>();
+        linkedOut.add(second.getId());
+        linkedOut.add(third.getId());
+        for (BaasObject o: value){
+            assertTrue(o.isDocument());
+            linkedOut.remove(o.getId());
+        }
+        assertTrue(linkedOut.isEmpty());
+
+        tok = first.fetchLinekd(outFromFirst, BaasLink.Direction.FROM, BaasHandler.NOOP);
+        res = tok.await();
+        assertTrue(res.isSuccess());
+        List<BaasObject> val = res.value();
+        assertEquals(1, val.size());
+        BaasObject elem = val.get(0);
+        assertEquals(elem.getId(),fourth.getId());
+
+        tok = first.fetchLinekd(outFromFirst, BaasLink.Direction.BOTH, BaasHandler.NOOP);
+        res = tok.await();
+        assertTrue(res.isSuccess());
+        List<BaasObject> valBoth = res.value();
+        assertEquals(3,valBoth.size());
+        HashSet<String> ids = new HashSet<>();
+        for (BaasObject o: valBoth){
+            ids.remove(o.getId());
+        }
+        assertTrue(ids.isEmpty());
+
     }
 
     public void testCanFetchLinksWithLabel(){

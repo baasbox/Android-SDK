@@ -1516,8 +1516,12 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
                 this.criteria = new RequestFactory.Param[]{dirParam};
             } else {
                 RequestFactory.Param[] rp = criteria.toParams();
-                this.criteria = new RequestFactory.Param[rp.length+1];
-                System.arraycopy(rp,0,this.criteria,1,rp.length);
+                if (rp != null) {
+                    this.criteria = new RequestFactory.Param[rp.length + 1];
+                    System.arraycopy(rp, 0, this.criteria, 1, rp.length);
+                } else {
+                    this.criteria= new RequestFactory.Param[1];
+                }
                 this.criteria[0] = dirParam;
             }
         }
@@ -1555,7 +1559,7 @@ public final class BaasDocument extends BaasObject implements Iterable<Map.Entry
 
         @Override
         protected List<BaasObject> onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            JsonObject entries = parseJson(response, box);
+            JsonArray entries = parseJson(response, box).get("data");
             ArrayList<BaasObject> ret = new ArrayList<>();
             for (Object o: entries) {
                 JsonObject object = (JsonObject)o;

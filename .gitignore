@@ -28,6 +28,8 @@ local.properties
 build/**
 .gradle/**
 
+server/**
+
 # local gradle
 dev-config.gradle
 dev-config/**

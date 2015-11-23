@@ -23,6 +23,7 @@ import android.os.Parcelable;
 import com.baasbox.android.impl.Util;
 import com.baasbox.android.json.JsonArray;
 import com.baasbox.android.json.JsonObject;
+import com.baasbox.android.json.JsonStructure;
 import com.baasbox.android.net.HttpRequest;
 
 import com.baasbox.android.net.HttpResponse;
@@ -389,23 +390,33 @@ public final class BaasLink implements Parcelable{
         this.author=data.getString("_author");
         this.creationDate=data.getString("_creation_date");
         this.version = data.getLong("@version");
-        JsonObject in = data.getObject("out");
-        JsonObject out = data.getObject("in");
-        this.source = parseObject(in);
-        this.destination = parseObject(out);
+        Object in = data.get("out");
+        Object out = data.get("in");
+//        JsonObject in = data.getObject("out");
+//        JsonObject out = data.getObject("in");
+        this.source = parseObject(in,out);
+        this.destination = parseObject(out,in);
     }
 
-    private BaasObject parseObject(JsonObject object){
-        if (object == null) return null;
-        BaasObject ret;
-        if (object.contains("@class")){
-            ret = new BaasDocument(object);
+    private BaasObject parseObject(Object def, Object alternate){
+
+        if (def == null) return null;
+        if (def instanceof String){
+            return parseObject(alternate,null);
+        } else if (def instanceof JsonObject) {
+            JsonObject object = (JsonObject)def;
+            BaasObject ret;
+            if (object.contains("@class")) {
+                ret = new BaasDocument(object);
+            } else {
+                BaasFile f = new BaasFile();
+                f.update(object);
+                ret = f;
+            }
+            return ret;
         } else {
-            BaasFile f = new BaasFile();
-            f.update(object);
-            ret = f;
+            return null;
         }
-        return ret;
     }
 
 
