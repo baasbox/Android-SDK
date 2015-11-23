@@ -50,10 +50,10 @@ public class OkClient implements RestClient{
     private String charset;
     public OkClient() { this(new OkHttpClient());}
 
-    @Deprecated
-    public OkClient(BaasBox.Config config){
-        this(new OkHttpClient());
-    }
+//    @Deprecated
+//    public OkClient(BaasBox.Config config){
+//        this(new OkHttpClient());
+//    }
 
     public OkClient(OkHttpClient client){
         mOkHttp = client;
