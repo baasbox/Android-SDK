@@ -108,8 +108,9 @@ dependencies {
     }
     provided ('com.github.bumptech.glide:glide:3.3.+'){
         exclude group: 'com.android.support'
-        
     }
+
+    provided ('com.google.android.gms:play-services-gcm:8.+')
 }
 
 task coreLibJar(type: Jar) {
