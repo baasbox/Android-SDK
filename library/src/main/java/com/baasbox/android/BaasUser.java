@@ -66,7 +66,7 @@ public class BaasUser implements Parcelable {
 
     String social;
 
-    private final Set<String> roles = new HashSet<String>();
+    private final Set<String> roles = new HashSet<>();
     private JsonObject privateData;
     private JsonObject friendVisibleData;
     private JsonObject registeredVisibleData;
@@ -100,8 +100,10 @@ public class BaasUser implements Parcelable {
     private void init(JsonObject user) {
         JsonObject accountData = user.getObject("user");
         this.username = accountData.getString("name");
-        this.roles.clear();
-        addRoles(this.roles, accountData.getArray("roles"));
+        synchronized (roles) {
+            this.roles.clear();
+            addRoles(this.roles, accountData.getArray("roles"));
+        }
         this.status = accountData.getString("status");
         this.privateData = fetchOptionalData(user, Scope.PRIVATE.visibility);
         this.friendVisibleData = fetchOptionalData(user, Scope.FRIEND.visibility);
@@ -134,7 +136,9 @@ public class BaasUser implements Parcelable {
         this.username = source.readString();
         this.signupDate = source.readString();
         this.status = source.readString();
-        readStringSet(source, this.roles);
+        synchronized (roles) {
+            readStringSet(source, this.roles);
+        }
         this.privateData = readOptJson(source);
         this.friendVisibleData = readOptJson(source);
         this.registeredVisibleData = readOptJson(source);
@@ -163,7 +167,9 @@ public class BaasUser implements Parcelable {
         this.signupDate = signupDate;
         this.status = status;
         this.authToken = token;
-        addRoleNames(this.roles, roles);
+        synchronized (roles) {
+            addRoleNames(this.roles, roles);
+        }
         this.privateData = profile.getObject(Scope.PRIVATE.visibility);
         this.friendVisibleData = profile.getObject(Scope.FRIEND.visibility);
         this.registeredVisibleData = profile.getObject(Scope.REGISTERED.visibility);
@@ -243,7 +249,7 @@ public class BaasUser implements Parcelable {
     }
 
     public RequestToken unlinkFromProvider(String provider,BaasHandler<Void> handler){
-        return unlinkFromProvider(provider,RequestOptions.DEFAULT,handler);
+        return unlinkFromProvider(provider, RequestOptions.DEFAULT, handler);
     }
 
     public BaasResult<Void> unlinkFromProviderSync(String provider){
@@ -292,7 +298,7 @@ public class BaasUser implements Parcelable {
 
         @Override
         protected JsonObject onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
-            JsonObject resp = parseJson(response,box);
+            JsonObject resp = parseJson(response, box);
 
             return resp;
         }
@@ -303,7 +309,7 @@ public class BaasUser implements Parcelable {
             JsonObject body = new JsonObject();
             body.put("oauth_token", token);
             body.put("oauth_secret", secret);
-            return box.requestFactory.put(endpoint,body);
+            return box.requestFactory.put(endpoint, body);
         }
     }
 
@@ -315,7 +321,7 @@ public class BaasUser implements Parcelable {
     }
 
     public RequestToken fetchLinkedSocialNetworks(BaasHandler<JsonArray> handler){
-        return fetchLinkedSocialNetworks(RequestOptions.DEFAULT,handler);
+        return fetchLinkedSocialNetworks(RequestOptions.DEFAULT, handler);
     }
 
     public BaasResult<JsonArray> fetchLinkedSocialNetworksSync(){
@@ -551,7 +557,9 @@ public class BaasUser implements Parcelable {
         dest.writeString(username);
         dest.writeString(signupDate);
         dest.writeString(status);
-        writeStringSet(dest, roles);
+        synchronized (roles) {
+            writeStringSet(dest, roles);
+        }
         writeOptJson(dest, privateData);
         writeOptJson(dest, friendVisibleData);
         writeOptJson(dest, registeredVisibleData);
@@ -705,7 +713,11 @@ public class BaasUser implements Parcelable {
      * @return a {@link java.util.Set} of role names
      */
     public Set<String> getRoles() {
-        return Collections.unmodifiableSet(roles);
+        HashSet<String> rolescopy;
+        synchronized (roles){
+            rolescopy = new HashSet<>(roles);
+        }
+        return Collections.unmodifiableSet(rolescopy);
     }
 
     /**
@@ -755,7 +767,9 @@ public class BaasUser implements Parcelable {
      */
     public boolean hasRole(String role) {
         if (role == null) throw new IllegalArgumentException("role cannot be null");
-        return roles.contains(role);
+        synchronized (roles) {
+            return roles.contains(role);
+        }
     }
 
     /**
