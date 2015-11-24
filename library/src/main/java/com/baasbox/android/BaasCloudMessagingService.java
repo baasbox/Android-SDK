@@ -40,6 +40,40 @@ public final class BaasCloudMessagingService {
         this.mWrapper = new GoogleCloudMessagingWrapper(this.box);
     }
 
+    public RequestToken enable(String token,int flags,BaasHandler<Void> handler){
+        BaasBox box = BaasBox.getDefaultChecked();
+        RegisterWithToken req = new RegisterWithToken(box,flags,token,true,handler);
+        return box.submitAsync(req);
+    }
+
+    public RequestToken enable(String token,BaasHandler<Void> handler){
+        return enable(token, RequestOptions.DEFAULT, handler);
+    }
+
+    public BaasResult<Void> enableSync(String token){
+        BaasBox box = BaasBox.getDefaultChecked();
+        RegisterWithToken req = new RegisterWithToken(box,RequestOptions.DEFAULT,token,true,null);
+        return box.submitSync(req);
+    }
+
+    public RequestToken disable(String token,int flags,BaasHandler<Void> handler){
+        BaasBox box = BaasBox.getDefaultChecked();
+        RegisterWithToken req = new RegisterWithToken(box,flags,token,false,handler);
+        return box.submitAsync(req);
+    }
+
+    public RequestToken disable(String token,BaasHandler<Void> handler) {
+        return disable(token, RequestOptions.DEFAULT, handler);
+    }
+
+    public BaasResult<Void> disableSync(String token){
+        BaasBox box = BaasBox.getDefaultChecked();
+        RegisterWithToken req = new RegisterWithToken(box,RequestOptions.DEFAULT,token,false,null);
+        return box.submitSync(req);
+    }
+
+
+    @Deprecated
     public RequestToken enable(BaasHandler<Void> handler){
         BaasBox box=BaasBox.getDefaultChecked();
         mWrapper.checkDeps(true);
@@ -47,6 +81,7 @@ public final class BaasCloudMessagingService {
         return box.submitAsync(req);
     }
 
+    @Deprecated
     public RequestToken disable(BaasHandler<Void> handler){
         BaasBox box = BaasBox.getDefaultChecked();
         mWrapper.checkDeps(true);
@@ -54,6 +89,7 @@ public final class BaasCloudMessagingService {
         return box.submitAsync(req);
     }
 
+    @Deprecated
     public BaasResult<Void> enableSync(){
         BaasBox box = BaasBox.getDefaultChecked();
         mWrapper.checkDeps(true);
@@ -77,11 +113,13 @@ public final class BaasCloudMessagingService {
 //        return mWrapper.getInstanceCreationTime();
 //    }
 
+    @Deprecated
     public boolean isEnabled(){
         mWrapper.checkDeps(true);
         return mWrapper.isInSync();
     }
 
+    @Deprecated
     public BaasResult<Void> disableSync(){
         mWrapper.checkDeps(true);
         BaasBox box = BaasBox.getDefaultChecked();
@@ -320,6 +358,31 @@ public final class BaasCloudMessagingService {
 
     }
 
+    private static final class RegisterWithToken extends NetworkTask<Void>{
+        private static final String ENABLE_ENDPOINT = "push/enable/android/{}";
+        private static final String DISABLE_ENDPOINT = "push/disable/{}";
+
+        private final boolean mRegister;
+        private final String mToken;
+
+        protected RegisterWithToken(BaasBox box, int flags,String token,boolean register, BaasHandler<Void> handler) {
+            super(box, flags, handler);
+            mRegister = register;
+            mToken = token;
+        }
+
+        @Override
+        protected Void onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
+
+            return null;
+        }
+
+        @Override
+        protected HttpRequest request(BaasBox box) {
+            final String endpoint=mRegister?ENABLE_ENDPOINT:DISABLE_ENDPOINT;
+            return box.requestFactory.put(box.requestFactory.getEndpoint(endpoint, mToken));
+        }
+    }
 
     private static final class RegisterInstance extends NetworkTask<Void> {
         private static final String ENABLE_ENDPOINT = "push/enable/android/{}";
