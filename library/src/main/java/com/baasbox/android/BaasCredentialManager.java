@@ -171,7 +171,7 @@ class BaasCredentialManager {
         String status = user.getStatus();
         String date = user.getSignupDate();
         String token = user.getToken();
-        String profile = user.toJsonBody(false).toString();
+        String profile = user.toJsonRequest(false).toString();
         Set<String> roles = user.getRoles();
         JsonArray array = new JsonArray();
         for (String role : roles) {

@@ -392,7 +392,7 @@ public class BaasBox {
             if (senderIds ==null) return this;
             if (senderIds.length==0) return this;
 
-            return setPushSenderId(senderIds[0]);
+            return setSenderId(senderIds[0]);
         }
 
         /**

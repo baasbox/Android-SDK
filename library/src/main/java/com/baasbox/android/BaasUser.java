@@ -66,7 +66,7 @@ public class BaasUser implements Parcelable {
 
     String social;
 
-    private final Set<String> roles = new HashSet<>();
+    private final Set<String> roles = new ConcurrentHashSet<>();
     private JsonObject privateData;
     private JsonObject friendVisibleData;
     private JsonObject registeredVisibleData;
@@ -100,10 +100,8 @@ public class BaasUser implements Parcelable {
     private void init(JsonObject user) {
         JsonObject accountData = user.getObject("user");
         this.username = accountData.getString("name");
-        synchronized (roles) {
-            this.roles.clear();
-            addRoles(this.roles, accountData.getArray("roles"));
-        }
+        this.roles.clear();
+        addRoles(this.roles, accountData.getArray("roles"));
         this.status = accountData.getString("status");
         this.privateData = fetchOptionalData(user, Scope.PRIVATE.visibility);
         this.friendVisibleData = fetchOptionalData(user, Scope.FRIEND.visibility);
@@ -136,9 +134,7 @@ public class BaasUser implements Parcelable {
         this.username = source.readString();
         this.signupDate = source.readString();
         this.status = source.readString();
-        synchronized (roles) {
-            readStringSet(source, this.roles);
-        }
+        readStringSet(source, this.roles);
         this.privateData = readOptJson(source);
         this.friendVisibleData = readOptJson(source);
         this.registeredVisibleData = readOptJson(source);
@@ -167,9 +163,7 @@ public class BaasUser implements Parcelable {
         this.signupDate = signupDate;
         this.status = status;
         this.authToken = token;
-        synchronized (roles) {
-            addRoleNames(this.roles, roles);
-        }
+        addRoleNames(this.roles, roles);
         this.privateData = profile.getObject(Scope.PRIVATE.visibility);
         this.friendVisibleData = profile.getObject(Scope.FRIEND.visibility);
         this.registeredVisibleData = profile.getObject(Scope.REGISTERED.visibility);
@@ -557,9 +551,7 @@ public class BaasUser implements Parcelable {
         dest.writeString(username);
         dest.writeString(signupDate);
         dest.writeString(status);
-        synchronized (roles) {
-            writeStringSet(dest, roles);
-        }
+        writeStringSet(dest, roles);
         writeOptJson(dest, privateData);
         writeOptJson(dest, friendVisibleData);
         writeOptJson(dest, registeredVisibleData);
@@ -714,9 +706,7 @@ public class BaasUser implements Parcelable {
      */
     public Set<String> getRoles() {
         HashSet<String> rolescopy;
-        synchronized (roles){
-            rolescopy = new HashSet<>(roles);
-        }
+        rolescopy = new HashSet<>(roles);
         return Collections.unmodifiableSet(rolescopy);
     }
 
@@ -767,9 +757,8 @@ public class BaasUser implements Parcelable {
      */
     public boolean hasRole(String role) {
         if (role == null) throw new IllegalArgumentException("role cannot be null");
-        synchronized (roles) {
-            return roles.contains(role);
-        }
+        return roles.contains(role);
+
     }
 
     /**
@@ -944,7 +933,7 @@ public class BaasUser implements Parcelable {
         return this;
     }
 
-    void setToken(String session) {
+    public void setToken(String session) {
         this.authToken = session;
     }
 
@@ -956,7 +945,11 @@ public class BaasUser implements Parcelable {
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
     public RequestToken signup(BaasHandler<BaasUser> handler) {
-        return signup(RequestOptions.DEFAULT, handler);
+        return signupWithStrategy(RequestOptions.DEFAULT,DefaultSignupStrategy.INSTANCE, handler);
+    }
+
+    public RequestToken signupWithStrategy(SignupStrategy strategy,BaasHandler<BaasUser> handler) {
+        return signupWithStrategy(RequestOptions.DEFAULT,strategy, handler);
     }
 
     /**
@@ -968,11 +961,15 @@ public class BaasUser implements Parcelable {
      * @return a {@link com.baasbox.android.RequestToken} to manage the asynchronous request
      */
     public RequestToken signup(int flags, BaasHandler<BaasUser> handler) {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (password == null) throw new IllegalStateException("password cannot be null");
+        return signupWithStrategy(flags,DefaultSignupStrategy.INSTANCE,handler);
+    }
 
-        SignupRequest req = new SignupRequest(box, this, flags, handler);
-        return box.submitAsync(req);
+    public RequestToken signupWithStrategy(int flags,SignupStrategy function,BaasHandler<BaasUser> handler){
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (function == null) throw new IllegalArgumentException("missing signup strategy");
+        function.validate(this);
+        SignupRequest request = new SignupRequest(box,this,function,flags,handler);
+        return box.submitAsync(request);
     }
 
     /**
@@ -981,13 +978,32 @@ public class BaasUser implements Parcelable {
      * @return the result of the request
      */
     public BaasResult<BaasUser> signupSync() {
-        BaasBox box = BaasBox.getDefaultChecked();
-        if (password == null) throw new IllegalStateException("password cannot be null");
-        SignupRequest signup = new SignupRequest(box, this, RequestOptions.DEFAULT, null);
-        return box.submitSync(signup);
+        return singupWithStrategySync(DefaultSignupStrategy.INSTANCE);
     }
 
-    JsonObject toJsonBody(boolean credentials) {
+    public BaasResult<BaasUser> singupWithStrategySync(SignupStrategy function){
+        BaasBox box = BaasBox.getDefaultChecked();
+        if (function == null){
+            throw new IllegalArgumentException("missing signup strategy");
+        }
+        function.validate(this);
+        SignupRequest request = new SignupRequest(box,this,function,RequestOptions.DEFAULT,null);
+        return box.submitSync(request);
+    }
+
+
+    public interface SignupStrategy{
+
+        public void validate(BaasUser user) throws BaasRuntimeException;
+        public String endpoint();
+        JsonObject requestBody(BaasUser userSignUp);
+        String getToken(JsonObject response);
+        void updateUser(BaasUser user, JsonObject content);
+    }
+
+
+
+    public JsonObject toJsonRequest(boolean credentials) {
         JsonObject object = new JsonObject();
         if (credentials) {
             object.put("username", username)
@@ -1023,7 +1039,7 @@ public class BaasUser implements Parcelable {
         return box.submitSync(follow);
     }
 
-    private void update(JsonObject user) {
+    public void update(JsonObject user) {
         init(user);
     }
 
@@ -1151,18 +1167,22 @@ public class BaasUser implements Parcelable {
 
     private static final class SignupRequest extends NetworkTask<BaasUser> {
         private final BaasUser userSignUp;
-
-        protected SignupRequest(BaasBox box, BaasUser user, int flags, BaasHandler<BaasUser> handler) {
+        private final SignupStrategy strategy;
+        protected SignupRequest(BaasBox box, BaasUser user,SignupStrategy strategy, int flags, BaasHandler<BaasUser> handler) {
             super(box, flags, handler, false);
             this.userSignUp = user;
+            this.strategy = strategy;
         }
 
         @Override
         protected BaasUser onOk(int status, HttpResponse response, BaasBox box) throws BaasException {
             final JsonObject content = parseJson(response, box).getObject("data");
-            String token = content.getString("X-BB-SESSION");
+            String token = strategy.getToken(content);
+
+//            String token = content.getString("X-BB-SESSION");
             if (token == null) throw new BaasException("Could not parse server response, missing token");
-            userSignUp.update(content);
+            strategy.updateUser(userSignUp,content);
+//            userSignUp.update(content);
             userSignUp.authToken = token;
             box.store.storeUser(userSignUp);
             return userSignUp;
@@ -1170,7 +1190,10 @@ public class BaasUser implements Parcelable {
 
         @Override
         protected HttpRequest request(BaasBox box) {
-            return box.requestFactory.post(box.requestFactory.getEndpoint("user"), userSignUp.toJsonBody(true));
+            String e = box.requestFactory.getEndpointRaw(strategy.endpoint());
+            return box.requestFactory.post(e,strategy.requestBody(userSignUp));
+
+//            return box.requestFactory.post(box.requestFactory.getEndpoint("user"), userSignUp.toJsonBody(true));
         }
     }
 
@@ -1257,7 +1280,7 @@ public class BaasUser implements Parcelable {
         @Override
         protected HttpRequest request(BaasBox box) {
             if (user.isCurrent()) {
-                return box.requestFactory.put(box.requestFactory.getEndpoint("me"), user.toJsonBody(false));
+                return box.requestFactory.put(box.requestFactory.getEndpoint("me"), user.toJsonRequest(false));
             }
             return null;
         }
