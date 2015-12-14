@@ -1,5 +1,7 @@
 package com.baasbox.android.json;
 
+import com.baasbox.android.impl.Base64;
+
 import java.io.IOException;
 import java.io.StringReader;
 
@@ -25,6 +27,16 @@ public abstract class JsonStructure {
     }
 
 // -------------------------- STATIC METHODS --------------------------
+
+    String encodeBinary(byte[] data){
+        if (data == null) return null;
+        return Base64.encodeToString(data,Base64.URL_SAFE|Base64.NO_WRAP);
+    }
+
+    byte[] decodeBinary(String data){
+        if (data == null) return null;
+        return Base64.decode(data,Base64.URL_SAFE|Base64.NO_WRAP);
+    }
 
     /**
      * Decodes a string into a {@link JsonStructure}
